@@ -18,7 +18,7 @@ Five things need a decision before anyone starts P1 or C1:
 
 1. The token hypothesis is likely to fail on the 24-page document as the experiment is currently scored, for reasons unrelated to retrieval quality (D-1). A cheap probe should run before the packaging investment.
 2. Distribution needs notarization, not only signing. That pulls in an Apple Developer Program membership, hardened-runtime entitlements for every native binary in the PyInstaller tree, and a real chance that the packaging decision changes (D-2).
-3. Bundling PyMuPDF makes the distributed bundle AGPL unless a commercial license is bought. A permissively licensed backend, if core has one, removes that decision and shrinks the signing surface (D-3).
+3. Bundling PyMuPDF makes the distributed bundle AGPL unless a commercial license is bought. A permissively licensed backend removes that decision and shrinks the signing surface, but core has no in-process permissive PDF adapter today, so any such choice starts with a new core adapter (D-3, DC-2). Docling was checked at the owner's request and is the right second backend, not the first (DC-6).
 4. Coding clients have no directory picker, and the design does not say how their input root gets configured (D-4).
 5. The lexical retriever has no offline quality gate. Paid trials could end up measuring hyphenation handling instead of the hypothesis (D-5).
 
@@ -76,9 +76,9 @@ Decide before P1, because the backend choice also drives packaging effort. Optio
 
 1. Accept AGPL for the proof and write the source offer into the client README.
 2. Buy the Artifex commercial license.
-3. Switch the first backend to a permissively licensed PDF engine if the core adapter catalog has one. A PDFium-based backend keeps native code but avoids AGPL. A pure-Python backend such as pdfminer.six is slower and weaker on layout, but it makes PyInstaller assembly and notarization far simpler and removes the AGPL question entirely.
+3. Switch the first backend to a permissively licensed PDF engine. The core adapter catalog has none in-process today, so this means a new core adapter either way (DC-2). A PDFium-based backend keeps native code but avoids AGPL. A pure-Python backend such as pdfminer.six is slower and weaker on layout, but it makes PyInstaller assembly and notarization far simpler and removes the AGPL question entirely.
 
-The proof's PDF profile, text-bearing PDFs of at most 100 pages with no OCR, is exactly the profile where a simpler engine is adequate. Option 3 is worth an hour of measurement on the synthetic corpus before the decision.
+The proof's PDF profile, text-bearing PDFs of at most 100 pages with no OCR, is exactly the profile where a simpler engine is adequate. Option 3 is worth an hour of measurement on the synthetic corpus before the decision. The owner asked whether Docling could be that backend; the Docling check section (DC-1 to DC-6) answers it.
 
 ### D-4. Coding clients have no way to receive the input root
 
@@ -289,6 +289,91 @@ Installability plus verifiable citations is a real outcome even if input tokens 
 
 There is no listing tool, by design. The Desktop instructions and the skill should say that the model asks the user for the file name when it is not stated rather than guessing paths, and never enumerates the directory by trial imports.
 
+## Docling check
+
+Requested by the owner on 2026-09-10: could the first backend be Docling instead of PyMuPDF? Facts below come from PyPI metadata, the Docling repository at its current main branch, the Docling technical report, the Hugging Face model repositories, and the core adapter sources on GitHub. Versions checked: docling 2.126.0, docling-ibm-models 4.0.2, docling-parse 7.19.0, pypdfium2 5.13.0, onnxruntime 1.30.0, torch 2.14.0. Nothing was executed.
+
+### DC-1. Licenses are not the problem
+
+| Component | License |
+| --- | --- |
+| docling, docling-slim, docling-parse, docling-ibm-models | MIT |
+| Layout Heron weights, PyTorch and ONNX variants | Apache-2.0 |
+| TableFormer weights | CDLA-Permissive-2.0 and Apache-2.0 |
+| onnxruntime | MIT |
+| torch | Apache-2.0 with bundled third-party notices |
+| pypdfium2 with PDFium | Apache-2.0 or BSD-3-Clause; PDFium is BSD-style |
+| PyMuPDF, per the core adapter catalog | AGPL-3.0 |
+
+Docling resolves D-3. So does pypdfium2, which is also one of Docling's own PDF backends.
+
+### DC-2. Core has no in-process Docling adapter today
+
+Core's `docling` adapter is an HTTP client for a self-hosted docling-serve container, configured through `DOCLING_SERVE_URL`. It never imports Docling. The adapter catalog lists it as "Local", which means a local container, not an in-process library. Its provenance mapping reads only the first `prov` entry and defaults a missing page number to 1, which is the caveat engineering section 8 already records.
+
+Consequences:
+
+- Bundling Docling in the proof means a new in-process Docling adapter in core, owned by core, before C2 can start. That is the same size of core change as adding a pypdfium2 adapter.
+- Bundling docling-serve instead would add the second local service that the design's transport decision explicitly avoids.
+- The in-process adapter must map every `prov` entry of an item, not only the first, or cross-page items lose pages.
+
+### DC-3. The PDF pipeline cannot run without the layout model
+
+Docling's standard PDF pipeline always constructs a layout model; the pipeline options have no switch to disable it. Table structure and OCR are optional, and their heavy imports are lazy, so `do_table_structure=False` and `do_ocr=False` avoid TableFormer and OCR entirely. Reading order is rule-based inside Docling and needs no model.
+
+Two inference paths exist for the default Layout Heron model, an RT-DETR detector with a ResNet-50 backbone:
+
+| Path | Runtime dependency | Weights | Notes |
+| --- | --- | --- | --- |
+| Transformers, the default | torch, torchvision, transformers, docling-ibm-models | `docling-project/docling-layout-heron`, 172 MB safetensors | The torch macOS arm64 wheel is 127 MB compressed and several times that installed. MPS acceleration is available. |
+| ONNX Runtime | onnxruntime, plus transformers for image preprocessing only | `docling-project/docling-layout-heron-onnx`, 171 MB | The onnxruntime macOS arm64 wheel is 22 MB. Providers are CPU and CUDA only, so no Core ML or MPS. |
+
+The ONNX path is the only one that fits a bundle. Two things about it are unverified and need a run in P1. The engine still imports `transformers` for its image processor, and that package is not part of the `models-onnxruntime` extra, so it must be added explicitly. The shared vision helper also references torch dynamically in two value-conversion helpers, and this review could not confirm from source alone what happens when torch is absent.
+
+Docling downloads weights from Hugging Face on first use. A bundle must prefetch them at build time with `docling-tools models download` and point the pipeline at them through `artifacts_path`, and the setup disclosure must say that a local vision model is included. The ProductSpec currently excludes Docling and any local model from the proof, so this is a scope change, not a configuration choice.
+
+### DC-4. Speed and limits
+
+Docling technical report figures for full PDF conversion with tables on and OCR off, PyTorch path:
+
+| Hardware | Median per page | Mean per page | 95th percentile per page |
+| --- | --- | --- | --- |
+| Apple M3 Max | 0.32 s | 1.26 s | 6.48 s |
+| x86 CPU, 8 threads | 0.79 s | 3.1 s | 16.3 s |
+
+Layout alone costs 271 ms per page on the M3 Max with MPS. The ONNX path runs on CPU, and a pilot user's base M-series chip is slower than an M3 Max, so per-page cost on that path is unknown until measured. Against the design's limits:
+
+- The 45-second import deadline cannot hold for 100 pages. At the report's median, 100 pages take about 32 seconds on the fastest tested Mac, and the tail runs to minutes. Docling needs a deadline near five minutes or a page cap near 30, plus the per-import model load if the design keeps one worker process per import.
+- Peak memory rises to the gigabyte range with the layout model resident. C-8's watchdog becomes mandatory rather than advisable.
+- Docling's `document_timeout` option exists and should back the parent deadline so a timeout leaves no half-built result.
+
+### DC-5. Bundle footprint, estimated
+
+| Candidate | What ships | Estimated payload | Native binaries to sign |
+| --- | --- | --- | --- |
+| pypdfium2 only | interpreter, core, MCP SDK, one PDFium library | tens of MB | few |
+| docling-parse only | interpreter, core, MCP SDK, docling-parse | tens of MB | few |
+| PyMuPDF | interpreter, core, MCP SDK, MuPDF libraries | around 100 MB | a few dozen |
+| Docling, ONNX layout, tables off | the above plus the docling-slim stack, transformers, onnxruntime, Heron ONNX weights | 300 to 400 MB | dozens |
+| Docling, PyTorch layout | the above plus torch, torchvision, docling-ibm-models | 700 MB to more than 1 GB | hundreds |
+
+These are estimates from wheel and weight sizes, not measurements. P1 records the real numbers.
+
+### DC-6. Verdict
+
+Docling is the right second backend and the wrong first one for this proof.
+
+- It answers D-3, and it would improve retrieval on the 48-page manual and the 80-page report, because it produces paragraphs, headings, reading order, and merged lines instead of parser blocks. That matters for D-5.
+- It fails the proof's own constraints as written: the spec excludes it, the transport decision excludes a second service, core has no in-process adapter, the 45-second deadline and 100-page cap do not survive, the bundle grows three to four times, and the notarization surface grows with it. Every one of those can be changed, but together they make a different proof, and the ProductSpec revision must say so.
+
+Recommendation, in order:
+
+1. If AGPL is the driver, add a pypdfium2 adapter to core and make it the first backend. It is permissive, fast, needs no model, detects passwords, reports page counts, and produces page text with character geometry. The design's existing `page_text` fallback already describes an artifact built from page text without blocks, so the tool contracts do not change. Keep the 45-second deadline and the 100-page cap. This is the smallest change that removes the license problem.
+2. Schedule Docling as milestone 2 with its own spec revision: an in-process core adapter, ONNX layout, tables and OCR off, weights prefetched into the bundle, a deadline and page cap re-derived from P1 measurements on a base M-series machine, and the D-5 recall check rerun to show the quality gain. Because pypdfium2 is also Docling's PDF backend, physical page numbering and page text stay consistent across the two milestones, and the artifact manifest's backend fields already record which engine produced an artifact.
+3. Do not bundle the PyTorch path or docling-serve for either milestone.
+
+If the owner wants Docling first anyway, the minimum edits are: ProductSpec revision 2 that removes Docling and a local model from the out list and adds a model disclosure; engineering sections 1, 5, 6, and 11 for backend, memory, deadline, page cap, and bundle contents; plan R0 to add the in-process adapter to core's scope; and plan P1 to measure ONNX CPU latency per page and settle the transformers-without-torch question before anything else.
+
 ## Q. Questions for the owner
 
 1. Is a negative token result acceptable as the first public outcome? The answer decides whether M0 runs before P1.
@@ -305,3 +390,4 @@ There is no listing tool, by design. The Desktop instructions and the skill shou
 - Did not open the core repository, per the review instruction to stay in this checkout. Statements about core adapters come from the design's own description and the linked catalog.
 - Did not verify the MCPB manifest capabilities, the Codex plugin format, the Agent SDK usage fields, Apple's current notarization rules, or the provider's PDF token accounting against live documentation. Items that depend on those are marked as things to confirm in P1, H2, or M1.
 - Ran no host installation and no model call.
+- For the Docling check, read PyPI metadata, Docling source files on GitHub, the Docling technical report, Hugging Face model file listings, and the two core adapter sources on GitHub. Nothing from those sources was executed.
