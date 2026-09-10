@@ -153,8 +153,8 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-Every criterion below is unverified until implementation supplies the referenced evidence.
-The build task mapping lives in the implementation plan.
+The [runtime evidence table](../../runtime/README.md) maps implemented checks and remaining evidence to these criteria.
+The implementation plan now tracks only unfinished review and release work.
 
 ~~~productspec-acceptance-criteria
 - id: AC-1

@@ -5,10 +5,9 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 
 ## Current stage
 
-This repository contains proposals and repository validation tooling.
-It has no released plugin, runtime, or measured token savings.
-The approved task for this initial branch is repository foundations and design.
-Do not implement the product until the owner authorizes implementation.
+This repository implements a local document preview, client packaging, and measurement tooling.
+No public binary or measured token savings are released.
+The remaining release and live-study gates stay in `design/`.
 
 ## Ownership
 
@@ -80,13 +79,13 @@ Each implementation PR has one clearly identified human reviewer.
 ## Checks and claims
 
 `make verify` is offline after `make sync`.
-Today it checks Markdown, repository policy, local links, JSON/YAML, its own regression tests, and ProductSpec.
+It checks Python runtime tests and coverage, Node measurement tests and coverage, Markdown, repository policy, local links, JSON/YAML, and ProductSpec.
 `make audit` separately queries dependency advisories and requires network access.
 GitHub actions use full commit pins, read-only repository permissions, and bounded timeouts.
 Optional Git hooks run the same gate through `make hooks`.
 
-When executable product behavior lands, add its focused offline tests to this same gate.
-Add a measured coverage floor with those tests, then raise it as coverage improves.
+Add focused offline tests for product changes to this same gate.
+Python branch coverage and Node line, branch, and function coverage have enforced 80% floors.
 Do not create a percentage badge before a corresponding enforced check exists.
 Real host installation and paid model trials are explicit lanes, separate from offline tests.
 
@@ -134,11 +133,14 @@ The first proof may name its deliberately narrower PDF test scope.
 product/specs/  product intent and acceptance criteria for unbuilt work
 design/         engineering proposals and implementation tasks
 scripts/        repository validation tooling
-tests/          regression tests for that tooling
+tests/          runtime, measurement, and repository regression tests
+runtime/        frozen runtime build, integrity verification, and launch configuration
+clients/        client manifests and installation guides
+skills/         shared bounded retrieval workflow
+measurement/    synthetic datasets, frozen trials, usage accounting, and reports
 assets/brand/   shared OpenReading brand asset
 .github/        CI, dependency updates, ownership, and issue/PR templates
 .githooks/      optional local commit and push checks
 ~~~
 
-Future runtime and client directories are specified in the implementation plan.
-Do not create empty product scaffolds that appear installable.
+Real host and paid-study evidence remain separate from offline verification.

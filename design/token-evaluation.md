@@ -1,6 +1,7 @@
 # Token evaluation for the local document proof
 
-**Status:** proposed experiment, no measurements collected.
+**Status:** proposed live experiment; the offline driver is implemented and no model measurements are collected.
+Implemented execution and accounting contracts live in the [measurement guide](../measurement/README.md).
 **ProductSpec:** [revision 1](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17.
 **Execution:** requires a separately approved live manifest and account.
 

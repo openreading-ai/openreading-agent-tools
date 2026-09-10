@@ -1,9 +1,10 @@
-.PHONY: sync verify lint test repo-check productspec-validate audit hooks
+.PHONY: sync verify lint test repo-check productspec-validate audit hooks runtime-check
 
 sync:
 	npm ci --ignore-scripts --no-audit --no-fund
+	uv sync --frozen --project runtime --all-groups
 
-verify:
+verify: runtime-check
 	npm run verify
 
 lint:
@@ -24,3 +25,9 @@ audit:
 
 hooks:
 	git config core.hooksPath .githooks
+
+runtime-check:
+	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py tests/runtime
+	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py tests/runtime
+	uv run --frozen --project runtime --all-groups coverage run --rcfile=runtime/pyproject.toml -m unittest discover -s tests/runtime
+	uv run --frozen --project runtime --all-groups coverage report --rcfile=runtime/pyproject.toml

@@ -1,0 +1,21 @@
+{
+  "manifest_version": "0.4",
+  "name": "openreading-local-proof",
+  "display_name": "OpenReading Local Documents",
+  "version": "0.1.0-alpha.1",
+  "description": "Read local document evidence with physical page citations.",
+  "long_description": "Choose an explicit document directory. OpenReading retains local source copies and extracted evidence until you remove its store. Returned excerpts enter Claude's context and may reach its cloud model. This preview uses local PyMuPDF for one PDF at a time, up to 25 MiB and 100 pages. No OCR, passwords, hosted fallback, or measured token-savings claim.",
+  "author": {"name": "OpenReading"},
+  "server": {
+    "type": "binary",
+    "entry_point": "server/openreading-worker",
+    "mcp_config": {"command": "${__dirname}/server/openreading-worker", "args": ["--client", "claude-desktop", "--input-root", "${user_config.input_root}"]}
+  },
+  "compatibility": {"platforms": ["darwin"]},
+  "user_config": {"input_root": {"type": "directory", "title": "Document directory", "description": "Grant access to this directory. Sources are retained locally; retrieved excerpts enter Claude's context.", "required": true}},
+  "tools": [
+    {"name": "openreading_import", "description": "Retain one local document without returning its text."},
+    {"name": "openreading_search", "description": "Search bounded page evidence."},
+    {"name": "openreading_read", "description": "Read exact passages with page citations."}
+  ]
+}

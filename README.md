@@ -3,22 +3,24 @@
 # OpenReading Agent Tools
 
 [![Repository checks](https://github.com/openreading-ai/openreading-agent-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/openreading-ai/openreading-agent-tools/actions/workflows/ci.yml)
-[![Stage](https://img.shields.io/badge/stage-design-blue)](product/specs/local-document-proof.product-spec.md)
+[![Stage](https://img.shields.io/badge/stage-local_preview-blue)](product/specs/local-document-proof.product-spec.md)
 [![ProductSpec](https://img.shields.io/badge/ProductSpec-0.1-blue)](https://github.com/gokulrajaram/ProductSpec)
 [![Source license](https://img.shields.io/badge/source-Apache--2.0-blue)](LICENSE)
 
-OpenReading Agent Tools will connect local document processing to your AI assistant.
-The first proposed proof lets you install a local runtime, ask about a document, and inspect the pages supporting the answer.
+OpenReading Agent Tools packages local document processing for your AI assistant.
+The local preview retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: design and repository checks only.** No installable plugin, packaged runtime, or measured token savings ship from this repository yet.
-The source license above does not describe the licenses of future bundled dependencies.
+**Status: implemented local preview, pending release evidence.** You can build the native runtime and client packages for local review.
+No public binary or measured token-savings claim is released.
+The source license above does not describe bundled dependency licenses.
 
 ## The first proof
 
-The proposal starts with Claude Desktop on macOS with Apple Silicon.
+The first profile targets macOS on Apple Silicon.
 You install a bundle, choose a document directory, and ask about one PDF with extractable text.
 OpenReading keeps the extracted document locally and returns selected passages with physical page references.
-Claude Code and Codex use the same proposed runtime through separate packaging and compatibility tests.
+Claude Desktop, Claude Code, and Codex packages contain the same frozen runtime.
+See the [runtime evidence table](runtime/README.md) for tested behavior and remaining host checks.
 
 A separate experiment tests whether selective retrieval reduces Claude token consumption while preserving answer quality.
 Local parsing alone does not establish that claim.
@@ -41,7 +43,10 @@ Core never requires this checkout or a private company package.
 | Need | Read |
 | --- | --- |
 | Goals, scope, user experience, and pass/fail criteria | [Product specification](product/specs/local-document-proof.product-spec.md) |
-| Runtime, client packaging, tool contracts, and provenance | [Engineering design](design/local-document-proof.md) |
+| Build, package, verify, and inspect implementation evidence | [Runtime guide](runtime/README.md) |
+| Client setup | [Claude Desktop](clients/claude-desktop/README.md), [Claude Code](clients/claude-code/README.md), [Codex](clients/codex/README.md) |
+| Prepare a frozen experiment and regenerate reports | [Measurement guide](measurement/README.md) |
+| Remaining installation and distribution evidence | [Release design](design/local-document-proof.md) |
 | Fair baselines, usage accounting, and claim limits | [Token evaluation design](design/token-evaluation.md) |
 | Ordered tasks, exact files, tests, and handoff rules | [Implementation plan](design/implementation-plan.md) |
 | Agent instructions and repository ownership | [AGENTS.md](AGENTS.md) |
@@ -50,8 +55,9 @@ Core never requires this checkout or a private company package.
 
 ## Verify this repository
 
-Contributors need Node.js 24 or newer and npm.
-These are documentation tooling requirements, separate from the proposed end-user installation experience.
+Contributors need Node.js 24 or newer, npm, and uv 0.11.26.
+The lockfile selects Python 3.11.15; uv can install that interpreter for contributors.
+The frozen end-user runtime includes its interpreter.
 
 ~~~sh
 make sync
@@ -59,12 +65,13 @@ make verify
 make audit    # Requires internet access.
 ~~~
 
-The gate checks Markdown, repository documentation policy, local link targets, JSON/YAML syntax, and ProductSpec validity.
-Its regression tests exercise those repository checks.
+The gate checks Python formatting, runtime integrity, packaging, synthetic dataset generation, usage accounting, and report decisions.
+Python branch coverage and Node line, branch, and function coverage each enforce an 80% floor.
+Markdown, repository policy, local links, JSON/YAML, and ProductSpec checks also run.
 After dependency installation, verification needs no network, model credentials, backend server, or sibling checkout.
 
 GitHub runs the same gate and a separate dependency advisory lookup.
-There is no runtime coverage badge because no runtime exists here yet.
+Paid model trials and real host installation remain separate from this offline gate.
 
 ## Contributing
 

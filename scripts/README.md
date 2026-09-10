@@ -12,3 +12,8 @@ It deliberately does not fetch remote links or validate heading fragments.
 Ignored build, dependency, scratch, and artifact directories are excluded from traversal.
 The check rejects symlinks encountered in the checked tree.
 That prevents a local link or configuration file from silently reading outside the checkout.
+
+`package_smoke.py` drives the actual frozen runtime through an MCP client session.
+Run `uv run --frozen --project runtime --all-groups python -m scripts.package_smoke --runtime /absolute/runtime`.
+It checks synthetic import, bounded retrieval, physical-page evidence, Unicode paths, access refusal, and restart reuse.
+Its result identifies a development-machine smoke and never claims a clean-host or model trial.

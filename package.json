@@ -2,25 +2,32 @@
   "name": "openreading-agent-tools-repository",
   "version": "0.0.0",
   "private": true,
-  "description": "Repository checks for OpenReading agent tooling proposals",
+  "description": "Local OpenReading client packaging and evidence measurement",
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "verify": "npm run lint && npm test && npm run check:repo && npm run check:specs",
     "lint": "markdownlint-cli2",
-    "test": "node --test tests/repository.test.mjs",
+    "test": "node --test --experimental-test-coverage --test-coverage-include=\"measurement/*.mjs\" --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 tests/repository.test.mjs tests/measurement/*.test.mjs",
     "check:repo": "node scripts/check-repository.mjs",
     "check:specs": "productspec validate product/specs/local-document-proof.product-spec.md"
   },
   "overrides": {
     "markdownlint-cli2": {
       "smol-toml": "1.7.1"
-    }
+    },
+    "tmp": "0.2.7"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.267",
+    "@anthropic-ai/mcpb": "2.1.2",
     "@productspec/parser": "0.27.0",
+    "ajv": "8.20.0",
     "markdown-it": "15.0.1",
     "markdownlint-cli2": "0.23.2",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "prettier": "3.9.6"
   }
 }

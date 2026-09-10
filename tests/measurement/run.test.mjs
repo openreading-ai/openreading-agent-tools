@@ -1,0 +1,258 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  rmSync,
+  readFileSync,
+  chmodSync,
+  realpathSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createHash } from "node:crypto";
+import {
+  validateRun,
+  plannedTrials,
+  runTrial,
+} from "../../measurement/run.mjs";
+
+const hash = (data) => createHash("sha256").update(data).digest("hex");
+export function fixture(t) {
+  const root = realpathSync(
+    mkdtempSync(join(tmpdir(), "openreading-measurement-")),
+  );
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, "plugin/server"), { recursive: true });
+  const task_ids = ["task0", "task1", "task2", "task3"];
+  const dataset = {
+    tasks: task_ids.map((id) => ({
+      id,
+      category: "agreement",
+      question: "When?",
+      document: "source.pdf",
+      extraction: "source.txt",
+    })),
+    files: { "source.pdf": hash("pdf"), "source.txt": hash("text") },
+  };
+  const content = {
+    "dataset.json": JSON.stringify(dataset),
+    "prompt.txt": "Answer using cited evidence.",
+    "skill.md": "Import and read.",
+    "environment.json": "{}",
+    "source.pdf": "pdf",
+    "source.txt": "text",
+    client: "client",
+    "plugin/server/release.json": JSON.stringify({
+      core_commit: "a".repeat(40),
+      worker_sha256: hash("worker"),
+      files: {
+        "openreading-worker": {
+          length: 6,
+          sha256: hash("worker"),
+          executable: true,
+        },
+      },
+    }),
+    "plugin/server/openreading-worker": "worker",
+  };
+  for (const [name, value] of Object.entries(content))
+    writeFileSync(join(root, name), value);
+  chmodSync(join(root, "plugin/server/openreading-worker"), 0o755);
+  const manifest = {
+    schema_version: "1",
+    experiment_id: "test",
+    spec_revision: 1,
+    study_kind: "calibration",
+    dataset_manifest: "dataset.json",
+    dataset_sha256: hash(content["dataset.json"]),
+    model_id: "claude-sonnet-4-6",
+    client_path: join(root, "client"),
+    client_sha256: hash("client"),
+    client_version: "2.1.266",
+    sdk_version: "0.3.267",
+    core_commit: "a".repeat(40),
+    runtime_dir: "plugin/server",
+    runtime_sha256: hash(content["plugin/server/release.json"]),
+    plugin_dir: "plugin",
+    prompt_file: "prompt.txt",
+    prompt_sha256: hash(content["prompt.txt"]),
+    skill_file: "skill.md",
+    skill_sha256: hash(content["skill.md"]),
+    environment_file: "environment.json",
+    environment_sha256: hash("{}"),
+    arms: ["A", "B", "C"],
+    task_ids,
+    repetitions: 1,
+    order_seed: 13,
+    max_trials: 12,
+    max_turns_per_trial: 12,
+    timeout_seconds_per_trial: 180,
+    max_estimated_usd_per_trial: 2,
+    max_estimated_usd_total: 20,
+    evidence_root: root,
+    account_label: "approved-test-account",
+    allowed_bash_commands: [],
+  };
+  const path = join(root, "manifest.json");
+  writeFileSync(path, JSON.stringify(manifest));
+  return { root, manifest, path };
+}
+
+test("dry validation checks every frozen input and deterministic complete schedule", (t) => {
+  const { path } = fixture(t);
+  const run = validateRun(path);
+  assert.equal(plannedTrials(run).length, 12);
+  assert.deepEqual(plannedTrials(run), plannedTrials(run));
+  assert.equal(run.liveApproved, false);
+});
+
+test("changed manifest hash, changed dataset and escaped paths refuse execution", (t) => {
+  const { root, path, manifest } = fixture(t);
+  assert.throws(() => validateRun(path, "0".repeat(64)), /approval/);
+  writeFileSync(join(root, "source.pdf"), "changed");
+  assert.throws(() => validateRun(path), /hash/);
+  manifest.prompt_file = "../private";
+  writeFileSync(path, JSON.stringify(manifest));
+  assert.throws(() => validateRun(path), /path|hash/);
+});
+
+test("unapproved run cannot invoke a model", async (t) => {
+  const { path } = fixture(t);
+  const run = validateRun(path);
+  await assert.rejects(
+    () =>
+      runTrial(run, plannedTrials(run)[0], {
+        query: () => {
+          throw new Error("model invoked");
+        },
+      }),
+    /approved/,
+  );
+});
+
+test("approved fake query records real counters and failures without zero substitution", async (t) => {
+  const { root, path } = fixture(t);
+  const run = validateRun(path, hash(readFileSync(path)));
+  const query = async function* () {
+    yield {
+      type: "result",
+      subtype: "success",
+      modelUsage: {
+        model: {
+          inputTokens: 40,
+          cacheCreationInputTokens: 10,
+          cacheReadInputTokens: 50,
+          outputTokens: 8,
+        },
+      },
+      total_cost_usd: 0.02,
+    };
+  };
+  const trial = await runTrial(run, plannedTrials(run)[0], { query });
+  assert.equal(trial.usage.input_total, 100);
+  assert.equal(trial.quality.passed, null);
+  assert.equal(trial.state, "completed");
+  assert.ok(readFileSync(join(root, trial.evidence.events)).length);
+});
+
+test("resume accounts for later recorded trials before spending again", async (t) => {
+  const { main } = await import("../../measurement/run.mjs");
+  const { root, path } = fixture(t),
+    run = validateRun(path),
+    schedule = plannedTrials(run);
+  const later = schedule.at(-1),
+    id = `${later.task_id}-${later.repetition}-${later.arm}`;
+  const directory = join(root, "runs", "test", id);
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(
+    join(directory, "trial.json"),
+    JSON.stringify({
+      ...later,
+      category: "agreement",
+      manifest_sha256: run.manifestHash,
+      state: "completed",
+      usage: { complete: true, input_total: 100, estimated_usd: 20 },
+      quality: { passed: null, citation_valid: null },
+    }),
+  );
+  let calls = 0;
+  await main([path, "--live", "--approved-manifest-sha256", run.manifestHash], {
+    query: () => {
+      calls++;
+      throw new Error("must not spend");
+    },
+  });
+  assert.equal(calls, 0);
+  const report = JSON.parse(readFileSync(join(root, "runs/test/report.json")));
+  assert.equal(report.rows.filter((row) => row.state === "unrun").length, 11);
+});
+
+test("an interrupted raw log blocks another paid attempt and dry CLI calls no model", async (t) => {
+  const { main } = await import("../../measurement/run.mjs");
+  const { root, path } = fixture(t),
+    run = validateRun(path),
+    task = plannedTrials(run)[0];
+  const directory = join(
+    root,
+    "runs",
+    "test",
+    `${task.task_id}-${task.repetition}-${task.arm}`,
+  );
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(join(directory, "events.jsonl"), "partial");
+  let calls = 0;
+  const query = () => {
+    calls++;
+    throw new Error("must not spend");
+  };
+  await main([path], { query });
+  await main([path, "--live", "--approved-manifest-sha256", run.manifestHash], {
+    query,
+  });
+  assert.equal(calls, 0);
+  assert.equal(
+    JSON.parse(readFileSync(join(root, "runs/test/report.json"))).claim
+      .supported,
+    false,
+  );
+});
+
+test("frozen plugin configuration cannot change after manifest approval", (t) => {
+  const { root, path, manifest } = fixture(t);
+  writeFileSync(join(root, "plugin/mcp.json"), "{}");
+  const environment = JSON.stringify({
+    plugin_files: { "plugin/mcp.json": hash("{}") },
+  });
+  writeFileSync(join(root, "environment.json"), environment);
+  manifest.environment_sha256 = hash(environment);
+  writeFileSync(path, JSON.stringify(manifest));
+  validateRun(path);
+  writeFileSync(join(root, "plugin/mcp.json"), '{"changed":true}');
+  assert.throws(() => validateRun(path), /hash/);
+});
+
+test("report-only rebuilds all planned rows without approval or model calls", async (t) => {
+  const { main } = await import("../../measurement/run.mjs");
+  const { root, path } = fixture(t);
+  await main([path, "--report"], {
+    query: () => {
+      throw new Error("model invoked");
+    },
+  });
+  const report = JSON.parse(readFileSync(join(root, "runs/test/report.json")));
+  assert.equal(report.rows.length, 12);
+  assert.equal(report.claim.supported, false);
+});
+
+test("an added plugin hook cannot enter a frozen experiment", (t) => {
+  const { root, path, manifest } = fixture(t);
+  const environment = JSON.stringify({ plugin_files: {} });
+  writeFileSync(join(root, "environment.json"), environment);
+  manifest.environment_sha256 = hash(environment);
+  writeFileSync(path, JSON.stringify(manifest));
+  validateRun(path);
+  writeFileSync(join(root, "plugin/hooks.json"), "{}");
+  assert.throws(() => validateRun(path), /plugin inventory/);
+});

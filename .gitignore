@@ -19,3 +19,6 @@ __pycache__/
 *.pdf
 *.docx
 CLAUDE.local.md
+
+.coverage*
+.ruff_cache/
