@@ -18,11 +18,39 @@ Five things need a decision before anyone starts P1 or C1:
 
 1. The token hypothesis is likely to fail on the 24-page document as the experiment is currently scored, for reasons unrelated to retrieval quality (D-1). A cheap probe should run before the packaging investment.
 2. Distribution needs notarization, not only signing. That pulls in an Apple Developer Program membership, hardened-runtime entitlements for every native binary in the PyInstaller tree, and a real chance that the packaging decision changes (D-2).
-3. Bundling PyMuPDF makes the distributed bundle AGPL unless a commercial license is bought. A permissively licensed backend removes that decision and shrinks the signing surface, but core has no in-process permissive PDF adapter today, so any such choice starts with a new core adapter (D-3, DC-2). Docling was checked at the owner's request and is the right second backend, not the first (DC-6).
+3. Bundling PyMuPDF would have made the distributed bundle AGPL. Resolved on 2026-09-10: PyMuPDF is out, and the bundle is Docling with pypdfium2 and Tesseract, all permissively licensed (Decision log, DC-7).
 4. Coding clients have no directory picker, and the design does not say how their input root gets configured (D-4).
 5. The lexical retriever has no offline quality gate. Paid trials could end up measuring hyphenation handling instead of the hypothesis (D-5).
 
 Everything else is a contract detail or a plan gap that can be fixed in place.
+
+## Decision log
+
+**2026-09-10, owner:** PyMuPDF is not bundled. The bundle is Docling, with pypdfium2 as Docling's own PDF backend, and Tesseract for OCR. The source repositories stay Apache-2.0. Every component in the bundle is permissively licensed. The concrete profile and the edits it requires are in DC-7.
+
+Items that decision changes:
+
+- D-3 is resolved. The AGPL question no longer exists for the bundle.
+- DC-6 is superseded. Docling is the first backend, not the second. DC-2 through DC-5 still describe what that costs.
+- C-7 generalizes: the MCP parent never loads Docling, onnxruntime, PDFium, or Tesseract.
+- C-8 becomes mandatory. A resident layout model puts the worker in the gigabyte range.
+- D-2 grows: the notarization surface now includes onnxruntime, PDFium, Tesseract, Leptonica, and their image libraries.
+- D-5 is partly eased. Docling merges lines into paragraphs and orders them, which removes some hyphenation and block-boundary failures. The recall check is still required.
+- Q-3 is answered. New questions Q-7 through Q-10 replace it.
+
+## Overall assessment
+
+The proposal is generally good. Its structure is right: outcomes in the spec, interfaces in the design, order in the plan, truth rules at the boundary, and a measurement design that cannot be gamed by dropping unfavorable rows. Most items in this review are in-place corrections that fit inside the existing tasks.
+
+The major items, in the order they block work:
+
+1. ProductSpec revision 2 for the engine change. The scope list, the product summary, AC-4, and AC-9 name PyMuPDF or exclude Docling and local models. Nothing downstream can be pinned to revision 1 once the bundle changes.
+2. Signing and notarization as a release prerequisite with a chosen fallback (D-2).
+3. Import time on the Docling path against host tool-call timeouts, which decides the page cap, the deadline, and whether a text-only profile is needed (DC-7, Q-7 and Q-9).
+4. The coding-client input root mechanism (D-4).
+5. The token experiment's expected outcome on short documents and the cheap probe that tests it before packaging (D-1, P-3).
+
+The rest can be folded into C1 through C4, M1, and H1 as those tasks are written.
 
 ## The objective as this review understands it
 
@@ -66,7 +94,7 @@ Gatekeeper on current macOS refuses browser-downloaded executables that are not 
 
 If notarizing the PyInstaller tree turns out to be fragile, the fallback candidates in order of least change are MCPB's host-managed Python mode, which the design already names, and a pure-Python backend (D-3), which removes most native libraries from the signing surface. Add that decision rule to P1's stop condition so a failure produces a chosen fallback, not only a recorded failure.
 
-### D-3. Bundling PyMuPDF makes the bundle AGPL unless a commercial license is bought
+### D-3. Bundling PyMuPDF makes the bundle AGPL unless a commercial license is bought (resolved, see DC-7)
 
 Where: engineering design section 11; AC-19; ProductSpec Product Summary.
 
@@ -145,7 +173,7 @@ Section 5 rejects FIFOs, but a read-only open of a FIFO blocks until a writer ap
 
 ### C-7. The parent process must never load the PDF library
 
-The limits table already places page preflight in the worker. State the rule directly: the MCP parent never imports the PyMuPDF binding. Native library output and crashes then cannot reach the MCP stdout stream or take down the server, and the parent's memory stays small. Add a test that patches the binding import in the parent and asserts it never triggers.
+The limits table already places page preflight in the worker. State the rule directly: the MCP parent never imports an engine. With the Docling profile that means Docling, onnxruntime, PDFium, and Tesseract. Native library output and crashes then cannot reach the MCP stdout stream or take down the server, and the parent's memory stays small. Add a test that patches the binding import in the parent and asserts it never triggers.
 
 ### C-8. Memory has no enforcement, and macOS does not honor the usual limits
 
@@ -359,7 +387,7 @@ Layout alone costs 271 ms per page on the M3 Max with MPS. The ONNX path runs on
 
 These are estimates from wheel and weight sizes, not measurements. P1 records the real numbers.
 
-### DC-6. Verdict
+### DC-6. Verdict (superseded by DC-7)
 
 Docling is the right second backend and the wrong first one for this proof.
 
@@ -374,14 +402,69 @@ Recommendation, in order:
 
 If the owner wants Docling first anyway, the minimum edits are: ProductSpec revision 2 that removes Docling and a local model from the out list and adds a model disclosure; engineering sections 1, 5, 6, and 11 for backend, memory, deadline, page cap, and bundle contents; plan R0 to add the in-process adapter to core's scope; and plan P1 to measure ONNX CPU latency per page and settle the transformers-without-torch question before anything else.
 
+### DC-7. The permissive three-engine bundle
+
+Owner decision, 2026-09-10. This section replaces DC-6's recommendation. It describes the profile as this review understands it and the edits the proposal needs. Codex should treat it as input to ProductSpec revision 2, not as an approved contract.
+
+Engine roles:
+
+| Role | Component | License | Notes |
+| --- | --- | --- | --- |
+| Pipeline and orchestration | Docling, in process | MIT | One pipeline runs everything. There is no separate per-engine adapter in this repository. |
+| PDF parsing and rendering | docling-parse v4 as Docling's default backend, pypdfium2 for page rendering and preflight | MIT; Apache-2.0 or BSD-3-Clause with BSD-style PDFium | Both are Docling dependencies already. pypdfium2 alone does the cheap preflight: page count, password detection, text-layer presence. |
+| Layout and reading order | Layout Heron, ONNX Runtime engine, CPU provider; Docling's rule-based reading order | Apache-2.0 weights; MIT runtime | Weights prefetched at build time and loaded through `artifacts_path`. No download at runtime. |
+| OCR | Tesseract through Docling's CLI OCR model, with bundled tessdata | Apache-2.0; Leptonica BSD-2-Clause | Explicit, never automatic. See the OCR notes below. |
+| Table structure | none | | TableFormer runs only on the docling-ibm-models engine, which needs torch. Off until a torch-free engine exists or the owner accepts torch. |
+
+Hard rules that follow from the decision:
+
+- No torch, torchvision, or docling-ibm-models anywhere in the bundle. The build fails if the lock contains them. This is the check that keeps the bundle permissive and small.
+- Docling's `do_table_structure` is false and `do_ocr` is controlled by setup, not by the model. Confirm in C2 what Docling emits for table regions when structure is off, so table text still reaches passages.
+- The engine imports `transformers` for image preprocessing on the ONNX path. Pin it, record its license (Apache-2.0), and prove in P1 that the pipeline runs with torch absent. DC-3 records why this is unverified.
+- OCR-derived text carries its own `source_kind` value, for example `ocr_text`, in passages and search hits. A citation from OCR must say so. The truth rule that a quote proves extraction, not understanding, applies twice as hard here.
+- The worker still owns every engine. The parent never imports Docling, onnxruntime, PDFium, or Tesseract. Prefer a warm worker that survives between imports with an idle timeout, restarted on crash or deadline, so the model loads once per session instead of once per import.
+- The import deadline, page cap, and memory ceiling are P1 measurements on a base M-series machine, not the current constants. Each host has a tool-call timeout; record it in H1 and H2 and size the page cap so the measured 95th percentile import fits under the strictest host. Emit MCP progress notifications during import so a slow document does not look like a hung server.
+
+OCR engine notes. The owner named Tesseract. Two permissive alternatives cost less to bundle: RapidOCR, Docling's default, runs on the onnxruntime already in the bundle and adds only its model files; ocrmac uses Apple's Vision framework with nothing to bundle but is macOS-only. Keep Tesseract as the choice, and let P1 run all three on the synthetic scanned fixture and record accuracy, size, and latency. Switch only on measured evidence. Whichever engine ships, image-only pages are refused with `no_readable_text` when OCR is disabled at setup, which keeps the spec's "no automatic OCR escalation" rule.
+
+Spec edits for revision 2:
+
+- Scope: remove "Do not install Docling, Tesseract ... automatically" from the out list. Keep "no local language model" and add that a local vision model for page layout ships in the bundle and is disclosed at setup.
+- Product summary: the first backend is the Docling profile above, not PyMuPDF.
+- AC-4: replace "the explicitly pinned PyMuPDF backend" with the pinned local engines, and add "loads no model weights from outside the bundle".
+- AC-9: limits are the measured constants from P1, referenced by name, not the current numbers.
+- Add an acceptance criterion that OCR runs only when enabled at setup and that OCR text is labeled in every result.
+- Risks: add the model disclosure and the bundle size.
+
+Design edits:
+
+- Section 1: parser and extraction rows; add a row for the no-torch rule and its reason.
+- Section 4: setup gains an OCR switch, default off, passed as a profile argument. Tools still accept no backend field.
+- Sections 5 and 6: warm worker, memory watchdog, measured deadline and page cap, progress notifications, host timeouts.
+- Section 7: manifest records docling, docling-parse, pypdfium2, onnxruntime, and Tesseract versions, the layout weight hash, the tessdata hash, and the OCR and table settings inside `extraction_settings`.
+- Section 8: passages come from Docling items. Map every `prov` entry, not the first. Keep physical page numbers from Docling's page provenance. Add the OCR `source_kind`.
+- Section 11: bundle contents and notices for every component above, plus the torch exclusion check.
+- Section 15: add Docling, docling-parse, pypdfium2, and Tesseract references.
+
+Plan edits:
+
+- R0: the core proposal gains an in-process Docling adapter with these settings and a pypdfium2 preflight. The existing HTTP adapter for docling-serve stays separate.
+- P1: measure ONNX layout latency per page and peak memory on a base M-series machine, bundle size, cold start, and the three OCR engines; prove torch-free execution; notarize the full native set.
+- C2: preflight moves from the PyMuPDF adapter to pypdfium2.
+- M0 and the rest of the plan are unchanged in shape. The token experiment gains a better arm B and arm C extraction, which makes D-1's warning about short documents more relevant, not less, because Docling's structure does not reduce turn count.
+
 ## Q. Questions for the owner
 
 1. Is a negative token result acceptable as the first public outcome? The answer decides whether M0 runs before P1.
 2. Are a Developer ID certificate and notarization available for this project? If not, binary MCPB packaging cannot meet AC-1 on a browser-downloaded bundle.
-3. AGPL acceptance, a commercial license, or a permissive backend for the proof?
+3. Answered on 2026-09-10: no PyMuPDF in the bundle. See DC-7.
 4. Should the source snapshot stay in the artifact?
 5. Which model runs the experiment? The budget ceilings depend on it.
 6. For coding clients: configuration file, environment variable, or project directory as the grant?
+7. One Docling profile for every import, or a second text-only profile on pypdfium2 for fast imports of text PDFs? P1 measurements decide whether the question matters.
+8. OCR enabled at setup only, or also selectable per import through a closed mode value? Setup only keeps AC-4 simple.
+9. Is an import deadline of a few minutes acceptable for the largest documents, with progress notifications, or should the page cap drop to fit the current 45 seconds?
+10. Tables: accept no table structure recognition until a torch-free engine exists, or accept torch and the bundle size that comes with it?
 
 ## What this review did and did not check
 
