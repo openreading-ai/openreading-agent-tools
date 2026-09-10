@@ -265,7 +265,7 @@ The manifest records:
 | extraction_settings | Exact normalized channel/options profile used for parsing. |
 | evidence_format | Literal `passages.v1`. |
 | created_at | UTC creation time, excluded from identity. |
-| files | Length and SHA-256 for each artifact file. |
+| files | Length and SHA-256 for source.pdf, response.json, and passages.jsonl. The manifest excludes itself. |
 | warnings | Controlled codes and bounded sanitized descriptions. |
 
 Canonical extraction identity is UTF-8 JSON with sorted keys, compact separators, and no floating timestamps.
@@ -277,7 +277,7 @@ Changing the configured root makes old artifacts inaccessible through that insta
 The store does not grant access based only on knowledge of an artifact identifier.
 Store artifacts under the current grant's hash so re-importing identical bytes under a new grant cannot collide with an inaccessible artifact.
 
-Verify the manifest and file hashes on each artifact load for this small proof.
+Validate the manifest schema, recompute its extraction identity, and verify its listed file hashes on every artifact load.
 Do not add a persistent or cross-request integrity cache yet.
 Treat edits by the same OS user as outside the application's malicious-user boundary.
 Hashes detect corruption; they do not authenticate files against a user who can rewrite every manifest.
@@ -513,6 +513,9 @@ The build fails if it cannot locate a required schema, native library, or frozen
 release.json fields are format_version, release_version, os, arch, minimum_os_version, core_commit,
 core_version, python_version, dependency_lock_sha256, worker_sha256, files, and licenses.
 Each files entry has a relative path, executable flag, length, and SHA-256.
+The list excludes release.json and detached signatures to avoid circular hashes.
+Reject an unlisted executable or native library beneath the runtime payload directory.
+The complete client archive has a separate published digest that also covers its manifest and release metadata.
 Record native dependencies and license texts in the assembled artifact.
 Do not claim byte-for-byte reproducible binaries merely because inputs are pinned.
 
