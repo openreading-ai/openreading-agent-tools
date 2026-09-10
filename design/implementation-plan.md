@@ -107,7 +107,7 @@ No live study runs during this design-fix task.
 Files: runtime lock/build/verifier/package metadata and tests. Acceptance: AC-1, AC-13, AC-19.
 
 - [ ] Pin the passing core and engine revisions; reject prohibited dependencies and verify weights and tessdata in the final inventory.
-- [ ] Inventory interpreter and all native/data/model licenses before sharing binaries.
+- [ ] Inventory interpreter and all native/data/model licenses before sharing binaries. The current build-environment notice superset is insufficient for exact collected-dependency review (CR-4b).
 - [ ] Sign nested native code, record minimal entitlements, notarize, then hash and verify the final install representation.
 - [ ] Exercise the selected signed app/installer fallback if native MCPB extraction or ticket handling fails.
 - [ ] Record size, extraction time, startup cost, child executable identities, and offline/online first-launch behavior.
@@ -119,6 +119,8 @@ Do not publish an unsigned fallback or tell pilot users to bypass OS protection.
 Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, EVAL-1, and pilot metrics.
 
 - [ ] Use a snapshotted clean Apple Silicon VM, record image identity, and verify no developer tools or Python shim are invoked.
+- [ ] First record Desktop installation and executable launch, including extraction permissions and command resolution (CR-2). MCPB resolver tests alone do not pass this gate.
+- [ ] Measure full-tree verification and cold/warm host startup without weakening integrity checks (CR-4d). Installation remains deferred by the owner.
 - [ ] Complete Desktop, Claude Code, and Codex cited-answer checks on individually named versions.
 - [ ] Record setup cancellation, permission prompts, restart, update, removal, read-only inputs, changed roots, spaces, Unicode, and host logs.
 - [ ] Run approved calibration and primary/follow-up studies separately, review quality, and report the supported outcome.

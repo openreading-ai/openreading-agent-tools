@@ -295,3 +295,129 @@ test("an added plugin hook cannot enter a frozen experiment", (t) => {
   writeFileSync(join(root, "plugin/hooks.json"), "{}");
   assert.throws(() => validateRun(path), /plugin inventory/);
 });
+
+test("search grants distinguish regex text, filename globs, and symlink targets", async (t) => {
+  const { symlinkSync } = await import("node:fs");
+  const { root, path } = fixture(t);
+  const run = validateRun(path, hash(readFileSync(path)));
+  const decisions = [];
+  await runTrial(run, plannedTrials(run)[0], {
+    query: async function* ({ options }) {
+      symlinkSync(root, join(options.cwd, "escape"));
+      for (const [name, input] of [
+        [
+          "Grep",
+          { pattern: "/etc/../~literal", path: join(root, "source.pdf") },
+        ],
+        ["Grep", { pattern: "secret", glob: "/etc/**" }],
+        ["Grep", { pattern: "secret", path: root, file_path: join(root, "source.pdf") }],
+        ["Glob", { pattern: "{../../private,*.txt}" }],
+        ["Read", { file_path: join(options.cwd, "escape/environment.json") }],
+        ["Glob", { pattern: "**/*.txt", path: join(options.cwd, "escape") }],
+      ])
+        decisions.push((await options.canUseTool(name, input)).behavior);
+      yield { type: "result", subtype: "success" };
+    },
+  });
+  assert.deepEqual(decisions, ["allow", "deny", "deny", "deny", "deny", "deny"]);
+});
+
+function withBaseline(t) {
+  const data = fixture(t),
+    { root, path, manifest } = data;
+  const executable = join(root, "pdftotext");
+  writeFileSync(executable, "#!/bin/sh\nprintf 'source text\\n'\n");
+  chmodSync(executable, 0o755);
+  const whole = `${executable} ${join(root, "source.pdf")} -`;
+  const page = `${executable} -f {page} -l {page} ${join(root, "source.pdf")} -`;
+  manifest.allowed_bash_commands = [whole, page.replaceAll("{page}", "1")];
+  const environment = {
+    baseline: {
+      executable,
+      sha256: hash(readFileSync(executable)),
+      recipes: { "source.pdf": { whole, page, pages: 1 } },
+    },
+  };
+  writeFileSync(join(root, "environment.json"), JSON.stringify(environment));
+  manifest.environment_sha256 = hash(JSON.stringify(environment));
+  writeFileSync(path, JSON.stringify(manifest));
+  return { ...data, executable, whole, page };
+}
+
+test("baseline recipes are discoverable without disclosing 155 commands", async (t) => {
+  const { path, whole, page } = withBaseline(t);
+  const run = validateRun(path, hash(readFileSync(path)));
+  const task = plannedTrials(run).find((trial) => trial.arm === "A");
+  let seen;
+  const trial = await runTrial(run, task, {
+    query: async function* ({ prompt, options }) {
+      seen = prompt;
+      assert.equal(
+        (await options.canUseTool("Bash", { command: whole })).behavior,
+        "allow",
+      );
+      assert.equal(
+        (
+          await options.canUseTool("Bash", {
+            command: whole + " | cat /etc/passwd",
+          })
+        ).behavior,
+        "deny",
+      );
+      yield {
+        type: "assistant",
+        message: {
+          id: "one",
+          content: [
+            {
+              type: "tool_use",
+              id: "call1",
+              name: "Bash",
+              input: { command: whole },
+            },
+          ],
+        },
+      };
+      yield { type: "result", subtype: "success" };
+    },
+  });
+  assert.ok(seen.includes(whole));
+  assert.ok(seen.includes(page));
+  assert.equal(trial.baseline.utility_verified, true);
+  assert.equal(trial.baseline.bash_denials, 1);
+  assert.equal(trial.usage.tool_calls.Bash, 1);
+});
+
+test("changed or undiscoverable baseline utilities refuse validation", (t) => {
+  const { path, executable } = withBaseline(t);
+  validateRun(path);
+  writeFileSync(executable, "changed");
+  assert.throws(() => validateRun(path), /baseline/i);
+});
+
+
+test("missing or empty baseline refuses before a live query", async (t) => {
+  const missing = fixture(t);
+  const missingRun = validateRun(missing.path, hash(readFileSync(missing.path)));
+  await assert.rejects(runTrial(missingRun, plannedTrials(missingRun)[0]), /verified local PDF baseline/);
+  const { path, executable, root, manifest } = withBaseline(t);
+  writeFileSync(executable, "#!/bin/sh\nexit 0\n");
+  const environment = JSON.parse(readFileSync(join(root, "environment.json")));
+  environment.baseline.sha256 = hash(readFileSync(executable));
+  writeFileSync(join(root, "environment.json"), JSON.stringify(environment));
+  manifest.environment_sha256 = hash(JSON.stringify(environment));
+  writeFileSync(path, JSON.stringify(manifest));
+  const run = validateRun(path, hash(readFileSync(path)));
+  let called = false;
+  await assert.rejects(runTrial(run, plannedTrials(run)[0], {
+    query: async function* () { called = true; },
+  }), /produced no text/);
+  assert.equal(called, false);
+});
+
+test("baseline recipes must describe the complete frozen allowlist", (t) => {
+  const { path, manifest } = withBaseline(t);
+  manifest.allowed_bash_commands.pop();
+  writeFileSync(path, JSON.stringify(manifest));
+  assert.throws(() => validateRun(path), /baseline/i);
+});

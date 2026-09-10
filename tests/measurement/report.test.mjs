@@ -18,6 +18,7 @@ const trials = () =>
         repetition,
         category: "agreement",
         state: "completed",
+        baseline: { utility_verified: true, bash_denials: 0 },
         usage: {
           complete: true,
           input_total: arm === "C" ? 40 : 100,
@@ -80,4 +81,29 @@ test("incomplete diagnostic arm usage also blocks the registered claim", () => {
   const rows = trials();
   rows[1].usage.complete = false;
   assert.equal(buildReport(manifest, rows).claim.supported, false);
+});
+
+test("a constrained or unverified baseline cannot support savings", () => {
+  for (const baseline of [
+    undefined,
+    { utility_verified: false, bash_denials: 0 },
+    { utility_verified: true, bash_denials: 1 },
+  ]) {
+    const rows = trials();
+    rows[0].baseline = baseline;
+    const report = buildReport(manifest, rows);
+    assert.equal(report.claim.supported, false);
+    assert.equal(report.claim.median_c_over_a, null);
+  }
+});
+
+test("unrun rows use the frozen dataset category instead of inventing one", () => {
+  const dataset = {
+    tasks: manifest.task_ids.map((id) => ({ id, category: "agreement" })),
+  };
+  const report = buildReport(manifest, [], dataset);
+  assert.ok(report.rows.every((row) => row.category === "agreement"));
+  assert.ok(
+    buildReport(manifest, []).rows.every((row) => row.category === null),
+  );
 });

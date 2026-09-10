@@ -51,6 +51,7 @@ class DatasetTests(unittest.TestCase):
                     "measurement.prepare.verify_release",
                     return_value={"core_commit": "a" * 40},
                 ),
+                patch("measurement.prepare.shutil.which", return_value=str(client)),
                 patch.dict("os.environ", {"ANTHROPIC_API_KEY": "synthetic-key"}),
             ):
                 path = prepare(
@@ -66,6 +67,19 @@ class DatasetTests(unittest.TestCase):
                 self.assertEqual(manifest["dataset_sha256"], sha256(path.parent / "dataset.json"))
                 self.assertNotIn("synthetic-key", path.read_text())
                 self.assertNotIn("approved", manifest)
+                environment = json.loads((path.parent / "environment.json").read_text())
+                baseline = environment["baseline"]
+                self.assertEqual(baseline["executable"], str(client))
+                self.assertEqual(baseline["sha256"], sha256(client))
+                commands = []
+                for recipe in baseline["recipes"].values():
+                    commands.append(recipe["whole"])
+                    commands.extend(
+                        recipe["page"].replace("{page}", str(page))
+                        for page in range(1, recipe["pages"] + 1)
+                    )
+                self.assertEqual(len(commands), 155)
+                self.assertEqual(commands, manifest["allowed_bash_commands"])
                 with self.assertRaises(ValueError):
                     prepare(
                         root / "evidence",

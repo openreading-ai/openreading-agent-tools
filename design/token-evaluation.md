@@ -374,3 +374,14 @@ Checked on 2026-09-10:
 - [Claude Agent SDK TypeScript reference](https://code.claude.com/docs/en/agent-sdk/typescript) is the field-level reference to pin alongside fixtures.
 - [Anthropic token counting](https://platform.claude.com/docs/en/build-with-claude/token-counting) describes estimates before a completed request.
 - [Anthropic PDF support](https://platform.claude.com/docs/en/build-with-claude/pdf-support) explains why native PDF input and clean text are different representations.
+
+## Baseline availability carried into revision 2
+
+Keep the ordinary-tools baseline usable before any paid trial, including the M0 probe.
+Every arm receives the same compact extraction recipes for its document, counted in actual input usage.
+Freeze the utility executable hash and absolute command paths with the environment and manifest.
+Preflight extraction before querying and require new preparation when the machine or utility changes.
+Retain exact command matching instead of introducing a general shell-command parser.
+Record tool calls and permission denials; a baseline Bash denial makes the C/A savings outcome ineligible.
+A model choosing Read without a denial remains a valid baseline choice.
+The revision 1 runner implements these protections, but its records do not establish revision 2 evidence.

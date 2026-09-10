@@ -1,5 +1,6 @@
 /** Build a complete, redacted report from planned trials and reviewed quality labels.
  * Missing or incomplete trials remain visible. Usage on failed calls still counts.
+ * Unverified or Bash-constrained baselines cannot produce a primary savings ratio.
  * Human quality review is an input, not a result inferred from cheap token usage.
  */
 const identity = (row) => `${row.task_id}:${row.repetition}:${row.arm}`;
@@ -15,7 +16,10 @@ const median = (values) => {
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 };
 
-export function buildReport(manifest, trials) {
+export function buildReport(manifest, trials, dataset) {
+  const taskCategories = new Map(
+    (dataset?.tasks ?? []).map((task) => [task.id, task.category]),
+  );
   const indexed = new Map();
   for (const trial of trials) {
     const key = identity(trial);
@@ -33,7 +37,13 @@ export function buildReport(manifest, trials) {
           task_id,
           repetition,
           arm,
-          category: trial?.category ?? "unknown",
+          category: taskCategories.get(task_id) ?? trial?.category ?? null,
+          baseline: trial?.baseline
+            ? {
+                utility_verified: trial.baseline.utility_verified === true,
+                bash_denials: trial.baseline.bash_denials ?? null,
+              }
+            : null,
           state: trial?.state ?? "unrun",
           usage: trial
             ? {
@@ -110,7 +120,9 @@ export function buildReport(manifest, trials) {
     }
   const categories = [
     ...new Set(
-      rows.filter((row) => row.arm !== "B").map((row) => row.category),
+      rows
+        .filter((row) => row.arm !== "B" && row.category !== null)
+        .map((row) => row.category),
     ),
   ];
   const categoryQuality = categories.every((category) => {
@@ -125,6 +137,13 @@ export function buildReport(manifest, trials) {
       manifest.study_kind === "primary" &&
       manifest.task_ids.length === 12 &&
       manifest.repetitions === 3,
+    baseline_available: rows
+      .filter((row) => row.arm === "A")
+      .every(
+        (row) =>
+          row.baseline?.utility_verified === true &&
+          row.baseline?.bash_denials === 0,
+      ),
     complete_pairs: completePairs,
     complete_usage_all_arms: rows.every(validInput),
     quality_floor: arms.C.quality_passed / arms.C.planned >= 0.9,
@@ -147,7 +166,7 @@ export function buildReport(manifest, trials) {
     claim: {
       supported: Object.values(conditions).every(Boolean),
       conditions,
-      median_c_over_a: completePairs ? median(ratios) : null,
+      median_c_over_a: completePairs && conditions.baseline_available ? median(ratios) : null,
       diagnostic_median_c_over_b: median(diagnostic),
     },
     limitations: [

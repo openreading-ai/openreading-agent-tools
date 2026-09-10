@@ -22,6 +22,8 @@ const empty = {
 
 export function normalizeQuery(events) {
   const ids = new Set();
+  const toolIds = new Set(),
+    toolCalls = {};
   let duplicates = 0;
   let previous = null;
   let final = null;
@@ -32,6 +34,18 @@ export function normalizeQuery(events) {
       if (ids.has(id)) duplicates++;
       ids.add(id);
     }
+    if (event.type === "assistant")
+      for (const block of event.message?.content ?? []) {
+        if (
+          block.type === "tool_use" &&
+          typeof block.id === "string" &&
+          typeof block.name === "string" &&
+          !toolIds.has(block.id)
+        ) {
+          toolIds.add(block.id);
+          toolCalls[block.name] = (toolCalls[block.name] ?? 0) + 1;
+        }
+      }
     if (event.type !== "result") continue;
     final = event;
     const models = event.modelUsage;
@@ -53,6 +67,7 @@ export function normalizeQuery(events) {
   }
   const diagnostics = {
     duplicate_message_ids: duplicates,
+    tool_calls: toolCalls,
     status: final?.subtype ?? "missing_result",
     accounting_scope:
       "SDK query pipeline; excludes helpers outside that pipeline",

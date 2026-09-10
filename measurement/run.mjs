@@ -1,4 +1,6 @@
 /** Execute only an explicitly approved, frozen synthetic experiment.
+ * Every arm receives frozen PDF extraction recipes. Utility preflight precedes queries.
+ * Filename filters and canonical targets bound base-tool grants, not content regexes.
  * Dry validation does not import the model SDK or perform network calls.
  * A manifest hash authorizes one account label and bounded SDK-estimated spend.
  * The SDK cap is not a hard billing cap: an in-flight request can exceed it.
@@ -85,6 +87,65 @@ function runtimeInventory(root, metadata) {
   walk(root);
   if (names.length !== Object.keys(metadata.files).length)
     throw new Error("Missing runtime file.");
+}
+
+function baselineInventory(environment, manifest, dataset) {
+  const baseline = environment.baseline;
+  if (baseline == null) return null;
+  try {
+    if (
+      !isAbsolute(baseline.executable) ||
+      fileHash(baseline.executable) !== baseline.sha256
+    )
+      throw new Error();
+    const commands = [];
+    for (const document of new Set(
+      dataset.tasks.map((task) => task.document),
+    )) {
+      const recipe = baseline.recipes[document];
+      if (
+        !recipe ||
+        typeof recipe.whole !== "string" ||
+        typeof recipe.page !== "string" ||
+        !recipe.page.includes("{page}") ||
+        !Number.isSafeInteger(recipe.pages) ||
+        recipe.pages < 1 ||
+        recipe.pages > 100
+      )
+        throw new Error();
+      commands.push(recipe.whole);
+      for (let page = 1; page <= recipe.pages; page++)
+        commands.push(recipe.page.replaceAll("{page}", String(page)));
+    }
+    if (
+      JSON.stringify([...new Set(commands)].sort()) !==
+      JSON.stringify([...manifest.allowed_bash_commands].sort())
+    )
+      throw new Error();
+    return baseline;
+  } catch {
+    throw new Error(
+      "Frozen baseline utility or command recipes changed. Prepare a new study.",
+    );
+  }
+}
+
+function baselinePrompt(run, task) {
+  if (!run.baseline) return "";
+  const recipe = run.baseline.recipes[task.document];
+  return (
+    "\nAvailable local PDF utility (same in every arm). Choose Read or local extraction as appropriate. " +
+    "Bash permits these exact forms; no pipes or redirects.\n" +
+    "Whole document: " +
+    recipe.whole +
+    "\n" +
+    "One physical page: " +
+    recipe.page +
+    "\n" +
+    "Replace each {page} with the same integer from 1 through " +
+    recipe.pages +
+    ".\n"
+  );
 }
 
 export function validateRun(manifestPath, approvedHash) {
@@ -208,6 +269,7 @@ export function validateRun(manifestPath, approvedHash) {
     root,
     paths,
     dataset,
+    baseline: baselineInventory(environment, manifest, dataset),
     liveApproved: approvedHash === hash,
   };
 }
@@ -235,14 +297,14 @@ export function plannedTrials(run) {
   return trials;
 }
 
-function permission(run, workspace) {
+function permission(run, workspace, decisions) {
   const readable = [
     workspace,
     ...Object.keys(run.dataset.files)
       .filter((name) => /\.pdf$/.test(name))
       .map((name) => join(run.root, name)),
   ];
-  return async (name, input) => {
+  const decide = (name, input) => {
     if (
       name.startsWith("mcp__openreading") ||
       name.startsWith("mcp__plugin_openreading-local-proof_openreading__")
@@ -254,19 +316,32 @@ function permission(run, workspace) {
     )
       return { behavior: "allow", updatedInput: input };
     if (["Read", "Glob", "Grep"].includes(name)) {
-      const candidate = resolve(
-        workspace,
-        input.file_path ?? input.path ?? ".",
-      );
-      // A search root alone does not bound Glob or Grep: their pattern is
-      // resolved separately, so an absolute or escaping pattern would read
-      // outside the granted evidence even when the root is the workspace.
-      const pattern = input.pattern ?? input.glob;
+      let candidate;
+      try {
+        candidate = realpathSync(
+          resolve(workspace, (name === "Read" ? input.file_path : input.path) ?? "."),
+        );
+      } catch {
+        return {
+          behavior: "deny",
+          message: "The requested evidence path is unavailable.",
+        };
+      }
+      // Grep's pattern is content, while its glob and Glob's pattern select filenames.
+      // Restrict filename expansion syntax so braces or escapes cannot hide traversal.
+      const pattern =
+        name === "Glob"
+          ? input.pattern
+          : name === "Grep"
+            ? input.glob
+            : undefined;
       const boundedPattern =
-        typeof pattern !== "string" ||
-        (!isAbsolute(pattern) &&
-          !pattern.split(/[\\/]/).includes("..") &&
-          !pattern.startsWith("~"));
+        pattern === undefined ||
+        (typeof pattern === "string" &&
+          !isAbsolute(pattern) &&
+          !pattern.startsWith("~") &&
+          !pattern.split("/").includes("..") &&
+          ![...pattern].some((character) => "\\{}()[]!".includes(character)));
       if (
         boundedPattern &&
         readable.some(
@@ -283,6 +358,12 @@ function permission(run, workspace) {
         "This experiment grants only its frozen document inputs and approved local commands.",
     };
   };
+  return async (name, input) => {
+    const result = decide(name, input);
+    if (result.behavior === "deny")
+      decisions[name] = (decisions[name] ?? 0) + 1;
+    return result;
+  };
 }
 
 export async function runTrial(
@@ -292,7 +373,25 @@ export async function runTrial(
 ) {
   if (!run.liveApproved)
     throw new Error("Model execution requires an approved manifest hash.");
-  validateRun(run.manifestPath, run.manifestHash);
+  run = validateRun(run.manifestPath, run.manifestHash);
+  if (!query && !run.baseline)
+    throw new Error(
+      "Prepare a verified local PDF baseline before live execution.",
+    );
+  const datasetTask = run.dataset.tasks.find(
+    (item) => item.id === task.task_id,
+  );
+  if (run.baseline && datasetTask) {
+    const text = execFileSync(
+      run.baseline.executable,
+      ["-f", "1", "-l", "1", join(run.root, datasetTask.document), "-"],
+      { encoding: "utf8", timeout: 5000, maxBuffer: 2 * 1024 * 1024 },
+    );
+    if (!text.trim())
+      throw new Error(
+        "Baseline utility produced no text; no model call was started.",
+      );
+  }
   if (!query) {
     if (!process.env.ANTHROPIC_API_KEY)
       throw new Error("Live experiments require an explicit API account key.");
@@ -316,9 +415,6 @@ export async function runTrial(
       throw new Error("Installed client version differs from the manifest.");
     ({ query } = await import("@anthropic-ai/claude-agent-sdk"));
   }
-  const datasetTask = run.dataset.tasks.find(
-    (item) => item.id === task.task_id,
-  );
   if (
     !datasetTask ||
     !plannedTrials(run).some(
@@ -358,6 +454,8 @@ export async function runTrial(
       (task.arm === "C"
         ? datasetTask.document.split("/").at(-1)
         : join(run.root, datasetTask.document));
+  prompt += baselinePrompt(run, datasetTask);
+  const decisions = {};
   const options = {
     model: run.manifest.model_id,
     pathToClaudeCodeExecutable: run.manifest.client_path,
@@ -365,7 +463,7 @@ export async function runTrial(
     settingSources: [],
     tools: ["Read", "Glob", "Grep", "Bash"],
     permissionMode: "default",
-    canUseTool: permission(run, trialRoot),
+    canUseTool: permission(run, trialRoot, decisions),
     maxTurns: run.manifest.max_turns_per_trial,
     maxBudgetUsd: Math.min(
       remainingBudget,
@@ -424,6 +522,11 @@ export async function runTrial(
     manifest_sha256: run.manifestHash,
     state,
     usage: normalizeQuery(events),
+    baseline: {
+      utility_verified: run.baseline !== null,
+      bash_denials: decisions.Bash ?? 0,
+    },
+    permission_denials: decisions,
     quality: { passed: null, citation_valid: null },
     wall_ms: Date.now() - started,
     evidence: { events: relative(run.root, eventsPath) },
@@ -514,7 +617,8 @@ export async function main(argv = process.argv.slice(2), { query } = {}) {
       }
     writeFileSync(
       join(output, "report.json"),
-      JSON.stringify(buildReport(run.manifest, trials), null, 2) + "\n",
+      JSON.stringify(buildReport(run.manifest, trials, run.dataset), null, 2) +
+        "\n",
       { mode: 0o600 },
     );
   } finally {

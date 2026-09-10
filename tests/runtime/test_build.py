@@ -48,3 +48,12 @@ class BuildTests(unittest.TestCase):
             distribution.return_value.read_text.return_value = '{"vcs_info":{"commit_id":"wrong"}}'
             with self.assertRaises(ValueError):
                 locked_identity()
+
+    def test_notices_never_omit_a_distribution_by_its_name(self):
+        from types import SimpleNamespace
+
+        distribution = SimpleNamespace(
+            metadata={"Name": "pytest", "License": "synthetic notice"}, version="1", files=[]
+        )
+        with patch("runtime.build.importlib.metadata.distributions", return_value=[distribution]):
+            self.assertIn("synthetic notice", notices())

@@ -90,3 +90,10 @@ test("missing cache counters and counter rollback cannot become zero usage", () 
   );
   assert.equal(normalizeQuery([result(100), result(50)]).complete, false);
 });
+
+
+test("tool diagnostics count unique calls across repeated message fragments", () => {
+  const event = (id, name) => ({type: "assistant", message: {id: "same", content: [{type: "tool_use", id, name}]}});
+  const normalized = normalizeQuery([event("a", "Bash"), event("a", "Bash"), event("b", "Read"), event("c", "Bash"), result(100)]);
+  assert.deepEqual(normalized.tool_calls, {Bash: 2, Read: 1});
+});

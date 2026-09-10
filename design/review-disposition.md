@@ -92,3 +92,27 @@ Delete this disposition record when the corresponding migration finishes and dur
 | Q-8 | OCR changes through setup only, disabled by default. |
 | Q-9 | Derive the supported cap and deadline from cold/warm timing and the strictest tested host budget; do not choose minutes or inherit 45 seconds without evidence. |
 | Q-10 | Table structure stays disabled. Preserve measurable table text or disclose its absence; no automatic torch inclusion. |
+
+## Implementation review follow-up
+
+Source: Claude's `design/claude-code-review.md` at commit `5ea467a`, reviewing `7cbc6ff`.
+That completed review record is removed after assigning every item below.
+Implemented fixes apply to the historical revision 1 prototype, not the proposed Docling migration.
+
+| Finding | Disposition |
+| --- | --- |
+| CR-1 | Accepted and extended. Permission tests cover absolute and parent traversal, hidden filename expansion, and outside symlink targets. Grep content regexes remain separate from filename filters. These are callback tests, not proof of an operating-system sandbox or a completed live file read. |
+| CR-2 | Reference-based defect rejected. The pinned MCPB 2.1.2 public resolver substitutes command fields, verified against the real manifest. Actual Desktop launch remains H1 evidence, deferred with installation. |
+| CR-3 | Accepted. Every arm receives compact frozen extraction recipes. Executable hashes, recipe/allowlist equality, and pre-query extraction prevent silent utility loss. Baseline Bash denials block savings claims and C/A ratios. Moving machines requires new preparation and approval. |
+| CR-4a | Fixed in the existing launcher with explicit platform and architecture refusal before inventory access. This cannot improve an OS loader error before the executable starts. |
+| CR-4b | Name-based exclusions removed. Notices now preserve a conservative build-environment superset. Exact collected-module, native-library, and interpreter license evidence remains P1. |
+| CR-4c | Fixed category reporting using the frozen dataset, with null when unavailable. Shared task kinds remain M1 scope. |
+| CR-4d | Preserve full integrity verification. Real cold/warm host timing remains H1; development-machine process timing cannot replace it. |
+| CR-4e | Source execution now explicitly requires the packaged worker. Unit coverage does not replace the actual packaged stdio smoke. |
+| CR-4f | Corrected the guide to describe the recorded build-host OS floor. Older-host compatibility remains unproven. |
+
+Claude's cleared checks remain historical review evidence: CV-1 covers the Claude Code 2.1.267 install flag,
+CV-2 covers stdio user-configuration arguments, and CV-3 covers independent deterministic corpus generation.
+CV-4 through CV-8 cover cumulative accounting, claim conditions, live authorization, environment replacement, and inventory integrity.
+CV-9 confirms revision labels and unverified host/measurement claims stay explicit.
+These review observations do not constitute new live-host or paid-trial evidence.

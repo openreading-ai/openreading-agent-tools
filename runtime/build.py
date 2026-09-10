@@ -3,6 +3,7 @@
 Run through the locked runtime project: uv run --project runtime --group build
 python -m runtime.build --output dist/runtime. The command refuses a different platform,
 Python patch, dirty lock resolution, or an already populated output directory.
+Notices conservatively include installed build tools, not an exact frozen inventory.
 Signing, notarization, license review, and binary publication are separate release gates.
 """
 
@@ -59,24 +60,12 @@ def locked_identity() -> dict:
 
 def notices() -> str:
     sections = [
-        "OpenReading local proof: dependency license inventory.\nThis is not a legal determination or binary distribution approval.\n"
+        "OpenReading local proof: build-environment license inventory.\nIncludes build tools; this is not an exact list of frozen dependencies.\nThis is not a legal determination or binary distribution approval.\n"
     ]
     for distribution in sorted(
         importlib.metadata.distributions(), key=lambda d: d.metadata["Name"].lower()
     ):
         name = distribution.metadata["Name"]
-        if name.lower() in {
-            "pytest",
-            "ruff",
-            "coverage",
-            "pyinstaller",
-            "pyinstaller-hooks-contrib",
-            "altgraph",
-            "macholib",
-            "iniconfig",
-            "pluggy",
-        }:
-            continue
         license_name = (
             distribution.metadata.get("License-Expression")
             or distribution.metadata.get("License")

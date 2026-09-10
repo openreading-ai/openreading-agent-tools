@@ -20,11 +20,12 @@ The official MCPB validator and archive round-trip smoke pass locally.
 Desktop GUI installation, quarantine behavior, and the cited-answer walkthrough remain unverified.
 Do not distribute this unsigned local candidate before the license and signing gates pass.
 
-Check the launch record first. The manifest resolves `${__dirname}` inside `mcp_config.command`,
-while the published MCPB reference documents that variable for `args` and `env`.
-Validation and archive round-trip cannot detect this, because the host substitutes at launch.
-If the extension fails to start with a literal path, move the bundle-relative path into `args`
-behind a launcher that the host can execute, or change the packaging shape as the signing fallback describes.
+The pinned MCPB 2.1.2 configuration resolver substitutes `${__dirname}` in `mcp_config.command`.
+An offline test calls that resolver with this manifest and checks the executable path and Unicode directory argument.
+The [MCPB manifest reference](https://github.com/modelcontextprotocol/mcpb/blob/main/MANIFEST.md) describes configuration substitution.
+This resolves the library-level question without proving Desktop installation or launch.
+Record the actual Desktop launch result, executable permissions, quarantine behavior, and startup time during the host check.
+A packaging change requires an observed host failure, not a schema-validation assumption.
 
 ## Privacy and removal
 

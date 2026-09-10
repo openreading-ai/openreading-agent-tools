@@ -1,5 +1,6 @@
 """Launch the verified core worker without an end-user Python installation.
 
+Unsupported hosts and unfrozen source execution return status 2 before inventory access.
 The client name selects only its retained-store location. It cannot change the core
 profile or backend. Explicit directory arguments are never interpreted by a shell.
 The internal child dispatch uses the same frozen executable and verified inventory.
@@ -9,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import platform
 import sys
 from pathlib import Path
 
@@ -18,6 +20,15 @@ from runtime.verify import ReleaseIntegrityError, verify_release
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if sys.platform != "darwin" or platform.machine() != "arm64":
+        print("This runtime requires macOS on Apple Silicon.", file=sys.stderr)
+        return 2
+    if not getattr(sys, "frozen", False):
+        print(
+            "Run the packaged worker. This entry point cannot verify a source installation.",
+            file=sys.stderr,
+        )
+        return 2
     root = Path(sys.executable).parent
     try:
         metadata = verify_release(root)

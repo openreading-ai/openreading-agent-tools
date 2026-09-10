@@ -5,7 +5,8 @@ The [revision 2 design](../design/local-document-proof.md) replaces the distribu
 Existing setup commands and test results below do not establish revision 2 compatibility.
 
 You can build a local review candidate containing Python, PyMuPDF, MCP, and an immutable core revision.
-The native builder currently requires macOS 15.1 on Apple Silicon and Python 3.11.15 through uv.
+The native builder requires macOS on Apple Silicon and Python 3.11.15 through uv.
+It records the build host version in `minimum_os_version`; compatibility with older macOS versions is not established.
 Other operating systems can run the offline unit tests, but cannot produce this native candidate.
 
 ## Build and check
@@ -31,6 +32,11 @@ A clean machine and real host walkthrough remain separate requirements.
 [build.py](build.py) reads [uv.lock](uv.lock), freezes the pinned core distribution, and records extraction identity.
 [verify.py](verify.py) checks every file length, digest, executable bit, internal link, and required notice before document processing.
 MCPB can dereference library symlinks, so the builder materializes internal links before hashing the install representation.
+The launcher refuses non-macOS or non-arm64 hosts before reading its inventory.
+Direct source execution returns a packaged-worker requirement instead of reporting a corrupt virtual environment.
+The notices include all installed build-environment distributions without a name-based exclusion list.
+An exact inventory of collected Python modules, native libraries, and interpreter notices remains a distribution gate.
+
 `release.json` identifies the core commit, Python version, native platform, dependency lock, worker hash, and complete inventory.
 Hashes detect changes against metadata; they do not authenticate a publisher.
 This historical PyMuPDF prototype is not a distribution candidate under revision 2.

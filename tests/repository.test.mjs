@@ -1,6 +1,6 @@
 /** Exercise policy boundaries so a green gate means more than readable Markdown. */
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -52,4 +52,28 @@ test('malformed YAML and JSON fail', () => {
 test('HTTP links stay offline and Claude imports stay canonical', () => {
   assert.deepEqual(check({ 'README.md': '# Home\n\n[Remote](https://example.invalid/page)\n', 'CLAUDE.md': '@AGENTS.md\n', 'AGENTS.md': '# Instructions\n' }), []);
   assert.match(check({ 'CLAUDE.md': 'Different instructions\n' }).join('\n'), /AGENTS/);
+});
+
+test("MCPB resolves the binary command and preserves a configured directory argument", async () => {
+  const { getMcpConfigForManifest } = await import("@anthropic-ai/mcpb");
+  const manifest = JSON.parse(
+    readFileSync(
+      new URL("../clients/claude-desktop/manifest.json", import.meta.url),
+    ),
+  );
+  const config = await getMcpConfigForManifest({
+    manifest,
+    extensionPath: "/installed/review bundle",
+    systemDirs: {},
+    userConfig: { input_root: "/documents/Unicode 界" },
+    pathSeparator: "/",
+  });
+  assert.equal(
+    config.command,
+    "/installed/review bundle/server/openreading-worker",
+  );
+  assert.deepEqual(config.args.slice(-2), [
+    "--input-root",
+    "/documents/Unicode 界",
+  ]);
 });

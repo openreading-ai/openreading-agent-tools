@@ -44,9 +44,19 @@ If inputs change, prepare and review a new manifest instead of updating an appro
 | B | Complete local extraction with physical page markers included once in the prompt. |
 | C | Original document through the packaged OpenReading tools and retrieval skill, with the same base tools. |
 
-The manifest lists exact permitted Bash commands when `pdftotext` is available during preparation.
+Preparation freezes the absolute `pdftotext` executable path, its hash, and exact permitted Bash commands.
+Each arm receives the same compact whole-document command and a page-command template for its document.
+The runner verifies that those recipes generate the frozen allowlist and extracts page one before starting a query.
+Missing utilities or empty extraction refuse live execution; preparation and report-only inspection remain available.
+Moving the study to another machine requires new preparation and approval because its executable and paths are frozen.
+A baseline Bash denial blocks the savings claim and C/A ratio, even when the model subsequently uses Read.
+Choosing Read without a Bash denial remains valid; zero Bash calls alone do not establish a crippled baseline.
 This restricted, recorded tool policy must be reviewed for baseline fairness before execution.
 It does not represent every command an unrestricted personal Claude installation might use.
+Read targets and search roots resolve through filesystem links before permission checks.
+Glob filename patterns and Grep filename filters accept bounded relative patterns, without parent traversal or expansion groups.
+Grep content regular expressions are text, not paths, and remain separate from its filename filter.
+These callback restrictions are not an operating-system sandbox.
 Each trial starts a fresh workspace and session; provider cache temperature remains unverified.
 
 ## Live authorization and interruption
@@ -80,6 +90,8 @@ The accounting scope is the SDK query pipeline, including its subagents and inte
 It excludes helpers outside that pipeline and does not replace an invoice.
 
 Each private trial directory holds `events.jsonl` and `trial.json`.
+Trial diagnostics record tool calls by unique call identifier and permission denials by tool name.
+Baseline metadata records utility verification and Bash denials so constrained trials remain visible.
 Review the answer against frozen `ground-truth.json` and the actual source passages.
 Set `quality.passed` only when the answer, qualifications, and material citations are correct.
 Set `quality.citation_valid` after checking each source reference, and retain the review rationale beside private evidence.
@@ -90,7 +102,7 @@ Regenerate `report.json` using `--report`; that mode cannot invoke the model.
 It reports usage completeness, cache categories, output, latency, and human quality labels.
 The primary claim requires complete valid pairs, at least 90% C quality, no quality regression overall or by category, supported citations, a median C/A input ratio at most 0.5, and lower total C input.
 Calibration cannot establish the primary claim.
-A zero or incomplete ordinary-tools baseline cannot establish a savings percentage.
+A zero, incomplete, unverified, or permission-constrained ordinary-tools baseline cannot establish a savings percentage.
 No live trial or token-reduction result has been recorded by this implementation.
 
 ## Offline evidence

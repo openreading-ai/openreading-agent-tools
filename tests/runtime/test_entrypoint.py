@@ -12,6 +12,11 @@ from runtime.verify import ReleaseIntegrityError
 
 
 class EntrypointTests(unittest.TestCase):
+    def setUp(self):
+        self.enterContext(patch("runtime.entrypoint.sys.platform", "darwin"))
+        self.enterContext(patch("platform.machine", return_value="arm64"))
+        self.enterContext(patch("runtime.entrypoint.sys.frozen", True, create=True))
+
     def test_bad_inventory_refuses_even_version_probe(self):
         with (
             patch(
@@ -64,3 +69,40 @@ class EntrypointTests(unittest.TestCase):
                         0,
                     )
                     self.assertEqual(worker.call_args.args[0], ["--job-file", "job.json"])
+
+    def test_unsupported_host_refuses_before_inventory_or_document_access(self):
+        for operating_system, machine in [("linux", "arm64"), ("darwin", "x86_64")]:
+            with (
+                self.subTest(os=operating_system, machine=machine),
+                patch("runtime.entrypoint.sys.platform", operating_system),
+                patch("platform.machine", return_value=machine),
+                patch(
+                    "runtime.entrypoint.verify_release",
+                    return_value={
+                        "release_version": "0.1.0",
+                        "core_commit": "a" * 40,
+                        "worker_sha256": "b" * 64,
+                    },
+                ) as verify,
+                contextlib.redirect_stderr(io.StringIO()) as output,
+            ):
+                self.assertEqual(main(["--version"]), 2)
+                verify.assert_not_called()
+                self.assertIn("Apple Silicon", output.getvalue())
+
+    def test_source_launch_reports_packaging_requirement(self):
+        with (
+            patch("runtime.entrypoint.sys.frozen", False, create=True),
+            patch(
+                "runtime.entrypoint.verify_release",
+                return_value={
+                    "release_version": "0.1.0",
+                    "core_commit": "a" * 40,
+                    "worker_sha256": "b" * 64,
+                },
+            ) as verify,
+            contextlib.redirect_stderr(io.StringIO()) as output,
+        ):
+            self.assertEqual(main(["--version"]), 2)
+            verify.assert_not_called()
+            self.assertIn("packaged", output.getvalue())

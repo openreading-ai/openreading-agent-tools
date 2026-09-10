@@ -8,6 +8,13 @@
 - The revised design adds measured timing and memory gates, a signing fallback, explicit coding-client grants, offline retrieval checks, and an M0 probe before further packaging.
 - Existing executable behavior remains the revision 1 prototype; no Docling migration, installation, or paid experiment runs in this design pass.
 
+### Fixed
+
+- Measurement permissions distinguish search text from filename filters and reject outside symlink targets.
+- Baseline extraction recipes reach every arm, with frozen utility verification and pre-query extraction checks.
+- Constrained baselines cannot support savings claims or C/A ratios; unrun rows retain known document categories.
+- Runtime startup rejects unsupported hosts and source execution; notices retain the full build-environment inventory.
+
 ### Added
 
 - Repository instructions, contribution and security policies, GitHub templates, and offline documentation checks.

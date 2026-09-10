@@ -2,6 +2,7 @@
 
 The generated 24, 48, and 80-page documents contain varied policy distractors and twelve
 page-specific questions. Ground truth stays outside the model's document grant.
+The environment freezes the local PDF utility hash and compact command recipes.
 Preparation makes no model calls. Review the corpus and proposed account/budget before
 approving the resulting manifest hash. Generated files belong outside every Git repository.
 """
@@ -193,6 +194,27 @@ def prepare(output: Path, plugin: Path, client: Path, model: str, account: str, 
     version = subprocess.run(
         [str(client), "--version"], capture_output=True, text=True, check=True
     ).stdout.split()[0]
+    commands = []
+    baseline = None
+    pdftotext = shutil.which("pdftotext")
+    if pdftotext:
+        import shlex
+
+        pdftotext = str(Path(pdftotext).resolve(strict=True))
+        baseline = {"executable": pdftotext, "sha256": sha256(Path(pdftotext)), "recipes": {}}
+
+        for category, count in [("agreement", 24), ("manual", 48), ("report", 80)]:
+            document = shlex.quote(str(root / f"documents/{category}.pdf"))
+            whole = f"{shlex.quote(pdftotext)} {document} -"
+            page_template = f"{shlex.quote(pdftotext)} -f {{page}} -l {{page}} {document} -"
+            baseline["recipes"][f"documents/{category}.pdf"] = {
+                "whole": whole,
+                "page": page_template,
+                "pages": count,
+            }
+            commands.append(whole)
+            for page in range(1, count + 1):
+                commands.append(f"{shlex.quote(pdftotext)} -f {page} -l {page} {document} -")
     environment = {
         "os": platform.platform(),
         "architecture": platform.machine(),
@@ -214,18 +236,9 @@ def prepare(output: Path, plugin: Path, client: Path, model: str, account: str, 
         ).hexdigest(),
         "cache_condition": "fresh sessions; provider cache temperature is unverified",
         "baseline_tools": ["Read", "Glob", "Grep", "Bash"],
+        "baseline": baseline,
     }
     (root / "environment.json").write_text(json.dumps(environment, indent=2) + "\n")
-    commands = []
-    pdftotext = shutil.which("pdftotext")
-    if pdftotext:
-        import shlex
-
-        for category, count in [("agreement", 24), ("manual", 48), ("report", 80)]:
-            document = shlex.quote(str(root / f"documents/{category}.pdf"))
-            commands.append(f"{shlex.quote(pdftotext)} {document} -")
-            for page in range(1, count + 1):
-                commands.append(f"{shlex.quote(pdftotext)} -f {page} -l {page} {document} -")
     primary = study == "primary"
     manifest = {
         "schema_version": "1",
