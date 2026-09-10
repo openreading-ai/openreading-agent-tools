@@ -5,7 +5,9 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 
 ## Current stage
 
-This repository implements a local document preview, client packaging, and measurement tooling.
+This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
+ProductSpec revision 2 proposes its replacement with the Docling bundle; that migration is not implemented.
+Preserve historical revision pins and never relabel existing binaries or trials as revision 2 evidence.
 No public binary or measured token savings are released.
 The remaining release and live-study gates stay in `design/`.
 

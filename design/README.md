@@ -5,7 +5,8 @@ The [ProductSpec](../product/specs/local-document-proof.product-spec.md) owns th
 
 | Record | Purpose |
 | --- | --- |
-| [Local document proof](local-document-proof.md) | Ownership, runtime assembly, MCP contracts, evidence, and client packaging. |
+| [Local document proof](local-document-proof.md) | Revision 2 Docling migration, grants, supervision, evidence, timing decisions, and signing fallback. |
+| [Review dispositions](review-disposition.md) | Every Claude design finding, accepted contract change, exception, and unresolved evidence gate. |
 | [Token evaluation](token-evaluation.md) | Controlled comparisons, accounting rules, quality thresholds, and claim decisions. |
 | [Implementation plan](implementation-plan.md) | Ordered tasks, exact proposed files, regression examples, and review boundaries. |
 

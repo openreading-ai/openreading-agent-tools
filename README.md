@@ -8,16 +8,19 @@
 [![Source license](https://img.shields.io/badge/source-Apache--2.0-blue)](LICENSE)
 
 OpenReading Agent Tools packages local document processing for your AI assistant.
-The local preview retains extracted evidence and returns selected passages with physical PDF page references.
+The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: implemented local preview, pending release evidence.** You can build the native runtime and client packages for local review.
+**Status: revision 2 design ready for review; engine migration pending.**
+The current code is the superseded revision 1 PyMuPDF prototype.
+The target bundle uses Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
+Existing build and test evidence does not establish that new engine profile.
 No public binary or measured token-savings claim is released.
 The source license above does not describe bundled dependency licenses.
 
 ## The first proof
 
 The first profile targets macOS on Apple Silicon.
-You install a bundle, choose a document directory, and ask about one PDF with extractable text.
+The revised proof targets a bundled local layout model and optional OCR, with resource limits selected from measured host timing.
 OpenReading keeps the extracted document locally and returns selected passages with physical page references.
 Claude Desktop, Claude Code, and Codex packages contain the same frozen runtime.
 See the [runtime evidence table](runtime/README.md) for tested behavior and remaining host checks.
@@ -46,7 +49,8 @@ Core never requires this checkout or a private company package.
 | Build, package, verify, and inspect implementation evidence | [Runtime guide](runtime/README.md) |
 | Client setup | [Claude Desktop](clients/claude-desktop/README.md), [Claude Code](clients/claude-code/README.md), [Codex](clients/codex/README.md) |
 | Prepare a frozen experiment and regenerate reports | [Measurement guide](measurement/README.md) |
-| Remaining installation and distribution evidence | [Release design](design/local-document-proof.md) |
+| Engine migration, timing, configuration, and distribution contract | [Revision 2 design](design/local-document-proof.md) |
+| Claude review resolutions | [Finding dispositions](design/review-disposition.md) |
 | Fair baselines, usage accounting, and claim limits | [Token evaluation design](design/token-evaluation.md) |
 | Ordered tasks, exact files, tests, and handoff rules | [Implementation plan](design/implementation-plan.md) |
 | Agent instructions and repository ownership | [AGENTS.md](AGENTS.md) |

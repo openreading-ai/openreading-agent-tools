@@ -1,5 +1,9 @@
 # Claude Code local preview
 
+**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
+The [revision 2 design](../../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+Existing setup commands and test results below do not establish revision 2 compatibility.
+
 The assembled marketplace installs a frozen worker and the shared evidence retrieval skill.
 Build the packages from the [runtime guide](../../runtime/README.md), then use absolute paths below.
 

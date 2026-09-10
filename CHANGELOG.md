@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- ProductSpec revision 2 replaces the proposed distributed PyMuPDF profile with Docling, ONNX layout, PDFium, and setup-only Tesseract.
+- The revised design adds measured timing and memory gates, a signing fallback, explicit coding-client grants, offline retrieval checks, and an M0 probe before further packaging.
+- Existing executable behavior remains the revision 1 prototype; no Docling migration, installation, or paid experiment runs in this design pass.
+
 ### Added
 
 - Repository instructions, contribution and security policies, GitHub templates, and offline documentation checks.

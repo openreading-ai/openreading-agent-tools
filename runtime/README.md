@@ -1,5 +1,9 @@
 # Native runtime
 
+**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
+The [revision 2 design](../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+Existing setup commands and test results below do not establish revision 2 compatibility.
+
 You can build a local review candidate containing Python, PyMuPDF, MCP, and an immutable core revision.
 The native builder currently requires macOS 15.1 on Apple Silicon and Python 3.11.15 through uv.
 Other operating systems can run the offline unit tests, but cannot produce this native candidate.
@@ -29,7 +33,8 @@ A clean machine and real host walkthrough remain separate requirements.
 MCPB can dereference library symlinks, so the builder materializes internal links before hashing the install representation.
 `release.json` identifies the core commit, Python version, native platform, dependency lock, worker hash, and complete inventory.
 Hashes detect changes against metadata; they do not authenticate a publisher.
-Signing, notarization, and the applicable PyMuPDF distribution license need review before sharing a binary.
+This historical PyMuPDF prototype is not a distribution candidate under revision 2.
+The replacement bundle must pass its separate dependency, signing, and notarization gates.
 
 [entrypoint.py](entrypoint.py) launches core's fixed `local-document-proof-v1` profile.
 It does not implement another parser or MCP server.
@@ -66,7 +71,8 @@ Uninstalling a plugin does not automatically remove this application data.
 
 ## Acceptance evidence
 
-The governing [ProductSpec revision 1](../product/specs/local-document-proof.product-spec.md) remains unchanged.
+The table below records historical revision 1 evidence.
+The governing [ProductSpec is now revision 2](../product/specs/local-document-proof.product-spec.md); changed criteria and AC-21/AC-22 require new evidence.
 An implemented mechanism does not establish every host-level criterion containing that mechanism.
 
 | Criteria | Evidence and remaining work |

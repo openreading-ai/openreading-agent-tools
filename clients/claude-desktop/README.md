@@ -1,5 +1,9 @@
 # Claude Desktop local preview
 
+**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
+The [revision 2 design](../../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+Existing setup commands and test results below do not establish revision 2 compatibility.
+
 The package contains a native stdio MCP server, so you do not start an HTTP service or install Python.
 Build the candidate using the [runtime guide](../../runtime/README.md).
 The manifest targets macOS on Apple Silicon and requires an explicit document directory.

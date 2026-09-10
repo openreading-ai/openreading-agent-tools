@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 1
+spec_revision: 2
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-10T00:00:00Z"
@@ -49,6 +49,7 @@ It does not infer one outcome from another.
 ## Product Summary
 
 You install an OpenReading bundle and choose a directory containing documents you want it to read.
+Desktop uses its setup form; coding clients use explicit installation configuration or the bundled setup command.
 You name one supported PDF and ask a question.
 OpenReading parses the file locally, keeps the extraction on disk, and returns a short receipt.
 The assistant searches that extraction, reads bounded passages, and answers with source references.
@@ -57,7 +58,10 @@ A receipt is a small record identifying the extracted document and its available
 Provenance is the information connecting that evidence to the exact source bytes and physical page.
 Neither is an LLM-generated summary.
 
-The first backend is PyMuPDF.
+The first distributed backend is an in-process Docling profile with local ONNX layout inference.
+PDFium supplies preflight and rendering; Tesseract supplies OCR only when you enable it during setup.
+The bundle includes its layout weights and selected OCR language data, with no runtime download.
+PyMuPDF remains available in core but is excluded from this distributed bundle.
 A backend is the engine that reads a document, wrapped by OpenReading core.
 The proof intentionally tests a narrower PDF profile than the [core adapter catalog](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md) may support.
 
@@ -65,7 +69,9 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and live trial records.
 
-**Review status: proposed, unbuilt.**
+**Review status: revision 2 migration design, not implemented.**
+The current runtime and measurement driver implement the superseded revision 1 PyMuPDF prototype.
+Their passing tests and historical revision pins do not establish revision 2 compliance.
 Approving this specification authorizes its scope only when the owner also requests implementation.
 It does not authorize a release, paid model calls, or merging a PR.
 
@@ -73,7 +79,9 @@ It does not authorize a release, paid model calls, or merging a PR.
 
 ~~~productspec-scope
 in:
-  - Deliver a Claude Desktop bundle for macOS on Apple Silicon that includes its required runtime and first backend.
+  - Deliver a signed and notarized Claude Desktop bundle for macOS on Apple Silicon with pinned Docling, PDFium, ONNX layout weights, and Tesseract.
+  - Disclose the bundled local vision model and allow OCR at setup, disabled by default, with OCR-derived evidence labeled.
+  - Exclude table structure recognition until a separately approved compatible engine exists.
   - Let the user select one input directory during setup and parse one explicitly named PDF per tool call.
   - Keep a local artifact and return bounded evidence through import, search, and read tools owned by core.
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
@@ -83,7 +91,7 @@ in:
   - Publish a truthful proof result, including an unsuccessful token hypothesis when the measurements do not support it.
 out:
   - Do not build an account, hosted service, tenant model, billing system, or company document index.
-  - Do not install Docling, Tesseract, a local language model, Docker, or Cuttlefish automatically in this proof.
+  - Do not include a local language model, Docker, Cuttlefish, PyMuPDF, torch, torchvision, or docling-ibm-models in the distributed proof.
   - Do not claim support for ChatGPT web, other desktop surfaces, Windows, Linux, or Intel Macs without a later compatibility milestone.
   - Do not provide an operating-system sandbox or claim that a cloud assistant sees no document information.
   - Do not change existing core CLI or HTTP password support.
@@ -92,7 +100,7 @@ cut:
   - Cut folder import, recursive discovery, and a multi-file upload tool from the first proof.
   - Cut durable background jobs, reconnectable progress, automatic retries, and a job management interface.
   - Cut a thousand-page acceptance claim until a separate resource and retrieval study passes.
-  - Cut automatic OCR escalation and image-only document answering from the first proof.
+  - Cut automatic OCR escalation and model-controlled OCR settings; image-only pages require OCR enabled explicitly during setup.
   - Cut full-document summaries as a token-saving demonstration because reading every passage can erase the proposed savings.
   - Cut a document viewer and automatic opening of local files from the first proof.
   - Cut public marketplace submission and automatic updates from the first proof.
@@ -108,10 +116,10 @@ Until a later folder milestone exists, a client may call import once per explici
 
 1. You receive a versioned bundle for your tested operating system and client.
 2. You install it through Claude Desktop's extension interface.
-3. Setup asks for a document directory and explains local artifact retention.
+3. Setup requires a document directory, discloses the additional retained source copy and local vision model, and offers OCR disabled by default.
 4. Setup explains that passages returned to Claude may enter its cloud context.
 5. You ask: "Use OpenReading on agreement.pdf. What is the renewal notice period? Cite the source page."
-6. The assistant imports the file and receives its document identifier, page count, extraction status, and retrieval limits.
+6. The assistant imports the file and receives its document identifier, page count, and extraction status. Retrieval limits appear in the tool descriptions.
 7. It searches for renewal evidence and reads the matching passages.
 8. It answers with the supporting quote, physical page, and evidence identifier.
 
@@ -135,9 +143,10 @@ It is not a portable cloud link or a cross-client authorization token.
 
 ### Input or installation failure
 
-An unsupported architecture produces an installation error before document access.
+An unsupported architecture is refused before document access, during installation where supported or otherwise during launcher startup.
 A path outside the selected directory returns access_denied.
-An image-only PDF returns no_readable_text and explains that OCR is outside this proof.
+With OCR disabled, an image-only PDF returns no_readable_text and explains the setup option.
+Mixed documents disclose unreadable pages without implying complete text coverage.
 An encrypted file returns password_required without requesting its password through this tool.
 
 The assistant does not suggest silently uploading the document to another provider.
@@ -153,18 +162,18 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [runtime evidence table](../../runtime/README.md) maps implemented checks and remaining evidence to these criteria.
-The implementation plan now tracks only unfinished review and release work.
+The [implementation plan](../../design/implementation-plan.md) maps revision 2 work to these criteria.
+The runtime evidence table describes historical revision 1 checks only; changed criteria require new evidence.
 
 ~~~productspec-acceptance-criteria
 - id: AC-1
   criterion: On the recorded macOS Apple Silicon test environment without user-installed Python, pip, uv, Homebrew, Node, or Docker, Claude Desktop installs the supplied bundle and completes the synthetic cited-answer walkthrough without a terminal server.
 - id: AC-2
-  criterion: Setup requires an explicit input directory, states local artifact retention, and states that returned passages enter the calling assistant; cancellation leaves the document tools unconfigured.
+  criterion: Setup requires an explicit input directory, discloses an additional source copy, the local layout model, and shared excerpts; Desktop uses its form and coding clients use explicit configuration, while cancellation or invalid setup leaves startup refused without a grant.
 - id: AC-3
   criterion: Import reads exactly one requested regular file inside the configured directory, refuses traversal and symlink escapes, and never interprets a directory selection as a recursive import.
 - id: AC-4
-  criterion: The first profile invokes the explicitly pinned PyMuPDF backend without loading ambient routing configuration, making a hosted dispatch, fetching a document URL, or using a local model.
+  criterion: The first profile invokes only the pinned in-process Docling, PDFium, ONNX layout, and setup-enabled Tesseract engines; it loads no weights or OCR data outside the verified bundle, reads no ambient routing configuration, fetches no document URL, and performs no hosted dispatch.
 - id: AC-5
   criterion: Each imported artifact records the SHA-256 of the exact parsed source bytes, the core and parser versions, physical page count, extraction settings, and deterministic evidence identifiers.
 - id: AC-6
@@ -174,7 +183,7 @@ The implementation plan now tracks only unfinished review and release work.
 - id: AC-8
   criterion: A successful artifact remains readable after process restart, while incomplete or corrupted artifacts are refused and a source change produces a different document identity.
 - id: AC-9
-  criterion: File, page, extraction-size, response-size, concurrency, and wall-time limits are enforced at their documented boundaries, with deterministic errors and no successful partial artifact.
+  criterion: File, page, extraction-size, response-size, concurrency, wall-time, and sampled worker-memory limits are recorded in the measured profile; accepted cold and warm imports fit the tested host timeout with documented margin, cancellation terminates owned work, and failures publish no successful partial artifact.
 - id: AC-10
   criterion: Unsupported formats, encrypted files, empty text, parser failures, cancellation, full disks, and unavailable artifacts produce sanitized errors with no planted document secrets or credentials.
 - id: AC-11
@@ -194,9 +203,13 @@ The implementation plan now tracks only unfinished review and release work.
 - id: AC-18
   criterion: Repository verification stays offline, never requires sibling checkouts, and checks every product implementation added to this repository through meaningful tests and a measured coverage gate.
 - id: AC-19
-  criterion: Distribution review records the applicable license path for bundled PyMuPDF and all dependency notices before a binary is shared; the Apache source badge never represents the entire bundle.
+  criterion: Before a binary is shared, distribution review verifies every native library, weight, OCR data file, and notice, excludes PyMuPDF and prohibited dependencies, and records Developer ID signing, notarization, entitlements, and clean-host launch evidence; the Apache source badge never represents the entire bundle.
 - id: AC-20
   criterion: The final walkthrough names tested clients and limits, explains what reaches the model, links its reviewed proof evidence, and removes completed proposal records after moving durable facts beside the implementation.
+- id: AC-21
+  criterion: OCR is disabled by default and changes only through explicit setup; OCR-derived or mixed-origin evidence is labeled in every passage and search hit, all source provenance entries are handled without invented page attribution, and missing table text is disclosed.
+- id: AC-22
+  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no runtime downloads, and passes the frozen offline retrieval gate before an approved paid study.
 ~~~
 
 ~~~productspec-ai-evals
@@ -266,6 +279,11 @@ It belongs to a separate product decision.
 
 ## Risks
 
+**Local layout inference changes size and latency.**
+Docling introduces model loading, CPU inference, native dependencies, and OCR data into the bundle.
+Measure cold and warm import times, memory, and archive size before selecting release limits.
+Permissive top-level licenses do not establish the complete distribution inventory.
+
 **Packaging becomes the whole project.**
 Ship one platform and one parser first, with signing and real installation as early feasibility checks.
 Additional hosts wrap that tested runtime instead of reimplementing it.
@@ -288,11 +306,10 @@ Publication requires a reviewed, sanitized evidence summary and dependency licen
 
 ## Rollout
 
-The [implementation plan](../../design/implementation-plan.md) orders four review boundaries.
-First, approve the narrow core contracts and complete the packaging feasibility check.
-Second, prove local artifacts and retrieval through the core implementation.
-Third, validate packaged client installations.
-Fourth, run the authorized paired experiment and choose the claim supported by its results.
+The [implementation plan](../../design/implementation-plan.md) orders contract revision, engine feasibility, retrieval, an approved M0 probe, and later packaging.
+M0 is unscored and cannot establish a public token claim.
+Real installation, signing, and paid execution remain deferred until their respective prerequisites and owner approvals are available.
+The primary study follows calibration and separate approval of its frozen schedule and budget.
 
 A functional install can be released without a token-saving claim.
 A failed token hypothesis remains a useful proof result.
@@ -304,10 +321,13 @@ The design makes implementation defaults explicit so a worker does not have to i
 The following owner actions remain release dependencies:
 
 - Approve the core contract scope in core before changing its public schemas or MCP surface.
-- Select and record the applicable distribution license path before sharing the PyMuPDF bundle.
-- Supply a clean macOS test environment and a signing identity if the installation gate requires one.
+- Review the complete Docling bundle, including native dependencies, model weights, and OCR data, before sharing it.
+- Supply a clean macOS virtual machine and the Developer ID identity required for release signing and notarization.
 - Authorize a specific live experiment manifest, account, and estimated spend ceiling.
 - Review the evidence and approve any public release or marketing claim.
+
+Measured import limits remain unresolved until the engine and host timing probes finish.
+A second text-only profile or a different OCR engine requires a separate decision, never a silent fallback.
 
 These dependencies do not block writing or reviewing this proposal.
 They do block the corresponding implementation, live trial, or distribution step.

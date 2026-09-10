@@ -1,8 +1,13 @@
 # Token experiment tooling
 
+**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
+The [revision 2 design](../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+Existing setup commands and test results below do not establish revision 2 compatibility.
+
 You can prepare a synthetic study, validate its frozen inputs, and regenerate reports without calling a model.
 Actual token savings require approved live trials and independent answer review.
-The [evaluation design](../design/token-evaluation.md) defines the preregistered decision rules.
+The [revision 2 evaluation design](../design/token-evaluation.md) defines the next study and required driver changes.
+The current driver still emits revision 1 manifests; do not relabel them or use them as revision 2 study evidence.
 
 ## Prepare and validate
 

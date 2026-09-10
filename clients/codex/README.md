@@ -1,5 +1,9 @@
 # Codex local preview
 
+**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
+The [revision 2 design](../../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+Existing setup commands and test results below do not establish revision 2 compatibility.
+
 The package uses the portable Agent Plugins manifest and the same native worker as the Claude packages.
 Build the packages through the [runtime guide](../../runtime/README.md).
 Codex setup stores an explicit document grant outside its replaceable plugin cache.

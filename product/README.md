@@ -1,7 +1,7 @@
 # Product intent
 
 [Local document proof](specs/local-document-proof.product-spec.md) is the first proposed milestone.
-It is ProductSpec format 0.1, revision 1.
+It is ProductSpec format 0.1, revision 2.
 
 Run `make productspec-validate` to check its structure with the pinned validator.
 Its criteria describe future behavior, not completed work.
