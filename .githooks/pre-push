@@ -1,0 +1,3 @@
+#!/bin/sh
+# Run the same gate before sharing commits with the remote.
+exec make verify

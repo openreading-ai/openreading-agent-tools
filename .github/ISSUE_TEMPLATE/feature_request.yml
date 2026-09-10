@@ -1,0 +1,25 @@
+name: Product proposal
+description: Explain a user need and a checkable outcome.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Who needs this, and what currently fails?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What observable outcome proves this works?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Smallest useful scope and deliberate exclusions
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Existing ProductSpec path and revision, if any
