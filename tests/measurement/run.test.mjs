@@ -157,6 +157,45 @@ test("approved fake query records real counters and failures without zero substi
   assert.ok(readFileSync(join(root, trial.evidence.events)).length);
 });
 
+test("a search pattern cannot read outside the granted evidence", async (t) => {
+  const { root, path } = fixture(t);
+  const run = validateRun(path, hash(readFileSync(path)));
+  const decisions = {};
+  const query = async function* ({ options }) {
+    for (const [label, tool, input] of [
+      ["absolute_glob", "Glob", { pattern: "/etc/**" }],
+      ["escaping_glob", "Glob", { pattern: "../../**/*.pdf" }],
+      ["home_glob", "Glob", { pattern: "~/Documents/**" }],
+      ["escaping_grep", "Grep", { pattern: "secret", path: "../.." }],
+      ["workspace_glob", "Glob", { pattern: "**/*.txt" }],
+      ["granted_pdf", "Read", { file_path: join(root, "source.pdf") }],
+    ])
+      decisions[label] = (await options.canUseTool(tool, input)).behavior;
+    yield {
+      type: "result",
+      subtype: "success",
+      modelUsage: {
+        model: {
+          inputTokens: 40,
+          cacheCreationInputTokens: 10,
+          cacheReadInputTokens: 50,
+          outputTokens: 8,
+        },
+      },
+      total_cost_usd: 0.01,
+    };
+  };
+  await runTrial(run, plannedTrials(run)[0], { query });
+  assert.deepEqual(decisions, {
+    absolute_glob: "deny",
+    escaping_glob: "deny",
+    home_glob: "deny",
+    escaping_grep: "deny",
+    workspace_glob: "allow",
+    granted_pdf: "allow",
+  });
+});
+
 test("resume accounts for later recorded trials before spending again", async (t) => {
   const { main } = await import("../../measurement/run.mjs");
   const { root, path } = fixture(t),

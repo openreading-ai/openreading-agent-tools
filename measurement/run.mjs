@@ -258,7 +258,17 @@ function permission(run, workspace) {
         workspace,
         input.file_path ?? input.path ?? ".",
       );
+      // A search root alone does not bound Glob or Grep: their pattern is
+      // resolved separately, so an absolute or escaping pattern would read
+      // outside the granted evidence even when the root is the workspace.
+      const pattern = input.pattern ?? input.glob;
+      const boundedPattern =
+        typeof pattern !== "string" ||
+        (!isAbsolute(pattern) &&
+          !pattern.split(/[\\/]/).includes("..") &&
+          !pattern.startsWith("~"));
       if (
+        boundedPattern &&
         readable.some(
           (path) =>
             candidate === path ||
