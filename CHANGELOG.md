@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased Docling feasibility
+
+- Add an isolated, immutable core/dependency candidate for revision 2 feasibility.
+- Add a network-denied engine matrix with synthetic inputs and explicit failure checks.
+- Preserve revision 1 runtime and study pins until their separate migrations pass.
+
 ## [Unreleased]
 
 ### Changed

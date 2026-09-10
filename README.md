@@ -82,3 +82,6 @@ Paid model trials and real host installation remain separate from this offline g
 Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
 Open a branch and submit a pull request.
 Human maintainers review and merge changes.
+
+The [Docling feasibility harness](runtime/feasibility/README.md) provides the revision 2 developer engine candidate.
+It does not replace the historical client bundle or establish token savings.

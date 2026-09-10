@@ -1,6 +1,6 @@
 # Docling local proof migration design
 
-**Status:** proposed revision 2 implementation contract; current executable behavior remains revision 1.
+**Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
 **Intent:** [ProductSpec revision 2](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
@@ -8,7 +8,7 @@
 
 The first distributed profile becomes `local-document-proof-v2`, using an in-process Docling adapter owned by core.
 The existing core `docling` HTTP adapter remains separate and compatible.
-The proposed new adapter identifier is `docling_local`; its descriptor controls its supported formats and capabilities.
+The implemented adapter identifier is `docling_local`; its descriptor controls its supported formats and capabilities.
 Agent Tools consumes an immutable core commit after that adapter and the revised artifact contract pass core verification.
 It never copies parser, provenance, or retrieval logic into a launcher.
 
@@ -47,43 +47,18 @@ This retains the implemented fail-closed startup model instead of introducing an
 Guides give the exact host setup command and observed host log location after the host check records it.
 They must not promise that a tool returns an error when startup prevented tool registration.
 
-Resolve a deliberately chosen root once, open its canonical directory, and bind the grant to that descriptor's identity.
-Symlinks in the user-selected root spelling are allowed at setup; symlinks beneath the granted directory remain refused.
-On macOS, obtain the canonical spelling from the opened descriptor using the supported descriptor-path API.
-Do not lowercase or Unicode-normalize path strings to guess filesystem identity.
-Use device/inode comparisons across opened ancestor chains to refuse identical or overlapping input and artifact roots.
-Record canonical path and directory identity in the grant identity so replacing the directory does not inherit its artifacts.
-On a case-sensitive volume, differently cased directories remain distinct.
-On a case-insensitive volume, aliases of the same opened directory produce one grant.
-Use the matched directory-entry spelling for display names and keep artifact identifiers derived from source bytes and engine identity.
-
-Open source components relative to the grant descriptor with no-follow and close-on-exec behavior.
-Open the final component nonblocking, require a regular file with `fstat`, then clear nonblocking before copying.
-Copy and hash through that same descriptor; the parser reads only the staged copy.
-Filesystem permission errors use `os_permission_denied`, distinct from a traversal or nonregular-file `access_denied` error.
-Recovery explains that OS or volume permissions may need adjustment; on macOS it points to the host's Files and Folders settings without asserting which process owns the permission before testing it.
+Core now owns implemented grant behavior in `openreading.artifacts.intake` and `openreading.artifacts.store`.
+Client integration must preserve those descriptor-bound roots and distinguish OS permissions from traversal errors.
+Matched directory-entry display spelling and actual host-specific permission recovery still need client evidence.
+Do not guess the responsible macOS permission process before observing the installed host.
 
 ## 3. Worker lifecycle and resource profile
 
-The MCP parent never imports Docling, ONNX Runtime, PDFium, or OCR bindings.
-A dedicated child owns all engine initialization, preflight, inference, and subprocesses.
-The child receives one staged document at a time over a bounded private control channel.
-Native diagnostics remain separate from MCP stdout, and child failures become sanitized domain errors.
-
-Use one warm worker per installation with one active import and a proposed 60-second idle shutdown.
-A second import returns `busy`; there is no unbounded queue or durable background job.
-Each job has an identifier; late results from a cancelled generation are discarded.
-Deadline, cancellation, worker crash, memory excess, or control-channel corruption kills and reaps the owned process group before releasing its slot.
-Restart lazily on the next explicit import, with no automatic retry of the failed document.
-On parent shutdown or disconnect, terminate owned work and remove incomplete staging.
-Tests cover cancellation before startup, during model loading, during OCR, and just before commit.
-
-A sampled memory watchdog checks aggregate owned-worker and OCR-process RSS, initially every 100 milliseconds.
-Exceeding the configured threshold returns `memory_limit` and kills the process group.
-Failure to sample reliably ends the import with a sanitized worker-monitoring failure rather than disabling enforcement.
-Shared-memory accounting may overcount; disclose the metric and sampling method.
-This is a best-effort sampled limit, not a hard OS memory reservation or protection against allocation bursts.
-Model files and warm-worker memory are not charged against the retained-document disk quota.
+The supervised worker contract is implemented in core's `openreading.artifacts.supervisor`, `worker`, and MCP modules.
+Use the [candidate harness](../runtime/feasibility/README.md) and its immutable dependency pin to reproduce engine checks.
+The launcher must pass explicit resource limits and close the service during shutdown.
+Packaging must preserve private control descriptors and owned process-group cleanup.
+These integration obligations still need installed-host validation.
 
 ### Limits and timing acceptance
 
@@ -111,26 +86,11 @@ Production limits remain an explicit unresolved measurement output; no support c
 
 ## 4. Evidence, OCR, and retrieval
 
-Version the artifact and tool schemas deliberately in core; do not rewrite released schema bytes.
-The extraction identity records core, adapter, Docling, docling-parse, PDFium, ONNX Runtime, Tesseract, and preprocessing versions.
-It also records layout-weight and tessdata hashes, OCR enablement/languages, table settings, pipeline choice, and dependency-lock hash.
-A changed setting or engine creates a distinct artifact; revision 1 artifacts are never relabeled as Docling output.
-Keep the original source snapshot so a reviewer can recover the exact bytes parsed after the original changes.
-Setup explains the original file plus an additional retained copy, with extraction taking further space.
-All retained grants, including inaccessible old grants and staging, count toward the store quota.
-
-Map every Docling provenance entry instead of selecting the first entry or defaulting a missing page to one.
-Split item text only where upstream spans establish the page association.
-Never duplicate an entire cross-page item onto every page or invent offsets when provenance is ambiguous.
-Ambiguous text is omitted from page-addressable evidence with a warning; an import with no usable evidence fails explicitly.
-Preserve physical source pages independently of printed labels and convert geometry only from known coordinate systems.
-
-Add measured source-kind values for native, OCR, and mixed-origin passages and search hits.
-Source kind follows the actual extraction path, not merely the fact that OCR was enabled.
-Where exact origin separation is unavailable, label conservatively as mixed rather than claiming native text.
-Quotes remain exact extracted spans; an OCR label does not imply accuracy or confidence.
-With OCR off, disclose image-only pages; fail an entirely unreadable document with `no_readable_text`.
-With table structure off, test header, cell, and footnote coverage and disclose missing text without fabricating a table.
+Core's v0.2 artifact and tool contracts implement engine identity, physical-page spans, and measured text origins.
+Their owning documentation is `openreading.artifacts.models`, `service`, and `adapters.docling_local.projection`.
+The client migration must consume those contracts without relabeling revision 1 artifacts or inventing page associations.
+Explain retained source copies during setup and preserve OCR labels in answers.
+Table header, cell, and footnote coverage across the broader retrieval corpus remains a C3 gate.
 
 Name and freeze the retriever revision in the artifact and experiment identities.
 Search-side dehyphenation may join a hyphen followed by a line break and lowercase continuation while preserving an offset map to original text.
@@ -187,5 +147,6 @@ Their current APIs are not a substitute for running the selected locked dependen
 [Apple notarization guidance](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution) establishes the signing and hardened-runtime workflow.
 [Apple packaging guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) informs the container fallback.
 
-Unresolved evidence is named rather than guessed: torch-free pipeline execution, table-text coverage, mixed OCR provenance, measured host deadlines, resource constants, and complete licensing/notarization results.
+Unresolved evidence includes broader table/footnote coverage, base-machine and host deadlines, resource constants, and complete licensing/notarization results.
+The feasibility guide records developer-engine observations separately from these release requirements.
 The [implementation plan](implementation-plan.md) assigns each one a pass/fail task before dependent work.

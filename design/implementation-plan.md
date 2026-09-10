@@ -21,15 +21,20 @@ This review pass is documentation work. It does not execute installation, notari
 
 ## C1. Engine and timeout feasibility before packaging
 
+Developer measurements and reproduction commands live in the [feasibility guide](../runtime/feasibility/README.md).
+Host measurements and release defaults remain pending; C1 is not a completed release gate.
+
 Proposed owners: core `adapters/docling_local/` and `artifacts/worker.py`; tools `runtime/` feasibility checks.
 Acceptance: AC-4, AC-9, AC-21, AC-22.
 
-- [ ] Pin a candidate torch-free Docling/PDFium/ONNX dependency set in an isolated harness, including transformers preprocessing.
-- [ ] Run with prohibited packages absent, weights/data local, network blocked, OCR off and explicitly on.
-- [ ] Inspect table-region text, mixed-origin passages, and every cross-page provenance entry.
-- [ ] Measure the engine matrix and synthetic host-timeout probe defined in the engine design.
+- [x] Pin a candidate torch-free Docling/PDFium/ONNX dependency set in an isolated harness, including transformers preprocessing.
+- [x] Run with prohibited packages absent, weights/data local, network blocked, OCR off and explicitly on.
+- [x] Inspect table-region text, mixed-origin passages, and every cross-page provenance entry.
+- [x] Run the developer engine matrix with explicit repetitions, raw timings, sampled RSS, and extraction checks.
+- [ ] Complete base-machine, independent cold/p95, artifact-phase, and synthetic native-host timeout measurements.
 - [ ] Derive the release page cap, deadline, RSS threshold, idle policy, and SDK trial timeout from those measurements.
-- [ ] Record exact incompatibilities and stop if the selected engine or useful page cap cannot satisfy the contract.
+- [x] Record upstream initialization incompatibilities and the rejected dependency candidate in the feasibility guide.
+- [ ] Stop release if a useful page cap cannot fit the measured host budget.
 
 Do not infer performance from upstream report medians or silently adopt the old profile constants.
 RapidOCR and ocrmac may be compared later as diagnostic alternatives; Tesseract remains selected unless the owner changes that decision.
@@ -37,18 +42,20 @@ Native host timing measurements can wait with installation testing, but no depen
 
 ## C2. Core adapter, identity, and worker supervision
 
-Files: core's new adapter descriptor and methods, vendored schema revisions, artifact models/service/worker, CLI profile configuration, and focused tests.
-Acceptance: AC-3 through AC-10, AC-21, AC-22.
+Implemented in core candidate `f997ee62fcb83f9c93f2670e025e17bf48f6fadf`.
+Durable contracts now live in core's adapter, artifact, and MCP module documentation.
+The [feasibility guide](../runtime/feasibility/README.md) owns the candidate lock and reproduction commands.
 
-- [ ] Add the in-process adapter independently of the existing Docling HTTP adapter; follow core's adapter conformance runbook.
-- [ ] Move preflight to PDFium in the child and prove the parent never imports engine bindings.
-- [ ] Implement bounded warm-worker control, sampled process-tree memory monitoring, progress, idle shutdown, cancellation, and process-group cleanup.
-- [ ] Add engine/weight/data/settings identity and conservative native/OCR/mixed provenance without invented page-one defaults.
-- [ ] Canonicalize chosen roots once; verify directory identities and ancestor overlap using descriptors.
-- [ ] Add OS-permission errors, nonblocking FIFO rejection, root replacement/case/Unicode tests, and retained-store cleanup guidance.
-- [ ] Preserve exact-copy hashing, strict reads, complete integrity checks, and process-restart durability.
-- [ ] Add failing tests before each behavior and demonstrate regressions fail when their fixes are removed.
-- [ ] Run core `make verify` before committing an immutable dependency candidate.
+- Independent `docling_local` adapter, PDFium child preflight, and lazy parent-side discovery.
+- Bounded private worker control, sampled process-tree RSS, progress, idle shutdown, and cancellation cleanup.
+- Versioned origins and engine identity, explicit asset/lock hashes, and measured OCR executable version.
+- Canonical descriptor-bound grants, root replacement checks, Unicode alias behavior, FIFO rejection, and permission errors.
+- Atomic retained evidence, strict reads, exact source snapshots, and restart reuse.
+- Core gate: 3,607 tests pass, 94.11% coverage, clean pyright and all smoke checks on Python 3.11.15.
+- Fix-removal checks detect numeric success flags, changed assets, and shifted physical-page origin numbers.
+
+Acceptance still depends on the separate host/resource and release checks below.
+These implementation checks do not establish every product criterion or a packaged client release.
 
 ## C3. Corpus and offline retrieval gate
 

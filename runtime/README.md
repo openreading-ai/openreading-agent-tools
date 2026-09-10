@@ -1,7 +1,8 @@
 # Native runtime
 
 **Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
-The [revision 2 design](../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+The [revision 2 design](../design/local-document-proof.md) targets a Docling distribution.
+Its isolated feasibility harness is implemented; the distributed runtime still uses revision 1.
 Existing setup commands and test results below do not establish revision 2 compatibility.
 
 You can build a local review candidate containing Python, PyMuPDF, MCP, and an immutable core revision.
@@ -97,3 +98,8 @@ An implemented mechanism does not establish every host-level criterion containin
 On macOS 15.1 arm64, the local MCPB pack/unpack smoke passes with a frozen executable.
 Claude Desktop 1.49585.0 is installed on the development machine, but its extension installation has not been verified.
 No evidence here establishes thousand-page support or token savings.
+
+## Docling feasibility candidate
+
+The [isolated feasibility harness](feasibility/README.md) targets revision 2 independently of the historical runtime.
+The revision 1 runtime pin remains unchanged until client and bundle migration checks pass.
