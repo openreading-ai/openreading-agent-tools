@@ -1,0 +1,55 @@
+/** Exercise policy boundaries so a green gate means more than readable Markdown. */
+import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import test from 'node:test';
+import { checkRepository } from '../scripts/check-repository.mjs';
+
+function check(files) {
+  const root = mkdtempSync(join(tmpdir(), 'openreading-repo-check-'));
+  try {
+    for (const [path, content] of Object.entries(files)) {
+      mkdirSync(join(root, path, '..'), { recursive: true });
+      writeFileSync(join(root, path), content);
+    }
+    return checkRepository(root);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test('proposals and directory guides are allowed', () => {
+  assert.deepEqual(check({
+    'README.md': '# Home\n\n[Design](design/proof.md)\n',
+    'design/proof.md': '# Proposal\n',
+    'product/specs/proof.product-spec.md': '# Intent\n',
+    'scripts/README.md': '# Checks\n',
+    'skills/read-document/SKILL.md': '# Document workflow\n',
+  }), []);
+});
+
+test('standalone code descriptions are refused', () => {
+  assert.match(check({ 'scripts/how-it-works.md': '# Guide\n' }).join('\n'), /not allowed/);
+});
+
+test('missing relative links and local path escapes are refused', () => {
+  const errors = check({ 'README.md': '# Home\n\n[Missing](absent.md) [Escape](../private.md)\n' });
+  assert.equal(errors.length, 2);
+  assert.match(errors.join('\n'), /missing|escapes/);
+});
+
+test('reference links are checked while sample code is ignored', () => {
+  const errors = check({ 'README.md': '# Home\n\n[Missing][ref]\n\n[ref]: missing.md\n\n~~~text\n[Example](imaginary.md)\n~~~\n' });
+  assert.equal(errors.length, 1);
+});
+
+test('malformed YAML and JSON fail', () => {
+  const errors = check({ 'bad.json': '{', '.github/bad.yml': 'key: 1\nkey: 2\n' });
+  assert.equal(errors.length, 2);
+});
+
+test('HTTP links stay offline and Claude imports stay canonical', () => {
+  assert.deepEqual(check({ 'README.md': '# Home\n\n[Remote](https://example.invalid/page)\n', 'CLAUDE.md': '@AGENTS.md\n', 'AGENTS.md': '# Instructions\n' }), []);
+  assert.match(check({ 'CLAUDE.md': 'Different instructions\n' }).join('\n'), /AGENTS/);
+});

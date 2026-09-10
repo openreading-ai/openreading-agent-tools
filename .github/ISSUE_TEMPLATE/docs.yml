@@ -1,0 +1,15 @@
+name: Documentation correction
+description: Report an unclear instruction, stale claim, or broken link.
+body:
+  - type: input
+    id: location
+    attributes:
+      label: File or page
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Current claim, observed behavior, and proposed correction
+    validations:
+      required: true

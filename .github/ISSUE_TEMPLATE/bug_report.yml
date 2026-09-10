@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible repository or released tooling problem.
+body:
+  - type: markdown
+    attributes:
+      value: "For security reports, use SECURITY.md. Include synthetic reproductions instead of private documents or transcripts."
+  - type: input
+    id: version
+    attributes:
+      label: Commit or release
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system, architecture, and client version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction and expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result and sanitized error codes
+    validations:
+      required: true

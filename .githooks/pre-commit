@@ -1,0 +1,3 @@
+#!/bin/sh
+# CI checks the committed revision; this fast local gate checks the working tree.
+exec make verify
