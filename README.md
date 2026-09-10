@@ -33,7 +33,7 @@ Excerpts returned to a cloud assistant enter that assistant's context.
 | Private company repository | Private research, customer documents, benchmark ground truth, trial transcripts, and business decisions. |
 
 MCP means Model Context Protocol, the interface through which an assistant calls local tools.
-This repository consumes a pinned core build.
+The proposed runtime consumes a pinned core build.
 Core never requires this checkout or a private company package.
 
 ## Read and review
@@ -54,16 +54,46 @@ Contributors need Node.js 24 or newer and npm.
 These are documentation tooling requirements, separate from the proposed end-user installation experience.
 
 ~~~sh
-make sync
-make verify
+make sync      # Install the pinned development tools.
+make verify    # Run the offline repository and specification checks.
+make audit     # Check dependency advisories; requires internet access.
 ~~~
 
 The gate checks Markdown, repository documentation policy, local link targets, JSON/YAML syntax, and ProductSpec validity.
-Its regression tests exercise those repository checks.
-After dependency installation, verification needs no network, model credentials, backend server, or sibling checkout.
+After dependency installation, make verify needs no network, model credentials, backend server, or sibling checkout.
 
-GitHub runs the same gate and a separate dependency advisory lookup.
+**Passing:** the command exits with status 0, all tests pass, and ProductSpec reports the specification as valid.
+**Failing:** the command exits with a nonzero status and identifies the failed check or affected file.
+The audit fails on high or critical dependency advisories.
+Fix the reported problem and rerun the failed command before running the complete gate again.
+
+To exercise the validators independently:
+
+~~~sh
+make test
+~~~
+
+These tests include deliberately invalid fixtures, such as broken links and malformed JSON or YAML.
+Passing means the validators reject those invalid inputs and accept the valid fixtures.
+You do not need to damage a repository file to check that failure detection works.
+
+GitHub runs make verify and make audit on pull requests.
 There is no runtime coverage badge because no runtime exists here yet.
+
+## How the implemented proof will be tested
+
+The proposed product has three independent outcomes:
+
+| Check | A passing result establishes |
+| --- | --- |
+| Installation | A fresh Mac completes the plugin workflow without user-managed Python or a terminal server. |
+| Evidence quality | Answers use the correct source passages and physical page references. |
+| Token experiment | Measured Claude usage meets the reduction target while answer quality meets the registered thresholds. |
+
+Installation and retrieval can work even when the token-saving hypothesis fails.
+The [ProductSpec](product/specs/local-document-proof.product-spec.md) defines acceptance criteria for each outcome.
+The [evaluation design](design/token-evaluation.md) defines the token and quality decision rules.
+These product outcomes remain unverified until implementation and the corresponding trials are complete.
 
 ## Contributing
 
