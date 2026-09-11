@@ -1,8 +1,8 @@
 # Token evaluation for the local document proof
 
-**Status:** revision 2 experiment design; the existing driver implements only the superseded revision 1 prototype.
-The current [measurement guide](../measurement/README.md) documents that historical executable behavior.
-The additional probe, schema, grading, and accounting requirements below remain unimplemented.
+**Status:** the revision 2 unscored M0 driver is implemented; calibration, primary, follow-up, and human grading remain proposed.
+The [measurement guide](../measurement/README.md) documents M0 and the historical revision 1 driver.
+The expanded full-study contracts below remain unimplemented beyond that explicitly bounded probe.
 **ProductSpec:** [revision 2](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17.
 **Execution:** requires a separately approved live manifest and account.
 
@@ -102,14 +102,11 @@ They never enter this repository or a public CI artifact.
 
 ## 4. Pilot, full run, and follow-up
 
-Run M0 before additional packaging investment: one frozen answerable question per document, three arms, nine trials.
-It uses the developer harness and the selected Docling extraction, not a native package or a substituted PyMuPDF treatment.
-Its proposed ceiling is $5 with finite per-trial caps, subject to explicit account and manifest approval.
-Stop rather than topping up automatically; incomplete observations cannot establish a go decision.
-M0 reports measured turns, input categories, estimated cost, retrieval recall, and the C/A and C/B direction by document size.
+The implemented M0 driver and nine-trial schedule live in the [measurement guide](../measurement/README.md).
+Its execution still requires an approved account, exact model, frozen manifest hash, and finite budget.
+It is unscored and supports no public token-savings percentage or product acceptance criterion.
 If C loses to B on every tested document under fifty pages, retain the installability-and-citations story and deprioritize the token headline.
 A negative result does not invalidate that functional product goal.
-M0 is unscored and supports no acceptance criterion or public savings percentage.
 
 Then run calibration: four tasks spanning documents and shared task kinds, plus one no-document null task, once per arm: fifteen trials.
 The null task uses the same arm tool/configuration definitions and asks a question needing no file access.
@@ -144,7 +141,8 @@ Do not use warm artifact reuse or cached follow-ups to label first-use performan
 
 ## 5. Registered manifest
 
-The proposed driver reads a local manifest conforming to measurement/manifest.schema.json.
+The proposed full-study contract is broader than the implemented `measurement/probe-manifest.schema.json`.
+`measurement/manifest.schema.json` continues to describe historical revision 1 records.
 Use closed objects with explicit required fields.
 Paths are relative to the manifest's directory and must stay inside its approved evidence root.
 

@@ -73,9 +73,9 @@ Native multi-page item provenance is separate from cross-page questions and rema
 Files: tools measurement schema, harness configuration, driver, and offline fixture tests.
 Prerequisites: selected engine executes and C3 passes; explicit owner approval of account, manifest, and finite budget.
 
-- [ ] Implement the nine-trial developer-harness probe from the evaluation design without requiring native packaging.
-- [ ] Verify per-model counters, arm inventories, calls, latency, and stop-budget behavior against offline fixtures.
-- [ ] Prepare a concrete frozen manifest for review. Its creation is not spending approval.
+- [x] Implement the nine-trial developer-harness probe from the evaluation design without requiring native packaging.
+- [x] Verify per-model counters, arm inventories, calls, latency, and stop-budget behavior against offline fixtures.
+- [ ] Finalize the prepared offline draft after the owner selects an exact model, account, and dated pricing. Creation is not spending approval.
 - [ ] Run only after approval, retain all failures, and report direction by document size without a public savings percentage.
 - [ ] Choose the next product emphasis from measured evidence; a negative token result preserves the installability-and-citations goal.
 

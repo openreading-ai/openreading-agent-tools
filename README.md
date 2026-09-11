@@ -10,8 +10,9 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 2 design ready for review; engine migration pending.**
-The current code is the superseded revision 1 PyMuPDF prototype.
+**Status: revision 2 developer proof implemented; client packaging remains pending.**
+The Docling corpus, retrieval/restart checks, and nine-trial probe are documented in [measurement](measurement/README.md).
+Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The target bundle uses Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
 Existing build and test evidence does not establish that new engine profile.
 No public binary or measured token-savings claim is released.

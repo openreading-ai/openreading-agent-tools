@@ -114,7 +114,7 @@ Raw trial records and transcripts remain outside Git; review the redacted report
 
 ## Revision 2 offline retrieval gate
 
-The Docling corpus uses ReportLab 4.4.10 and its bundled Vera font.
+The Docling corpus uses ReportLab 4.4.10, its bundled Vera font, and [frozen synthetic scan pixels](fixtures/README.md).
 The [public recipe](corpus.json) freezes twelve questions, supporting physical pages, required qualifiers, diagnostic queries, and expected PDF hashes.
 `corpus.py` generates identical bytes in independent offline tests and keeps ground truth outside `documents/`.
 Historical revision 1 preparation and binaries keep their original pins.
@@ -154,3 +154,75 @@ On 2026-09-11, core `b01e3149e0c20bca92db2a49c67b4d829d10fc68` passed all nine a
 Two fresh MCP processes each verified 51 exact reads and refused the outside-grant request.
 The three missing-fact tasks and document-instruction behavior still require model and human review.
 This is local engine evidence, not an installation result or a token-saving claim.
+
+## Revision 2 unscored token probe
+
+M0 runs one frozen single-fact question per document across three arms, giving nine fresh trials.
+A uses ordinary tools, B receives complete Docling page text, and C uses plain MCP plus appended retrieval instructions.
+This developer treatment does not install or test a client plugin.
+Every arm receives the same compact, executable `pdftotext` recipes.
+Preparation and per-trial preflight verify that utility before any model request.
+
+After the retrieval and restart commands pass, prepare without an account:
+
+~~~sh
+runtime/feasibility/.venv/bin/python -m measurement.probe prepare \
+  --output /absolute/new-probe-directory --evidence /absolute/retrieval-evidence \
+  --python /absolute/openreading-agent-tools/runtime/feasibility/.venv/bin/python \
+  --client /absolute/claude --assets /absolute/models \
+  --lock /absolute/openreading-agent-tools/runtime/feasibility/uv.lock
+~~~
+
+`probe-draft.json` deliberately lacks the model, account, and pricing required by the live schema.
+`schedule.json` lists all nine trials, and `approval-needed.json` lists the remaining owner choices.
+Preparation makes no model calls and never selects an account from ambient credentials.
+On macOS, install Poppler if `pdftotext` is unavailable before preparing the ordinary-tools baseline.
+
+The runtime snapshot hashes installed dependency files, the interpreter, model assets, core source identity, and extraction settings.
+The runner recomputes it before every trial and refuses changed bytes or pins.
+The manifest also binds corpus hashes, the passing retrieval/restart reports, and the measurement driver sources.
+Each C trial starts a new store with the OCR-disabled Docling profile.
+Its MCP server runs with network denied and explicit 330-second tool-call timeouts.
+Tool definitions are loaded at startup, and their token cost remains in measured usage.
+The trial timeout is 600 seconds, with twelve turns and a proposed $0.50 per-trial SDK budget.
+Nine proposed trial caps sum to $4.50 under a separate $5 study ceiling.
+These are diagnostic settings and estimated caps, not installation limits or a hard billing guarantee.
+
+When you select the account and exact provider model, provide a dated pricing JSON file with this shape:
+
+~~~json
+{
+  "model_id": "THE_SELECTED_EXACT_MODEL_ID",
+  "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+  "checked_on": "YYYY-MM-DD",
+  "usd_per_million": {"input": null, "cache_write": null, "cache_read": null, "output": null}
+}
+~~~
+
+Replace the placeholders with that model's verified prices before finalization.
+Supply the selected API account through `ANTHROPIC_API_KEY`; the file stores only its fingerprint and your nonsecret label.
+The current driver uses an API account, not a Desktop subscription session.
+
+~~~sh
+runtime/feasibility/.venv/bin/python -m measurement.probe finalize /absolute/probe-directory \
+  --model THE_SELECTED_EXACT_MODEL_ID --account NONSECRET_ACCOUNT_LABEL \
+  --pricing /absolute/verified-pricing.json
+node measurement/run.mjs /absolute/probe-directory/manifest.json
+~~~
+
+Finalization performs dry validation before creating `manifest.json`. It does not run a trial.
+Review the printed hash and budget before separately approving execution:
+
+~~~sh
+node measurement/run.mjs /absolute/probe-directory/manifest.json \
+  --live --approved-manifest-sha256 THE_APPROVED_HASH
+node measurement/run.mjs /absolute/probe-directory/manifest.json --report
+~~~
+
+The driver records complete-query usage, cache categories, tool calls, permission denials, turns, failures, and query wall time.
+Query wall time excludes offline preparation and environment preflight.
+It stops scheduling after incomplete accounting or an exhausted estimated budget, including after process restart.
+The report retains all nine rows and shows per-document C/A and C/B direction only when the compared calls completed with measured usage.
+An ordinary-tools Bash denial invalidates that C/A direction.
+Model answer quality and citation support still require human review; a direction from M0 supports no public savings claim.
+The larger calibration, primary, and follow-up studies remain in the evaluation design.

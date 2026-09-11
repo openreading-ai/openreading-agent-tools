@@ -12,7 +12,10 @@
 ## Unreleased
 
 - Add the frozen Docling corpus, exact-citation retrieval gate, and MCP restart check.
-- Pin the candidate to core v0.3 provenance and versioned dehyphenated retrieval. Docling feasibility
+- Pin the candidate to core v0.3 provenance and versioned dehyphenated retrieval.
+- Add an unscored nine-trial Docling probe with frozen source identity, usable baseline recipes, and explicit account approval.
+
+## Docling feasibility
 
 - Add an isolated, immutable core/dependency candidate for revision 2 feasibility.
 - Add a network-denied engine matrix with synthetic inputs and explicit failure checks.

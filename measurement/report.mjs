@@ -159,14 +159,56 @@ export function buildReport(manifest, trials, dataset) {
       arms.C.input_total < arms.A.input_total,
   };
   return {
-    schema_version: "1",
+    schema_version: manifest.schema_version ?? "1",
+    ...(manifest.study_kind === "probe"
+      ? {
+          runtime_kind: "developer_harness",
+          unscored: true,
+          probe: manifest.task_ids.map((task_id) => {
+            const observations = ["A", "B", "C"].map((arm) =>
+              trials.find((t) => t.task_id === task_id && t.arm === arm),
+            );
+            const [a, b, c] = observations;
+            const ratio = (baseline) =>
+              baseline &&
+              c &&
+              baseline.state === "completed" &&
+              c.state === "completed" &&
+              validInput(baseline) &&
+              validInput(c) &&
+              baseline.usage.input_total > 0
+                ? c.usage.input_total / baseline.usage.input_total
+                : null;
+            return {
+              task_id,
+              c_over_a:
+                a?.baseline?.utility_verified && a.baseline.bash_denials === 0
+                  ? ratio(a)
+                  : null,
+              c_over_b: ratio(b),
+              observations: observations.map((t) =>
+                t
+                  ? {
+                      arm: t.arm,
+                      turns: t.turns,
+                      usage: t.usage,
+                      wall_ms: t.wall_ms,
+                      state: t.state,
+                    }
+                  : null,
+              ),
+            };
+          }),
+        }
+      : {}),
     study_kind: manifest.study_kind,
     rows,
     arms,
     claim: {
       supported: Object.values(conditions).every(Boolean),
       conditions,
-      median_c_over_a: completePairs && conditions.baseline_available ? median(ratios) : null,
+      median_c_over_a:
+        completePairs && conditions.baseline_available ? median(ratios) : null,
       diagnostic_median_c_over_b: median(diagnostic),
     },
     limitations: [

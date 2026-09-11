@@ -7,6 +7,7 @@
  * Failed or incomplete usage stops scheduling instead of assuming unspent budget.
  */
 import { createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import {
   appendFileSync,
   closeSync,
@@ -30,6 +31,9 @@ import { buildReport } from "./report.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const schema = JSON.parse(readFileSync(join(HERE, "manifest.schema.json")));
+const validateProbe = new Ajv2020({ allErrors: true, strict: true }).compile(
+  JSON.parse(readFileSync(join(HERE, "probe-manifest.schema.json"))),
+);
 const validate = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
 export const digest = (value) =>
   createHash("sha256").update(value).digest("hex");
@@ -152,7 +156,8 @@ export function validateRun(manifestPath, approvedHash) {
   const path = realpathSync(manifestPath),
     bytes = readFileSync(path),
     manifest = JSON.parse(bytes);
-  if (!validate(manifest))
+  const probe = manifest.schema_version === "2";
+  if (!(probe ? validateProbe : validate)(manifest))
     throw new Error("Experiment manifest does not match the closed schema.");
   const hash = digest(bytes);
   if (approvedHash !== undefined && approvedHash !== hash)
@@ -173,9 +178,9 @@ export function validateRun(manifestPath, approvedHash) {
   }
   const primary = manifest.study_kind === "primary";
   if (
-    manifest.task_ids.length !== (primary ? 12 : 4) ||
+    manifest.task_ids.length !== (probe ? 3 : primary ? 12 : 4) ||
     manifest.repetitions !== (primary ? 3 : 1) ||
-    manifest.max_trials !== (primary ? 108 : 12) ||
+    manifest.max_trials !== (probe ? 9 : primary ? 108 : 12) ||
     (!primary && manifest.max_estimated_usd_total > 20) ||
     manifest.model_id.includes("latest")
   )
@@ -188,14 +193,104 @@ export function validateRun(manifestPath, approvedHash) {
     ["environment_file", "environment_sha256"],
   ])
     paths[name] = checkedFile(root, manifest[name], manifest[hashName]);
-  paths.runtime = contained(root, manifest.runtime_dir);
-  paths.plugin = contained(root, manifest.plugin_dir);
-  if (fileHash(join(paths.runtime, "release.json")) !== manifest.runtime_sha256)
-    throw new Error("Runtime metadata hash mismatch.");
-  const release = JSON.parse(readFileSync(join(paths.runtime, "release.json")));
-  if (release.core_commit !== manifest.core_commit)
-    throw new Error("Runtime core revision mismatch.");
-  runtimeInventory(paths.runtime, release);
+  if (probe) {
+    if (
+      JSON.parse(
+        readFileSync(
+          join(
+            HERE,
+            "../node_modules/@anthropic-ai/claude-agent-sdk/package.json",
+          ),
+        ),
+      ).version !== manifest.sdk_version
+    )
+      throw new Error("Installed SDK version differs from the frozen probe.");
+    for (const name of [
+      "runtime",
+      "profile",
+      "lock",
+      "generation",
+      "pricing",
+      "retrieval",
+      "restart",
+    ])
+      paths[name] = checkedFile(
+        root,
+        manifest[`${name}_file`],
+        manifest[`${name}_sha256`],
+      );
+    if (
+      !isAbsolute(manifest.source_python) ||
+      fileHash(manifest.source_python) !== manifest.source_python_sha256
+    )
+      throw new Error("Source interpreter hash mismatch.");
+    const snapshot = execFileSync(
+      manifest.source_python,
+      [
+        join(HERE, "../scripts/probe_environment.py"),
+        "--profile",
+        paths.profile,
+        "--lock",
+        paths.lock,
+      ],
+      { timeout: 60000, maxBuffer: 4 * 1024 * 1024 },
+    );
+    if (digest(snapshot) !== manifest.runtime_sha256)
+      throw new Error("Source environment changed; prepare a new probe.");
+    const runtime = JSON.parse(snapshot);
+    if (
+      runtime.environment.core_commit !== manifest.core_commit ||
+      runtime.engine.extraction_settings.retriever !==
+        manifest.retriever_revision
+    )
+      throw new Error("Source engine identity mismatch.");
+    const retrieval = JSON.parse(readFileSync(paths.retrieval));
+    const restart = JSON.parse(readFileSync(paths.restart));
+    const profile = JSON.parse(readFileSync(paths.profile));
+    if (
+      retrieval.passed !== true ||
+      restart.passed !== true ||
+      retrieval.environment.core_commit !== manifest.core_commit ||
+      retrieval.tasks.filter((t) => t.passed === true).length !== 9 ||
+      profile.docling.ocr !== false ||
+      Object.keys(retrieval.documents).length !== 3 ||
+      !Object.values(retrieval.documents).every((d) =>
+        isDeepStrictEqual(d.engine, runtime.engine),
+      ) ||
+      JSON.stringify(retrieval.generation) !==
+        JSON.stringify(JSON.parse(readFileSync(paths.generation)))
+    )
+      throw new Error(
+        "A matching passing OCR-disabled retrieval gate is required.",
+      );
+    const pricing = JSON.parse(readFileSync(paths.pricing));
+    if (
+      pricing.model_id !== manifest.model_id ||
+      !/^https:\/\/(platform\.claude\.com|docs\.anthropic\.com)\//.test(
+        pricing.source,
+      ) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(pricing.checked_on) ||
+      !["input", "cache_write", "cache_read", "output"].every(
+        (k) =>
+          Number.isFinite(pricing.usd_per_million?.[k]) &&
+          pricing.usd_per_million[k] >= 0,
+      )
+    )
+      throw new Error("Model-specific dated pricing is required.");
+  } else {
+    paths.runtime = contained(root, manifest.runtime_dir);
+    paths.plugin = contained(root, manifest.plugin_dir);
+    if (
+      fileHash(join(paths.runtime, "release.json")) !== manifest.runtime_sha256
+    )
+      throw new Error("Runtime metadata hash mismatch.");
+    const release = JSON.parse(
+      readFileSync(join(paths.runtime, "release.json")),
+    );
+    if (release.core_commit !== manifest.core_commit)
+      throw new Error("Runtime core revision mismatch.");
+    runtimeInventory(paths.runtime, release);
+  }
   if (
     !isAbsolute(manifest.client_path) ||
     fileHash(manifest.client_path) !== manifest.client_sha256
@@ -222,6 +317,21 @@ export function validateRun(manifestPath, approvedHash) {
       throw new Error("Dataset task has unfrozen inputs.");
   }
   const environment = JSON.parse(readFileSync(paths.environment_file));
+  if (
+    probe &&
+    (new Set(
+      dataset.tasks
+        .filter((t) => manifest.task_ids.includes(t.id))
+        .map((t) => t.category),
+    ).size !== 3 ||
+      !manifest.task_ids.every(
+        (id) =>
+          dataset.tasks.find((t) => t.id === id)?.task_kind === "single_fact",
+      ))
+  )
+    throw new Error(
+      "Probe requires one single-fact task per document category.",
+    );
   for (const [name, hash] of Object.entries(environment.plugin_files ?? {}))
     checkedFile(root, name, hash);
   if (
@@ -250,9 +360,12 @@ export function validateRun(manifestPath, approvedHash) {
   }
   const sourceHash = digest(
     Buffer.concat(
-      ["run.mjs", "accounting.mjs", "report.mjs"].map((name) =>
-        readFileSync(join(HERE, name)),
-      ),
+      [
+        "run.mjs",
+        "accounting.mjs",
+        "report.mjs",
+        ...(probe ? ["../scripts/probe_environment.py"] : []),
+      ].map((name) => readFileSync(join(HERE, name))),
     ),
   );
   if (
@@ -319,7 +432,10 @@ function permission(run, workspace, decisions) {
       let candidate;
       try {
         candidate = realpathSync(
-          resolve(workspace, (name === "Read" ? input.file_path : input.path) ?? "."),
+          resolve(
+            workspace,
+            (name === "Read" ? input.file_path : input.path) ?? ".",
+          ),
         );
       } catch {
         return {
@@ -398,7 +514,7 @@ export async function runTrial(
     const environment = JSON.parse(readFileSync(run.paths.environment_file));
     if (
       !environment.measurement_source_sha256 ||
-      !environment.plugin_files ||
+      (run.manifest.schema_version === "1" && !environment.plugin_files) ||
       !environment.package_lock_sha256
     )
       throw new Error(
@@ -411,7 +527,11 @@ export async function runTrial(
     const version = execFileSync(run.manifest.client_path, ["--version"], {
       encoding: "utf8",
     }).trim();
-    if (!version.startsWith(run.manifest.client_version))
+    if (
+      run.manifest.schema_version === "2"
+        ? version.split(/\s+/)[0] !== run.manifest.client_version
+        : !version.startsWith(run.manifest.client_version)
+    )
       throw new Error("Installed client version differs from the manifest.");
     ({ query } = await import("@anthropic-ai/claude-agent-sdk"));
   }
@@ -455,6 +575,9 @@ export async function runTrial(
         ? datasetTask.document.split("/").at(-1)
         : join(run.root, datasetTask.document));
   prompt += baselinePrompt(run, datasetTask);
+  const probe = run.manifest.schema_version === "2";
+  if (probe && task.arm === "C")
+    prompt += "\n" + readFileSync(run.paths.skill_file, "utf8");
   const decisions = {};
   const options = {
     model: run.manifest.model_id,
@@ -479,18 +602,44 @@ export async function runTrial(
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
     },
     ...(task.arm === "C"
-      ? {
-          plugins: [{ type: "local", path: run.paths.plugin }],
-          settings: {
-            pluginConfigs: {
-              "openreading-local-proof": {
-                options: {
-                  input_root: dirname(join(run.root, datasetTask.document)),
+      ? probe
+        ? {
+            mcpServers: {
+              openreading: {
+                command: "/usr/bin/sandbox-exec",
+                timeout: 330000,
+                alwaysLoad: true,
+                args: [
+                  "-p",
+                  "(version 1)(allow default)(deny network*)",
+                  run.manifest.source_python,
+                  "-m",
+                  "openreading.mcp_server.main",
+                  "--profile",
+                  "local-document-proof-v2",
+                  "--profile-config",
+                  run.paths.profile,
+                  "--input-root",
+                  dirname(join(run.root, datasetTask.document)),
+                  "--artifact-root",
+                  join(trialRoot, "artifacts"),
+                ],
+                env: { HF_HUB_OFFLINE: "1", TRANSFORMERS_OFFLINE: "1" },
+              },
+            },
+          }
+        : {
+            plugins: [{ type: "local", path: run.paths.plugin }],
+            settings: {
+              pluginConfigs: {
+                "openreading-local-proof": {
+                  options: {
+                    input_root: dirname(join(run.root, datasetTask.document)),
+                  },
                 },
               },
             },
-          },
-        }
+          }
       : {}),
   };
   try {
@@ -516,8 +665,11 @@ export async function runTrial(
     controller.abort();
   }
   const trial = {
-    schema_version: "1",
+    schema_version: run.manifest.schema_version,
     ...task,
+    ...(probe
+      ? { runtime_kind: "developer_harness", task_kind: datasetTask.task_kind }
+      : {}),
     category: datasetTask.category,
     manifest_sha256: run.manifestHash,
     state,
@@ -528,6 +680,12 @@ export async function runTrial(
     },
     permission_denials: decisions,
     quality: { passed: null, citation_valid: null },
+    ...(probe
+      ? {
+          turns:
+            events.filter((e) => e.type === "result").at(-1)?.num_turns ?? null,
+        }
+      : {}),
     wall_ms: Date.now() - started,
     evidence: { events: relative(run.root, eventsPath) },
   };
