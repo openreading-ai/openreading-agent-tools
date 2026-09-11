@@ -1,7 +1,7 @@
 # Docling local proof migration design
 
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
-**Intent:** [ProductSpec revision 3](../product/specs/local-document-proof.product-spec.md).
+**Intent:** [ProductSpec revision 4](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
 ## 1. Engine decision and boundaries
@@ -55,12 +55,26 @@ Do not guess the responsible macOS permission process before observing the insta
 The supervised worker contract is implemented in core's `openreading.artifacts.supervisor`, `worker`, and MCP modules.
 Use the [candidate harness](../runtime/feasibility/README.md) and its immutable dependency pin to reproduce engine checks.
 The launcher must pass explicit resource limits and close the service during shutdown.
+Record host cancellation notifications, deadlines, and process termination as distinct interruption paths; absence of a host cancel button stays explicit.
 Packaging must preserve private control descriptors and owned process-group cleanup.
 These integration obligations still need installed-host validation.
 Regression tests must cover cancellation before startup, during model loading, during OCR, and just before commit.
 Cancellation during an OCR child has developer observation only; treat each missing stage test as open work.
 
 ### Limits and timing acceptance
+
+[OpenAI's MCP guide](https://learn.chatgpt.com/docs/extend/mcp) documents 10-second startup and 60-second tool-call defaults.
+It also documents a 1000-ms optional-server catalog grace and configurable overrides.
+These are starting hypotheses for the installed mode, not measured deadlines or fixed platform ceilings.
+E2 must record startup, initial tool visibility, eventual discovery, and per-call timeout separately under the actual setup route.
+Claude Desktop limits remain unverified; do not assume its SDK supplies the same defaults.
+
+Measure frozen cold startup from process creation through inventory verification and MCP initialization.
+Worker startup repeats verification in the current launcher, so include that cost in cold import timing too.
+Require cold/warm startup p95 within 80% of the observed startup allowance and imports within 80% of the observed tool allowance.
+Unmodified 10/60-second limits imply 8-second startup and 48-second import budgets.
+A verified alternative registration may change them; unsupported manual TOML edits cannot rescue the nondeveloper path.
+Do not assume progress extends an absolute deadline or that a server absent from the initial catalog becomes discoverable later.
 
 Keep the existing source, extraction, store, and response byte caps as compatibility constraints until measured evidence requires a separate change.
 The revision 1 values are documented beside [the current implementation](../runtime/README.md); they are not Docling throughput promises.
@@ -78,11 +92,13 @@ Progress is emitted only when the caller supplies a progress token, at meaningfu
 Use monotonically increasing progress values and do not invent page completion percentages during model initialization.
 Progress is user feedback, not an assumption that the host extends its deadline.
 
-Choose the largest page cap whose measured cold and warm p95 fits the strictest measured host timeout with at least 20% margin.
+Choose the largest page cap whose measured cold and warm p95 fits the strictest measured timeout among release-included modes with at least 20% margin.
+Adding a later mode requires revalidating the shared profile; an untested mode cannot block a truthful narrower release or inherit its evidence.
 The application deadline cannot exceed that host budget, and the SDK trial timeout must allow the frozen retrieval workflow to finish.
 If the minimum useful document size cannot fit, stop and review a smaller cap or a separately scoped fast profile.
 Do not introduce asynchronous jobs to hide an incompatible timeout.
-If the accepted cap excludes the proposed 80-page corpus, revise and refreeze the study before any paid run.
+If the accepted cap excludes a corpus document, revise and refreeze the scored packaged study before paid execution.
+The existing M0 developer probe is diagnostic under its separately frozen safeguards and remains independent of release caps.
 Production limits remain an explicit unresolved measurement output; no support claim exists until that output is reviewed.
 
 ## 4. Evidence, OCR, and retrieval
@@ -110,7 +126,9 @@ The test record must still resolve that displayed quote to exact evidence, and a
 
 ## 5. Signing, packaging, and fallback
 
-Developer ID signing and notarization are prerequisites for a distributed native candidate, not optional cleanup after installation testing.
+Developer ID signing and notarization are prerequisites for distributing a native candidate to another machine or user.
+A bounded unsigned P0 build may run on the development machine without becoming a distributable candidate.
+Owner-authorized native development tests may use it locally; they never authorize bypassing OS protection or sharing it.
 Inventory the launcher, Python library, extension modules, ONNX Runtime, PDFium, Tesseract, Leptonica, and transitive native image libraries.
 Sign nested components in dependency order, use the hardened runtime, and record each entitlement and its demonstrated need.
 Do not enable broad entitlement exceptions speculatively.

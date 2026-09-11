@@ -10,11 +10,11 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 3 assistant integration designed; Docling client packaging remains pending.**
+**Status: revision 4 assistant integration designed; Docling client packaging remains pending.**
 The Docling corpus, retrieval/restart checks, and nine-trial probe are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The target bundle uses Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
-The [assistant design](design/assistant-clients.md) adds Claude Desktop and ChatGPT desktop targets with separate compatibility checks.
+The [assistant design](design/assistant-clients.md) keeps Claude Desktop and a conditional, named ChatGPT conversation mode behind separate compatibility checks.
 Existing developer checks do not establish native installation or model invocation.
 No public binary or measured token-savings claim is released.
 The source license above does not describe bundled dependency licenses.
@@ -56,6 +56,8 @@ Core never requires this checkout or a private company package.
 | Prepare a frozen experiment and regenerate reports | [Measurement guide](measurement/README.md) |
 | Engine migration, timing, configuration, and distribution contract | [Docling engine design](design/local-document-proof.md) |
 | Shared configuration and assistant boundaries | [Assistant integration design](design/assistant-clients.md) |
+| Native mode, setup, timeout, isolation, and frozen-build experiments | [Probe plan](design/native-probes.md) |
+| Revision 3 design review decisions | [Review adjudication](design/revision3-review.md) |
 | Claude review resolutions | [Finding dispositions](design/review-disposition.md) |
 | Fair baselines, usage accounting, and claim limits | [Token evaluation design](design/token-evaluation.md) |
 | Ordered tasks, exact files, tests, and handoff rules | [Implementation plan](design/implementation-plan.md) |

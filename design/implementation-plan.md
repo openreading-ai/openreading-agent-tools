@@ -1,18 +1,22 @@
-# Revision 3 implementation plan
+# Revision 4 implementation plan
 
 **Status:** assistant integration is proposed. Revision 2 developer engine, retrieval, and Claude M0 tooling exist; Docling client distribution remains unbuilt.
-**Contracts:** [ProductSpec revision 3](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 4](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
 Each implementation commit names the acceptance criteria it addresses and leaves unmet host checks explicit.
 A passing offline gate is necessary but cannot replace native application, signing, or paid-study evidence.
 
-ProductSpec revision 3 changes client scope and measurement intent.
+ProductSpec revision 4 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
 It does not rename `local-document-proof-v2`, modify historical locks, or authorize paid calls.
 Revision 1 binaries and revision 2 probe manifests retain their original meanings.
-The current documentation task completes N0's contract and independent protocol investigation only.
-Actual host connection, installation, and model invocation remain pending.
+This documentation pass adjudicates the review and defines E0 through E6 in the [probe plan](native-probes.md).
+No native probe, frozen build, client configuration change, or model invocation is performed by this pass.
+N1, bounded P0 build work, and independently authorized native probes can begin without waiting on ChatGPT support.
+P0 assembles the diagnostic candidate alongside N1 and consumes its frozen-launch changes before N2.
+Then use measured C1 limits for release, perform Claude N2 first, and admit ChatGPT N2 only after E1.
+M0 may run independently under its own approval; E6 precedes the Codex adapter, and P1 precedes clean-host H1.
 
 ## Existing baseline
 
@@ -29,30 +33,33 @@ No further parser implementation belongs in a client adapter.
 
 Acceptance: AC-23 through AC-25. Files: ProductSpec, assistant design, client READMEs, repository index.
 
-- [x] Define primary Claude Desktop and ChatGPT desktop targets, with Claude Code and Codex as separate developer surfaces.
+- [x] Define Claude Desktop and conditional ChatGPT Chat-mode acceptance, with Work and Codex local threads separately identified.
 - [x] Preserve the selected engine, core surface boundaries, historical execution contracts, and deferred alternate backends.
 - [x] Inspect current official connection guidance and installed CLI registration syntax without changing host configuration.
-- [x] Run independent STDIO initialization, tool listing, and outside-grant refusal against the pinned Docling candidate.
+- [ ] E0: retain a reproducible initialization/tool-list/refusal check; the prior ad hoc observation is not retained gate evidence.
 - [x] Record missing native evidence in the client matrix instead of transferring results between clients.
-- [ ] Observe the native configuration interface and executable launch for both primary desktop targets.
+- [ ] E1: establish the exact local ChatGPT mode, form, shared settings, approval prompts, and trace export.
+- [ ] E5: verify Claude Desktop form substitution, cancellation, and log capture.
 
 The ChatGPT UI check is currently unavailable because the computer-use tool refused access to the installed app.
 Do not bypass that restriction or treat an API invocation as an alternative UI check.
 A later owner-operated check can close it using the named app/version and synthetic input.
-Stop a client-specific implementation if its documented connection does not exist in the selected application mode.
+The selected ChatGPT setup candidate is a signed helper app plus an argument-free executable path pasted into native Settings.
+Do not write shared TOML or substitute Codex-mode evidence for the Chat conversation target.
+Stop ChatGPT-specific N2 if E1 cannot establish that mode and setup route; Claude Desktop remains independently releasable.
 Other common implementation work can continue without that unsupported claim.
 
 ## N1. Common configuration and launcher migration
 
-Prerequisites: reviewed revision 3 contract and usable core candidate.
+Prerequisites: reviewed revision 4 contract and usable core candidate.
 Acceptance: AC-2, AC-4, AC-13, AC-21, AC-23, AC-25.
 Owners: `runtime/configuration.py`, `runtime/entrypoint.py`, runtime tests, and the runtime README.
 
-1. Write failing tests for the proposed closed version 2 setup object, explicit OCR defaults, direct-versus-persisted precedence, and unknown fields.
-2. Test missing grants, relative paths, cancelled setup, legacy settings, invalid replacements, changed roots, spaces, and Unicode.
+1. Write failing tests for the closed version 2 setup object, exact OCR token table, direct-versus-persisted precedence, and unknown fields.
+2. Test missing grants, relative paths, cancelled setup, invalid replacements, roots, spaces, and Unicode; prove v1/v2 coexistence at distinct settings paths.
 3. Extend the existing configuration reader and atomic writer using core grant validation; do not create a second path-security implementation.
 4. Add the proposed `chatgpt` client label and setup-only OCR flag, treating labels solely as storage selection.
-5. Build the core profile from verified release resources and reviewed limits; keep model tools unable to select engines, URLs, or OCR.
+5. Write the invocation-specific mode-0600 profile with its inventoried lock and resource paths; test parallel launches, cleanup, and missing inventory without changing model-facing tools.
 6. Preserve historical settings on failure and require explicit setup before migration; do not reinterpret revision 1 stores.
 7. Test that ordinary core behavior never depends on this configuration and that no provider SDK enters the document runtime.
 8. Update flag help, startup-error guidance, retained-data cleanup, and configuration examples beside their implementation.
@@ -64,7 +71,7 @@ Commit configuration and launcher changes together only when their tests pass.
 
 ## N2. Thin host adapters and native functional checks
 
-Prerequisites: N1 plus the corresponding N0 native connection observation.
+Prerequisites: N1, passing P0, and the corresponding E1/E5 native setup observation. Start Claude Desktop first; ChatGPT waits on E1.
 Acceptance: AC-1, AC-11, AC-12, AC-14, AC-24, EVAL-1.
 Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tests, and client READMEs.
 
@@ -73,13 +80,15 @@ Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tes
 3. Test argument arrays with shell metacharacters, spaces, Unicode, absent configuration, and host-qualified tool names.
 4. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
 5. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.
-6. Use the assistant design's synthetic functional matrix in each native application and record the exact executable and tool calls.
-7. Include cancellation, restart, outside-root refusal, OCR setup, missing facts, document instructions, and exact citations.
-8. Record application/version/mode, platform, runtime identity, setup path, instruction channel, and any required host permission.
+6. Use frozen corpus task IDs and the page-2 instruction fixture; never regenerate the corpus to match a stale spec example.
+7. Add the offline citation checker and per-host transcript/tool capture; reject wrong pages, paraphrases, cross-artifact IDs, missing calls, and incomplete capture with regression fixtures.
+8. Verify restart, refusals, OCR, and the observed E3 interruption paths; unsupported cancellation stays explicit.
+9. Record application/version/mode, local process ancestry, runtime identity, setup path, instruction channel, approval prompts, and required host permissions.
 
 Keep host configuration changes scoped and reviewable; preserve preexisting registrations.
 If a model call requires an unapproved account or spend, stop that case and continue offline work.
-Source-runtime checks are developer evidence only; packaged installation remains P1/H1.
+The existing launcher refuses source execution; N2 uses the P0 frozen candidate with owner-authorized local installation.
+Keep signing and clean-machine evidence in P1/H1; an unsigned candidate is not distributed.
 A host without a skill mechanism gets supported instructions, not a fork of the evidence workflow.
 Do not implement a tunnel or HTTP bridge to rescue an unavailable local connection.
 
@@ -91,19 +100,35 @@ Acceptance: AC-4, AC-9, AC-21, AC-22. Owners: candidate harness, core tests, and
 - [ ] Close broader table/footnote and orientation-detection gaps with selected-engine evidence or explicit limitations.
 - [ ] Verify cancellation before startup, during model loading, during OCR, and immediately before artifact commit.
 - [ ] Add base M-series measurements, independent cold/warm repetitions, and staging/preflight/commit timing.
-- [ ] Measure each native host's absolute and inactivity timeout with and without progress notifications.
+- [ ] E2: measure startup, initial catalog grace, eventual discovery, absolute/inactivity tool budgets, and progress behavior for the actual setup route.
+- [ ] Include full frozen inventory verification on parent startup and worker spawn; derive separate startup and import margins.
 - [ ] Select page cap, deadline, sampled RSS ceiling, idle policy, and trial timeout using the engine design's p95 margin rule.
 - [ ] Stop release when useful imports cannot fit; do not introduce asynchronous jobs or an unapproved fallback profile.
 
 The developer harness's 300-second/4-GiB limits are diagnostic safeguards, not release defaults.
-If the accepted cap excludes a corpus document, revise and refreeze the study before live execution.
+The release cap constrains scored packaged studies, which must refreeze an incompatible corpus before paid execution.
+Diagnostic M0 retains its separately frozen developer limits and can run before the final release cap; report this distinction.
 Packaging must preserve complete engine identity, including installed dependency metadata, source files, OCR configuration, and native versions.
 
-## M0. Cheap existing Claude probe before packaging spend
+## P0. Bounded unsigned frozen-build feasibility
+
+Prerequisites: selected core/Docling lock and a diagnostic profile. Acceptance inputs: AC-4, AC-13, AC-22.
+Owners: isolated build path, `runtime/build.py`, verifier tests, and runtime README.
+
+Implement E4 with a separate candidate output; preserve historical locks and the current PyMuPDF distribution.
+Prove inventoried source/metadata/lock/assets identity, relocated Tesseract, one native-text import, and one OCR import.
+Test missing or changed identity inputs fail before parsing and no dependency resolves through developer tool paths.
+Measure startup verification and worker-spawn costs without weakening checks.
+This bounded feasibility task is permitted before M0 and requires no model call or signing credentials.
+Installer polish, sharing, signing, and further distribution work still wait on the cheap probe decision.
+P0 supplies N2 with a real frozen launcher; do not create an unplanned source bypass.
+
+## M0. Cheap existing Claude probe before distribution packaging spend
 
 Acceptance: diagnostic only; M0 cannot pass AC-17 or establish public savings.
 Owners: existing measurement driver and its private evidence directory.
-Prerequisites: matching engine/retrieval/restart evidence and explicit owner approval of account, manifest hash, model, and finite budget.
+Prerequisites: matching engine/retrieval/restart evidence, the frozen diagnostic profile, and explicit owner approval of account, manifest hash, model, and finite budget.
+M0 does not require native timeout measurements or the final release page cap; its results cannot establish native support.
 
 - [ ] Revalidate the prepared draft against current executable sources and environment; regenerate only when its bound inputs changed.
 - [ ] Finalize after the owner selects the exact model, account, and dated prices. Finalization alone is not spending approval.
@@ -112,22 +137,22 @@ Prerequisites: matching engine/retrieval/restart evidence and explicit owner app
 - [ ] Decide whether to pursue a token headline or emphasize installation and citations from the observed outcome.
 
 This documentation revision does not invalidate an otherwise matching version 2 draft by itself.
-Do not relabel it revision 3 or enlarge its budget to include another provider.
+Do not relabel it as a newer revision or enlarge its budget to include another provider.
 A negative or incomplete probe is a finding, not a reason to handicap the baseline.
 
 ## M1. Provider-neutral measurement extension
 
-Prerequisites: N0 contract, existing fair baseline, and verified complete counters for the selected additional execution surface.
+Prerequisites: N0 contract, existing fair baseline, and E6 proof of isolation, API authentication, complete counters, and actual budget controls.
 Acceptance: AC-15 through AC-18, EVAL-2.
 Owners: `measurement/` adapters and versioned schemas, accounting/report modules, synthetic log fixtures, and measurement README.
 
 1. Inventory the existing runner's execution, permission, identity, budget, and accounting boundaries before extracting shared code.
 2. Preserve the version 1 driver and version 2 Claude probe; write new closed version 3 manifest/trial contracts with explicit provider and surface.
 3. Move provider execution behind the design's small adapter interface with fixture tests proving unchanged Claude outcomes.
-4. Investigate instrumented Codex usage first; choose an OpenAI API harness only as an explicitly reviewed, separately labeled baseline.
+4. Implement isolated per-trial Codex state and instructions only after E6 rejects evidence/sentinel reads and verifies the API-key account path; never mutate shared host configuration.
 5. Verify pinned raw-counter semantics and test caches, cumulative updates, nested work, retries, errors, missing usage, and reasoning/output overlap.
 6. Freeze usable A tools and identical B/C extraction, including physical-page citation information and treatment instructions.
-7. Preserve environment and artifact identity checks, raw-event resume verification, frozen prices, approved budgets, and stop reasons.
+7. Preserve identity, replay, pricing, approved budgets, and stop reasons; add the finite watchdog and disclose unverified in-flight caps instead of inventing CLI flags.
 8. Generate independent provider reports with quality-gated comparisons, all failures, actual input sizes, and C adherence.
 9. Add calibration, null controls, and the separately registered primary/follow-up schedules before claiming full-study support.
 10. Require separate owner approval for every provider run; no live invocation belongs in `make verify`.
@@ -136,6 +161,20 @@ Do not introduce a generic API loop that lacks the ordinary tools the comparison
 If a native chat host lacks complete counters, keep it functional-only rather than estimating hidden tokens.
 All affected Python and Node coverage metrics retain their enforced 95% floors.
 New accounting and budget regressions must fail when their fixes are removed.
+
+## M2. Approved calibration and scored execution
+
+Prerequisites: M1 tooling, verified provider instrumentation, frozen tasks fitting the chosen measured profile, and independent approval of each manifest/account/budget.
+Owners: measurement execution and private evidence; acceptance AC-15 through AC-17 and EVAL-2.
+
+- [ ] Run the registered calibration and null controls; retain all failures and inspect baseline usability and complete usage.
+- [ ] Refreeze after any calibration-driven change and obtain new approval before the primary schedule.
+- [ ] Execute the primary study, review quality and deterministic citations, and publish only the supported reviewed conclusion.
+- [ ] Run separately registered follow-ups after the primary result is fixed; never pool them into first-use totals.
+- [ ] Report each provider and execution surface separately, including over-limit and unrun trials.
+
+A packaged-client study requires the corresponding P1/H1 installation evidence; a developer study labels its narrower runtime explicitly.
+A functional release may proceed without savings claims while M2 remains incomplete.
 
 ## P1. Later signed distribution
 
@@ -155,10 +194,11 @@ No unsigned fallback or instructions to bypass OS protections are permitted.
 ## H1. Clean-host release and pilot
 
 Prerequisites: signed candidate and owner-authorized host/pilot work.
-Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, and pilot metrics.
+Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC-26, and pilot metrics.
 
 - [ ] Use a snapshotted clean Apple Silicon VM with image identity and no user-installed interpreter or developer-tool dependency.
-- [ ] Verify Claude Desktop and ChatGPT desktop separately; record executable resolution, actual local execution, and cited answers.
+- [ ] Verify Claude Desktop independently, then only the ChatGPT modes E1 established; record executable resolution, local execution, and checked citations.
+- [ ] Mark AC-26 unmet if no qualifying Chat conversation exists; never claim full target completion from a Claude-only release.
 - [ ] Verify Claude Code and Codex separately before labeling their Docling distributions supported.
 - [ ] Test setup cancellation, root changes, permissions, process cleanup, update, removal, retained-data cleanup, spaces, and Unicode.
 - [ ] Record actual host logs and recovery steps; do not infer which process needs OS permissions without observing it.

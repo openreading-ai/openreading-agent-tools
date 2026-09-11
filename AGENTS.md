@@ -6,7 +6,7 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 3 targets Claude Desktop and ChatGPT desktop through the same Docling runtime.
+ProductSpec revision 4 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
 The revision 2 developer feasibility harness, corpus/retrieval gate, and Claude token-probe driver are implemented.
 Assistant-neutral configuration and additional provider drivers remain proposed.
 The core candidate implements local Docling supervision; client and binary migration remain unbuilt.

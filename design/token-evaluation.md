@@ -3,7 +3,7 @@
 **Status:** the revision 2 unscored M0 driver is implemented; calibration, primary, follow-up, and human grading remain proposed.
 The [measurement guide](../measurement/README.md) documents M0 and the historical revision 1 driver.
 The expanded full-study contracts below remain unimplemented beyond that explicitly bounded probe.
-**ProductSpec:** [revision 3](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17.
+**ProductSpec:** [revision 4](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17.
 **Execution:** requires a separately approved live manifest and account.
 
 The question is whether OpenReading reduces token consumption per correctly completed document task in a named assistant workflow.
@@ -63,7 +63,8 @@ Discovery and installation are measured in the separate user pilot.
 ## 3. Task set
 
 Use candidate synthetic documents with 24, 48, and 80 physical PDF pages.
-If measured engine/host limits exclude a candidate, revise and refreeze the corpus before any paid run.
+For scored packaged studies, revise and refreeze a corpus that exceeds the measured engine/host limits before paid execution.
+The separate diagnostic M0 retains its frozen developer safeguards and does not establish release-cap support.
 Never mark an over-limit registered trial as successful or drop it after observing outcomes.
 Each contains meaningful distractors and repeated terminology.
 Do not create a thousand pages of filler and advertise the result as a realistic long-document benchmark.
@@ -152,7 +153,7 @@ Paths are relative to the manifest's directory and must stay inside its approved
 | --- | --- |
 | schema_version | Literal "3" for the proposed expanded manifest and trial contracts; historical versions 1 and 2 remain unchanged. |
 | experiment_id | Unique study identifier, not a customer name. |
-| spec_revision | 3 for new expanded studies, checked against the implemented contracts; existing version 2 probes retain revision 2. |
+| spec_revision | 4 for new expanded studies, checked against the implemented contracts; existing version 2 probes retain revision 2. |
 | study_kind | probe, calibration, primary, or followup; each has a closed schedule definition. |
 | dataset_manifest, dataset_sha256 | Exact task/ground-truth manifest and its hash. |
 | model_id | Full provider model identifier; floating aliases are refused. |
@@ -388,9 +389,9 @@ Record tool calls and permission denials; a baseline Bash denial makes the C/A s
 A model choosing Read without a denial remains a valid baseline choice.
 The revision 1 runner implements these protections, but its records do not establish revision 2 evidence.
 
-## 12. Revision 3 provider extension
+## 12. Provider extension under revision 4
 
-This section changes the future study contract, not the implemented revision 2 Claude M0 driver.
+This section specifies future revision 4 intent, not the implemented revision 2 Claude M0 driver.
 Preserve both historical manifest families and their validators without relabeling prior trials.
 Any new provider driver uses a new closed version 3 manifest and trial schema.
 The broader Claude study described above also adopts version 3 when implemented, instead of creating another incompatible version 2 family.
@@ -437,3 +438,42 @@ Retain failed, limited, incomplete, mixed-access, and unrun trials with their re
 Report C adherence and quality against the full preregistered denominator.
 Do not pool provider token counts or savings ratios into a universal “works with any assistant” claim.
 Native-chat quotas, hidden orchestration, and billing remain unmeasured unless that exact surface exposes complete evidence.
+
+### Codex isolation, authentication, and limits
+
+Before implementing a Codex study adapter, complete E6 in the [native probe plan](native-probes.md).
+A writable workspace restriction does not establish a read restriction.
+The trial must be unable to read ground truth, other arms' extractions, earlier events, personal instructions, or unrelated MCP registrations.
+Place those files outside the trial's readable boundary and verify denial with planted sentinels.
+If the selected sandbox permits their reads, use verified OS-level isolation or stop the study.
+Do not disable ordinary search, pipes, or local utilities inside the allowed workspace to make Arm A less capable.
+
+Give each trial a fresh state directory using the pinned CLI's supported `CODEX_HOME` mechanism in that child process only.
+Keep the parent agent's environment and the user's shared configuration untouched.
+Use a task-specific path variable in the harness; never repurpose the user's home directory.
+An isolated state directory alone does not prove isolation from ancestor `AGENTS.md`, project configuration, skills, or managed settings.
+Start outside repository instruction hierarchies and record the effective inherited configuration and instruction sources.
+A planted global/project instruction or unrelated MCP server must not reach the trial.
+The workspace contains the granted synthetic source and writable scratch, with each arm's intended tools supplied explicitly.
+Run OpenReading through a separately controlled process with evidence access; the model receives only bounded tool responses.
+Verify that the model cannot read the privileged process's store or log through its own tools.
+Record the effective sandbox, approval settings, runtime permissions, and authenticated model endpoint.
+
+The first Codex measurement adapter requires explicit API-key authentication for a named account and exact model.
+It refuses silent fallback to an existing ChatGPT login or subscription quota.
+Bind the account using the existing salted per-study fingerprint convention without retaining the key.
+If the pinned CLI cannot demonstrate that authentication path, the paid Codex driver remains blocked.
+Quota-based studies require a separately reviewed contract and cannot inherit this dollar-budget interpretation.
+
+Do not assume the CLI exposes dollar, turn, or output ceilings because another SDK does.
+Require a finite external wall-clock watchdog, owned-process cleanup, maximum scheduled trials, and frozen-price estimates from verified usage.
+Use any additional turn/output/request caps only after the pinned interface and a regression fixture prove they work.
+Stop subsequent trials on an overrun, missing usage, unexpected model, or unpriced category.
+Termination may not cancel a provider request already accepted; a watchdog does not guarantee a monetary ceiling.
+Before approval, display the verified controls, missing in-flight controls, and residual billing risk alongside the finite estimated study budget.
+If that risk exceeds the owner's authorization, do not launch the trial or silently use quota authentication.
+
+The existing Claude M0 remains a diagnostic developer study under its frozen 300-second engine safeguards and its own trial limits.
+Its registered document sizes need not fit a later native release cap.
+Report over-cap documents as diagnostic-only and never transfer that result into a packaged-client support claim.
+Scored native or packaged studies must use a corpus that fits their reviewed profile and host limits before approval.

@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+- Revise the assistant proposal to revision 4 after design review, with mode-specific ChatGPT acceptance and a concrete helper-app setup candidate.
+- Correct frozen-task references and specify versioned settings, citation capture/checking, startup budgets, a bounded frozen-build spike, and isolated Codex trials.
+- Preserve executable behavior, corpus hashes, historical locks, and existing probe manifests.
+
 - Propose ProductSpec revision 3 for Claude Desktop and ChatGPT desktop with one local Docling runtime.
 - Define shared setup, client compatibility checks, provider-specific measurement, and explicit CLI/server preservation gates.
 - Preserve historical binaries, locks, and probe contracts; native client execution and additional measurement drivers remain unbuilt.

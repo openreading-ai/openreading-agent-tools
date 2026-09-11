@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 3 proposal. No new client launcher, package, or provider driver is implemented by this design.
+**Status:** revision 4 proposal. No new client launcher, package, or provider driver is implemented by this design.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -8,12 +8,15 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” is this project's packaging description, not an upstream package name or a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 3 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 4 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and setup-enabled Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
 
-Claude Desktop and ChatGPT desktop are the primary functional targets on macOS Apple Silicon.
+Claude Desktop is the first release target on macOS Apple Silicon.
+ChatGPT desktop Chat conversations remain a conditional primary target pending experiment E1 in the [probe plan](native-probes.md).
+Work conversations require independent proof of local execution; a Codex local thread is a separate developer target.
+Release only the modes that pass, without presenting a Claude-only release as completion of the full target.
 Claude Code and Codex remain developer targets and potential measurement surfaces.
 Each supported entry names the application, version, execution mode, platform, and connection method.
 A shared model provider does not make two applications equivalent.
@@ -66,7 +69,12 @@ OpenReading owns the explicit document grant, OCR choice, retained store, and ve
 The cloud model account remains in the host; OpenReading requires no model-provider key to parse locally.
 
 Extend the existing `runtime/configuration.py` and `runtime/entrypoint.py` rather than introducing a daemon or configuration service.
-The proposed setup flags retain `--client`, `--configure`, and `--input-root`, and add `--ocr on|off`.
+The proposed setup flags retain `--client`, `--configure`, and `--input-root`, and add `--ocr`.
+Accept only lowercase `on` or `true` as enabled, and `off` or `false` as disabled.
+An absent option means off for explicit setup; an explicit empty string also means off to support an omitted host boolean.
+A bare option without a value, whitespace, `1`, `0`, uppercase tokens, and unresolved placeholders are errors.
+Persist a JSON boolean, never the original token or generic string truthiness.
+The Claude form adapter passes its boolean rendering through this closed mapping, with actual substitution verified by E5.
 OCR defaults to off during a new setup, including when a host form omits its optional switch.
 The client identifiers become `claude-desktop`, `chatgpt`, `claude-code`, and `codex`.
 A client identifier chooses a settings location; it is not authentication of the calling application.
@@ -85,9 +93,16 @@ The proposed persisted setup object is closed and versioned:
 It contains no endpoint, backend identifier, credential, resource-limit override, or model asset path.
 Those unknown fields fail validation, avoiding a configuration that appears effective but is ignored.
 Input paths must be absolute, existing directories and must pass core's grant/store validation.
-Keep the existing settings location under the selected client's OpenReading application-data directory.
-Use a separate `v2/` retained store for the Docling distribution; do not reinterpret revision 1 artifacts.
-Construct the closed core profile from verified bundled resources and reviewed release limits.
+Use `<client>/v2/config.json` under OpenReading's existing application-data parent.
+Retain artifacts under `<client>/v2/artifacts/`; reserve `<client>/v2/launch/` for temporary launch configuration.
+Never read or rewrite `<client>/config.json` or the historical `<client>/v1/` store.
+Successful and failed version 2 setup must leave the revision 1 launcher usable with its original settings.
+Ship the exact selected lock as `resources/docling-runtime.uv.lock` inside the verified bundle inventory.
+Construct the closed core profile using that lock and verified bundled assets, never a sibling checkout path.
+Create `<client>/v2/launch/<unique-id>/profile.json` exclusively with mode 0600 inside mode-0700 directories.
+Pass its absolute path through core's `--profile-config`; keep it until owned workers exit, then remove that invocation directory.
+Never overwrite another process's profile or use a shared mutable filename.
+Use reviewed release limits or an explicitly labeled diagnostic profile for P0; do not inherit revision 1 limits.
 An assistant cannot change this profile through tool arguments.
 
 Host forms may pass explicit grant and OCR arguments directly to the launcher, as current Claude setup does.
@@ -101,7 +116,7 @@ Validate before writing and use the existing atomic configuration write pattern.
 A cancelled first setup creates no configuration; a cancelled replacement preserves the previous valid setup.
 Changing a grant takes effect on the next process start, after the old process is stopped.
 It restricts artifact access without promising deletion of previously retained source copies.
-Do not import revision 1 settings automatically: require explicit confirmation of the directory and OCR choice through setup.
+Do not import revision 1 settings automatically: require explicit selection of the directory and OCR choice through setup.
 A legacy settings file remains untouched if a replacement setup fails.
 
 Missing or invalid setup exits nonzero with sanitized stderr before registering tools.
@@ -117,6 +132,9 @@ The installation guide must disclose which applications share that registration 
 A client label or separate artifact directory cannot enforce application isolation against a shared host configuration.
 If the user needs a narrower boundary, use a host-supported separate configuration scope and verify it before claiming isolation.
 Do not silently register two entries with different grants and expose both as if each app saw only one.
+The disclosure says: "This directory limits OpenReading tools. Your assistant may have separate file and shell access."
+Require local execution and exclude `experimental_environment = "remote"` from the supported registration.
+Record executable identity, parent process, and a nonce-bearing local log before calling a route local.
 
 ### Later backends
 
@@ -145,8 +163,9 @@ A docs-only revision does not require rerunning every core engine test or alteri
 Use the frozen synthetic corpus and exact same questions in each native client.
 Grant only the synthetic document directory; keep ground truth outside that grant.
 Record source hashes, core commit, profile digest, application version, execution mode, model when invoked, and OS/architecture.
-A source harness may prove native tool use on a developer machine, but must be labeled as requiring developer dependencies.
-It cannot satisfy the no-user-Python installation criterion.
+Use the frozen P0 candidate for native OpenReading checks; the existing launcher intentionally refuses source execution.
+Tiny synthetic servers resolve host behavior separately in E1, E2, E3, and E5.
+Neither synthetic probes nor a development-machine frozen build pass clean-machine installation.
 
 | Case | Required result |
 | --- | --- |
@@ -158,15 +177,30 @@ It cannot satisfy the no-user-Python installation criterion.
 | Outside-directory input | Core refuses access and the assistant reports that refusal without a fallback upload. |
 | OCR off and on | An image-only input is refused with OCR off; explicit setup enables labeled OCR evidence. |
 | Restart | The new MCP process reads the intact artifact with identical identifiers and exact passages. |
-| Cancellation | Cancelling owned extraction terminates the worker and OCR children and publishes no successful artifact. |
+| Interruption | Record host cancel notification, deadline, and process-stop paths separately; each tested path leaves no owned extraction or OCR work and no successful artifact. |
 | Invalid setup | Tools never register, and the guide's recovery steps correspond to the observed host error. |
 
 Where the model cannot be invoked without account or spending authorization, retain the pending case instead of substituting SDK calls.
-Human review records answer correctness and resolves quotes against actual tool results.
+Use the frozen task IDs and rubrics from `measurement/corpus.json`; never edit fixtures to match an old example.
+E1/N2 records each host's actual transcript export and tool-log location, format, and application version.
+If host logs omit payloads, use an explicit diagnostic STDIO capture relay with the same invocation arguments and byte-preserving forwarding.
+The relay records requests, responses, tool errors, and ordering outside the document grant and is excluded from performance measurements.
+If complete capture is unavailable, citation evidence is incomplete and the native criterion remains pending.
+
+Add an offline checker in `measurement/` with pinned capture inputs and human-selected quote spans from the recorded final answer.
+The checker verifies answer offsets for quote, filename, and visible physical-page label, then ties each citation to its actual captured tool call.
+Annotations that disagree with the rendered answer fail; unsupported citation formats remain unverified instead of guessed.
+Resolve the artifact and evidence identifier through core's public read operation or MCP tool, never by parsing its private store format.
+Check the physical page, text origin, exact quote substring, and artifact identity against both the captured response and verified retained evidence.
+Require successful import/search/read calls before the answer and coverage of every presented citation; missing or ambiguous mappings fail.
+An invented ID, correct quote on the wrong page, quote from a different artifact, paraphrase, or uncaptured call must fail offline regression fixtures.
+Human review then judges answer correctness, semantic support, and material claims lacking citations.
 A model's statement that it used OpenReading is not evidence of a tool call.
 Review citation presentation per host: visible filename, physical page, quote, and OCR label are required where applicable.
 The transcript must retain resolvable evidence identifiers even if the displayed answer omits them.
 
+A host without a stop action records cancellation as `not_exposed`; it does not pass a cancel-notification check by quitting the app.
+Test its available deadline and process-stop cleanup paths, disclose the limitation, and retain core cancellation tests independently.
 Native host timing is a separate prerequisite for release limits.
 Use the delay probe and measured margin specified in the engine design before adopting a supported page cap.
 A short successful request does not establish the deadline for a 100-page OCR import.
@@ -174,8 +208,10 @@ A short successful request does not establish the deadline for a 100-page OCR im
 ## 6. Packaging and release order
 
 First prove the shared source protocol and native connection route; then implement common setup and host adapters.
-Run the cheap approved M0 probe before further packaging expenditure, as already required by the evaluation design.
-Native functional checks can precede final packaging, but they remain explicitly developer-machine evidence.
+Allow one bounded P0 frozen-build feasibility task before M0 to test identity, relocation, one import, and startup.
+It produces no distributed artifact, installer polish, or clean-machine claim.
+Run the cheap approved M0 probe before further distribution packaging expenditure.
+Native functional checks use P0 after the owner authorizes host installation; they remain developer-machine evidence.
 
 The packaged candidate includes the same engine bytes for every wrapper on the same platform.
 It must preserve core Python sources and installed dependency metadata required for engine identity.
@@ -183,7 +219,16 @@ It must include verified `tessdata/configs/tsv`, language data, native libraries
 A modified or incomplete inventory refuses startup; do not relax identity for frozen builds.
 
 Claude Desktop may use an MCPB wrapper; a generic signed app or installer can supply the common runtime for other hosts.
-The exact ChatGPT installation flow remains a native feasibility output, not a promise of automatic registration.
+The selected ChatGPT candidate route is a small signed helper app with a folder picker and OCR toggle.
+It writes only OpenReading settings, then shows the executable path to paste into the host's local MCP Settings form.
+Use an argument-free, verified host launcher so users need not quote paths or supply environment variables, working directories, or timeout overrides.
+The launcher reads the explicit saved settings and sets required process context itself.
+E1 must verify how the form accepts a path containing spaces; no shell-quoting assumption is allowed.
+The helper does not modify shared TOML or install a marketplace entry.
+Cancel before Save leaves existing settings intact; failed writes show a recoverable error without marking setup complete.
+Saving OpenReading settings is distinct from connecting in the host; an incomplete registration is displayed as pending.
+If this path cannot fit measured default host budgets or the form cannot launch it, stop ChatGPT N2 for a revised setup decision.
+Do not silently add an installer that edits shared host settings.
 If setup requires editing JSON or TOML manually, it may support a developer proof but does not pass the nondeveloper walkthrough.
 The engine design's signing, notarization, clean-machine, and installer fallback gates apply to every distributed path.
 

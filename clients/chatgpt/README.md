@@ -1,6 +1,6 @@
 # ChatGPT desktop integration
 
-**Status:** proposed in ProductSpec revision 3. No Docling package or native ChatGPT walkthrough is verified yet.
+**Status:** proposed in ProductSpec revision 4. No Docling package or native ChatGPT walkthrough is verified yet.
 The [client matrix](../README.md) separates documented routes from tested behavior.
 
 ## Connection candidate
@@ -9,8 +9,13 @@ The [client matrix](../README.md) separates documented routes from tested behavi
 It also describes configuration shared with Codex clients on the same host.
 Check the installed application and execution mode before following that route.
 A shared registration can expose the same OpenReading directory grant to multiple local clients.
+That grant limits only OpenReading; it does not restrict the assistant's other file or shell tools.
+The route must execute locally and cannot set `experimental_environment = "remote"`.
 
-The proposed installer supplies the verified runtime; the host launches it without a server terminal.
+The desired target is a local Chat conversation, with Work and Codex local threads checked separately in [E1](../../design/native-probes.md).
+A Codex-thread pass does not establish support for Chat conversations.
+The proposed signed helper app supplies a folder picker, saves OpenReading settings, and shows an argument-free executable path to paste into the host form.
+It does not edit shared TOML. The native form and its path handling remain unverified.
 Setup requires an explicit document directory and offers OCR disabled by default.
 The [assistant design](../../design/assistant-clients.md) owns the pending setup interface and grant rules.
 No copy-and-paste installation command is provided until the corresponding artifact exists and its native launch is tested.
