@@ -22,3 +22,5 @@ CLAUDE.local.md
 
 .coverage*
 .ruff_cache/
+
+coverage-report.json

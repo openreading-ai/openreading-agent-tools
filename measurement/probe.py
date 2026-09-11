@@ -11,6 +11,8 @@ import hashlib
 import json
 import os
 import platform
+import re
+import secrets
 import shlex
 import shutil
 import subprocess
@@ -21,6 +23,8 @@ from runtime.verify import sha256
 
 HERE = Path(__file__).resolve().parent
 TASKS = [f"{name}-single_fact" for name in ("agreement", "manual", "report")]
+# Mirrors probe-manifest.schema.json: exact family and version digits, never an alias.
+MODEL_ID = re.compile(r"claude-(opus|sonnet|haiku|fable)-[0-9]+(-[0-9]+)*")
 
 
 def schedule(seed=20260911):
@@ -51,6 +55,7 @@ def prepare(output, evidence, python, client, assets, lock):
     if (
         not report["passed"]
         or not restart["passed"]
+        or restart.get("retrieval_report_sha256") != sha256(evidence / "retrieval-report.json")
         or passed != expected
         or report["generation"]["files"] != spec["expected_hashes"]
     ):
@@ -82,6 +87,8 @@ def prepare(output, evidence, python, client, assets, lock):
     snapshot = subprocess.check_output(
         [
             str(python),
+            "-I",
+            "-B",
             str(HERE.parent / "scripts/probe_environment.py"),
             "--profile",
             str(output / "profile.json"),
@@ -94,7 +101,7 @@ def prepare(output, evidence, python, client, assets, lock):
         raise ValueError("Installed engine differs from the evaluated candidate.")
     (output / "runtime.json").write_bytes(snapshot)
     (output / "extractions").mkdir()
-    tasks, files, commands, recipes = [], {}, [], {}
+    tasks, files, commands, recipes, sizes = [], {}, [], {}, {}
     for name, document in spec["documents"].items():
         if identity["engine"] != report["documents"][name]["engine"]:
             raise ValueError("The full-text and selective engines differ.")
@@ -107,15 +114,28 @@ def prepare(output, evidence, python, client, assets, lock):
         source = shlex.quote(str(output / f"documents/{name}.pdf"))
         whole = f"{shlex.quote(utility)} {source} -"
         page = f"{shlex.quote(utility)} -f {{page}} -l {{page}} {source} -"
+        # Writing into the trial's working directory lets ordinary Grep and ranged Read
+        # search the text, so the baseline is not limited to whole-document ingestion.
+        file = f"{shlex.quote(utility)} {source} {name}.txt"
         recipes[f"documents/{name}.pdf"] = {
             "whole": whole,
             "page": page,
+            "file": file,
             "pages": document["pages"],
         }
         commands.extend(
-            [whole, *[page.replace("{page}", str(n)) for n in range(1, document["pages"] + 1)]]
+            [
+                whole,
+                file,
+                *[page.replace("{page}", str(n)) for n in range(1, document["pages"] + 1)],
+            ]
         )
         extracted = subprocess.check_output([utility, str(output / f"documents/{name}.pdf"), "-"])
+        sizes[name] = {
+            "physical_pages": document["pages"],
+            "extracted_characters": len(text.read_text()),
+            "baseline_characters": len(extracted.decode("utf-8")),
+        }
         if not extracted.strip():
             raise ValueError("Ordinary-tools baseline produced no text.")
     for task in spec["tasks"]:
@@ -125,6 +145,7 @@ def prepare(output, evidence, python, client, assets, lock):
                 "category": task["document_category"],
                 "task_kind": task["task_kind"],
                 "question": task["question"],
+                "document_size": sizes[task["document"]],
                 "document": f"documents/{task['document']}.pdf",
                 "extraction": f"extractions/{task['document']}.txt",
             }
@@ -153,6 +174,7 @@ def prepare(output, evidence, python, client, assets, lock):
             "accounting.mjs",
             "report.mjs",
             "../scripts/probe_environment.py",
+            "../scripts/docling_feasibility.py",
             "probe-manifest.schema.json",
         ]
     )
@@ -231,7 +253,7 @@ def prepare(output, evidence, python, client, assets, lock):
 
 def finalize(root, model, account, pricing):
     key = os.environ.get("ANTHROPIC_API_KEY")
-    if not key or not account.strip() or "latest" in model or not model.startswith("claude-"):
+    if not key or not account.strip() or not MODEL_ID.fullmatch(model):
         raise ValueError(
             "Choose an exact model, nonsecret account label, and its API key before finalization."
         )
@@ -243,7 +265,10 @@ def finalize(root, model, account, pricing):
         raise ValueError("Pricing must name the selected model.")
     _write(root / "pricing.json", prices)
     environment = json.loads((root / "environment.json").read_text())
-    environment["account_key_sha256"] = hashlib.sha256(key.encode()).hexdigest()
+    environment["account_key_salt"] = secrets.token_hex(32)
+    environment["account_key_sha256"] = hashlib.sha256(
+        (environment["account_key_salt"] + "\0" + key).encode()
+    ).hexdigest()
     _write(root / "environment.json", environment)
     manifest.update(
         model_id=model,
@@ -257,9 +282,11 @@ def finalize(root, model, account, pricing):
     try:
         # Dry validation checks the current engine, utility, pricing, and all frozen bytes.
         # A typo must not leave an immutable final manifest that cannot be retried.
-        subprocess.run(
-            ["node", str(HERE / "run.mjs"), str(pending)], check=True, capture_output=True
+        result = subprocess.run(
+            ["node", str(HERE / "run.mjs"), str(pending)], capture_output=True, text=True
         )
+        if result.returncode:
+            raise ValueError(f"Dry validation refused the manifest: {result.stderr.strip()}")
         pending.rename(root / "manifest.json")
     finally:
         pending.unlink(missing_ok=True)

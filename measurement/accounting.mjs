@@ -18,6 +18,7 @@ const empty = {
   output: null,
   all_tokens: null,
   estimated_usd: null,
+  models: null,
 };
 
 export function normalizeQuery(events) {
@@ -27,6 +28,7 @@ export function normalizeQuery(events) {
   let duplicates = 0;
   let previous = null;
   let final = null;
+  let previousModels = null;
   let invalid = false;
   for (const event of events) {
     const id = event.type === "assistant" ? event.message?.id : null;
@@ -54,15 +56,32 @@ export function normalizeQuery(events) {
       continue;
     }
     const sums = Object.fromEntries(Object.keys(fields).map((key) => [key, 0]));
-    for (const usage of Object.values(models)) {
+    const normalizedModels = {};
+    for (const [model, usage] of Object.entries(models)) {
+      normalizedModels[model] = {};
       for (const [key, native] of Object.entries(fields)) {
         const value = usage?.[native];
         if (!Number.isSafeInteger(value) || value < 0) invalid = true;
-        else sums[key] += value;
+        else {
+          sums[key] += value;
+          normalizedModels[model][key] = value;
+        }
       }
     }
     if (previous && Object.keys(sums).some((key) => sums[key] < previous[key]))
       invalid = true;
+    if (
+      previousModels &&
+      Object.entries(previousModels).some(
+        ([model, row]) =>
+          !normalizedModels[model] ||
+          Object.keys(fields).some(
+            (key) => normalizedModels[model][key] < row[key],
+          ),
+      )
+    )
+      invalid = true;
+    previousModels = normalizedModels;
     previous = sums;
   }
   const diagnostics = {
@@ -85,6 +104,7 @@ export function normalizeQuery(events) {
     previous.input_cache_read;
   return {
     ...previous,
+    models: previousModels,
     complete: true,
     input_total: input,
     all_tokens: input + previous.output,

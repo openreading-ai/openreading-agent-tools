@@ -7,6 +7,7 @@ exercise a Desktop installation or invoke a language model.
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import sys
@@ -29,7 +30,8 @@ def payload(result):
 
 
 async def check(args):
-    report = json.loads((args.output / "retrieval-report.json").read_text())
+    retrieval = (args.output / "retrieval-report.json").read_bytes()
+    report = json.loads(retrieval)
     if (
         not report["passed"]
         or not network_denied()
@@ -117,7 +119,16 @@ async def check(args):
             {"process_generation": generation, "exact_reads": count, "outside_grant_refused": True}
         )
     (args.output / "restart-report.json").write_text(
-        json.dumps({"passed": True, "processes": records}, indent=2) + "\n"
+        json.dumps(
+            {
+                "passed": True,
+                # Binds this restart result to the exact retrieval evidence it reopened.
+                "retrieval_report_sha256": hashlib.sha256(retrieval).hexdigest(),
+                "processes": records,
+            },
+            indent=2,
+        )
+        + "\n"
     )
     return records
 

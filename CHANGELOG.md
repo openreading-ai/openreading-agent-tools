@@ -2,6 +2,11 @@
 
 ## Coverage requirements
 
+- Accept the reviewed core search/origin fixes through the pinned Docling candidate.
+- Verify trial artifact identity, preserve per-model usage, and expose size, adherence, and stop diagnostics.
+- Stop on unpriced models or observed budget overruns; salt per-study account fingerprints.
+- Include all Python proof scripts in the 95% coverage gate and fingerprint complete installation directories.
+
 - Enforce 95% Python line and branch coverage and 95% Node line, branch, and function coverage.
 - Exercise runner authorization, runtime integrity, trial failures, and resumable budgets with offline fixtures.
 
@@ -14,6 +19,9 @@
 - Add the frozen Docling corpus, exact-citation retrieval gate, and MCP restart check.
 - Pin the candidate to core v0.3 provenance and versioned dehyphenated retrieval.
 - Add an unscored nine-trial Docling probe with frozen source identity, usable baseline recipes, and explicit account approval.
+- Let the ordinary-tools arm save extracted text for Grep and ranged Read instead of only ingesting whole documents.
+- Report probe directions only for human-approved answers, and charge budget at the larger of SDK and frozen-price estimates.
+- Bind restart evidence to its retrieval report, verify resumed trial usage against raw events, and accept exact current model identifiers.
 
 ## Docling feasibility
 

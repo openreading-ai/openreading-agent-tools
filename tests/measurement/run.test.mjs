@@ -15,8 +15,32 @@ import {
   plannedTrials,
   runTrial,
 } from "../../measurement/run.mjs";
+import { normalizeQuery } from "../../measurement/accounting.mjs";
 
 const hash = (data) => createHash("sha256").update(data).digest("hex");
+
+/** Store a completed trial whose record matches its raw result event. */
+function recordTrial(directory, record, cost, inputTokens) {
+  const event = {
+    type: "result",
+    subtype: "success",
+    total_cost_usd: cost,
+    modelUsage: {
+      model: {
+        inputTokens,
+        cacheCreationInputTokens: 0,
+        cacheReadInputTokens: 0,
+        outputTokens: 1,
+      },
+    },
+  };
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(join(directory, "events.jsonl"), JSON.stringify(event) + "\n");
+  writeFileSync(
+    join(directory, "trial.json"),
+    JSON.stringify({ ...record, usage: normalizeQuery([event]) }),
+  );
+}
 
 test("dry validation checks every frozen input and deterministic complete schedule", (t) => {
   const { path } = fixture(t);
@@ -122,17 +146,17 @@ test("resume accounts for later recorded trials before spending again", async (t
   const later = schedule.at(-1),
     id = `${later.task_id}-${later.repetition}-${later.arm}`;
   const directory = join(root, "runs", "test", id);
-  mkdirSync(directory, { recursive: true });
-  writeFileSync(
-    join(directory, "trial.json"),
-    JSON.stringify({
+  recordTrial(
+    directory,
+    {
       ...later,
       category: "agreement",
       manifest_sha256: run.manifestHash,
       state: "completed",
-      usage: { complete: true, input_total: 100, estimated_usd: 20 },
       quality: { passed: null, citation_valid: null },
-    }),
+    },
+    20,
+    100,
   );
   let calls = 0;
   await main([path, "--live", "--approved-manifest-sha256", run.manifestHash], {
@@ -665,17 +689,17 @@ test("resumption skips completed trials and stops exactly at the remaining budge
     "runs/test",
     `${first.task_id}-${first.repetition}-${first.arm}`,
   );
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    join(dir, "trial.json"),
-    JSON.stringify({
+  recordTrial(
+    dir,
+    {
       ...first,
       category: "agreement",
       manifest_sha256: run.manifestHash,
       state: "completed",
-      usage: { complete: true, input_total: 20, estimated_usd: 0.75 },
       quality: { passed: null, citation_valid: null },
-    }),
+    },
+    0.75,
+    20,
   );
   let calls = 0;
   await main(

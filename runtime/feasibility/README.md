@@ -6,7 +6,7 @@ The historical revision 1 bundle and measurement runtime remain separate.
 
 ## Run
 
-The current candidate pins core `b01e3149e0c20bca92db2a49c67b4d829d10fc68` for the v0.3 provenance and retrieval gate.
+The current candidate pins core `6f7c9451f139cc3485fbd0c6779b0b886b21b81e` for the v0.3 provenance and retrieval gate.
 
 `make verify` checks this lock against its declared inputs without network access or installing the candidate.
 It also refuses prohibited packages in the lock and requires this guide to name the locked core and engine versions.

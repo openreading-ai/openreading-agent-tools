@@ -1,13 +1,14 @@
 # Token experiment tooling
 
-**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
-The [revision 2 design](../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
-Existing setup commands and test results below do not establish revision 2 compatibility.
+**Revision status:** the sections before the revision 2 headings describe the superseded revision 1 PyMuPDF prototype.
+The revision 2 sections at the end describe the implemented Docling retrieval gate and unscored M0 probe.
+The [revision 2 design](../design/local-document-proof.md) still owns client and binary migration, which remain unbuilt.
+Revision 1 setup commands and test results do not establish revision 2 compatibility.
 
 You can prepare a synthetic study, validate its frozen inputs, and regenerate reports without calling a model.
 Actual token savings require approved live trials and independent answer review.
 The [revision 2 evaluation design](../design/token-evaluation.md) defines the next study and required driver changes.
-The current driver still emits revision 1 manifests; do not relabel them or use them as revision 2 study evidence.
+`measurement.prepare` still emits revision 1 manifests; do not relabel them or use them as revision 2 study evidence.
 
 ## Prepare and validate
 
@@ -144,16 +145,21 @@ The full-text files contain the same Docling page text that selective retrieval 
 
 The second command starts two fresh MCP processes against the retained store.
 It verifies reused artifact identities, every recorded exact quote, and refusal outside the input grant.
+Its report records the retrieval report's SHA-256; preparation and the runner refuse restart evidence for another retrieval run.
 The 100-page, 300-second, four-GiB sampled-memory configuration is a diagnostic profile, not a supported product limit.
 OCR-disabled 24-, 48-, and 80-page inputs form the proposed token cohort.
 A separate six-page PDF exercises scans, mixed origins, blank pages, columns, ligatures, and line-break hyphens with OCR on and off.
 Printed labels differ from physical pages, and the report table has a qualifier on the following physical page.
 The cross-page questions need separate items from multiple pages; they do not prove native multi-page item provenance.
 
-On 2026-09-11, core `b01e3149e0c20bca92db2a49c67b4d829d10fc68` passed all nine answerable tasks and both functional modes.
+On 2026-09-11, core `6f7c9451f139cc3485fbd0c6779b0b886b21b81e` passed all nine answerable tasks and both functional modes.
 Two fresh MCP processes each verified 51 exact reads and refused the outside-grant request.
 The three missing-fact tasks and document-instruction behavior still require model and human review.
 This is local engine evidence, not an installation result or a token-saving claim.
+Frozen retrieval queries deliberately test whether the engine can find supporting pages with known good terms.
+Recall uses the union of those queries; it does not establish that a model will choose effective queries.
+Printed labels remain visible to A but can be omitted from Docling text in B and C.
+Human M0 review checks physical pages explicitly; label parity and harder blind queries remain prerequisites for a primary study.
 
 ## Revision 2 unscored token probe
 
@@ -161,6 +167,9 @@ M0 runs one frozen single-fact question per document across three arms, giving n
 A uses ordinary tools, B receives complete Docling page text, and C uses plain MCP plus appended retrieval instructions.
 This developer treatment does not install or test a client plugin.
 Every arm receives the same compact, executable `pdftotext` recipes.
+Besides whole-document and single-page output, one recipe saves the text as a file in the trial's working directory.
+Ordinary Grep and ranged Read can then search that file, so the baseline is not limited to ingesting the whole document.
+Without it, Grep cannot search compressed PDF streams, and the 80-page whole-document output, about 37,000 characters, may exceed the host's Bash output limit.
 Preparation and per-trial preflight verify that utility before any model request.
 
 After the retrieval and restart commands pass, prepare without an account:
@@ -178,10 +187,14 @@ runtime/feasibility/.venv/bin/python -m measurement.probe prepare \
 Preparation makes no model calls and never selects an account from ambient credentials.
 On macOS, install Poppler if `pdftotext` is unavailable before preparing the ordinary-tools baseline.
 
-The runtime snapshot hashes installed dependency files, the interpreter, model assets, core source identity, and extraction settings.
+The runtime snapshot hashes complete installation directories, including bytecode and startup hooks, plus the interpreter, model assets, core identity, and extraction settings.
+Probe interpreters use isolated mode and disable bytecode writes; worker children inherit that write restriction.
+This detects environment drift between trials; it does not attest a compromised operating system.
 The runner recomputes it before every trial and refuses changed bytes or pins.
 The manifest also binds corpus hashes, the passing retrieval/restart reports, and the measurement driver sources.
 Each C trial starts a new store with the OCR-disabled Docling profile.
+After the query, core verifies each retained artifact before its source, engine, and full-text hash are compared with retrieval evidence.
+A mismatch marks the trial evidence invalid. Queries that never create an artifact remain visible as workflow observations.
 Its MCP server runs with network denied and explicit 330-second tool-call timeouts.
 Tool definitions are loaded at startup, and their token cost remains in measured usage.
 The trial timeout is 600 seconds, with twelve turns and a proposed $0.50 per-trial SDK budget.
@@ -199,8 +212,8 @@ When you select the account and exact provider model, provide a dated pricing JS
 }
 ~~~
 
-Replace the placeholders with that model's verified prices before finalization.
-Supply the selected API account through `ANTHROPIC_API_KEY`; the file stores only its fingerprint and your nonsecret label.
+Replace the placeholders with that model's verified prices before finalization; all four must be positive.
+Supply the selected API account through `ANTHROPIC_API_KEY`; the file stores a per-study salted fingerprint and your nonsecret label.
 The current driver uses an API account, not a Desktop subscription session.
 
 ~~~sh
@@ -222,7 +235,19 @@ node measurement/run.mjs /absolute/probe-directory/manifest.json --report
 The driver records complete-query usage, cache categories, tool calls, permission denials, turns, failures, and query wall time.
 Query wall time excludes offline preparation and environment preflight.
 It stops scheduling after incomplete accounting or an exhausted estimated budget, including after process restart.
-The report retains all nine rows and shows per-document C/A and C/B direction only when the compared calls completed with measured usage.
+Budget accounting charges the larger of the SDK estimate and the frozen-price estimate.
+The frozen estimate prices the selected model independently of the SDK.
+An unexpected model makes cost accounting incomplete and stops further trials until its pricing is reviewed.
+An observed per-trial overrun also stops scheduling, including after restart.
+The SDK still controls in-flight spending using its own price table; an individual call can exceed the estimate.
+After a restart, the runner recomputes each stored trial's usage from its raw events and refuses an edited record.
+The report retains all nine rows with their per-model usage and SDK stop reasons, including turn and budget limits.
+It reports physical pages alongside full-extraction and baseline character counts; these sparse synthetic pages are not a realistic document-size benchmark.
+C access is classified by observed tool calls as plugin-only, mixed, ordinary-only, or no observed access.
+The plugin-only fraction uses all planned C trials as its denominator, including unrun and failed trials.
+Ordinary file tools count conservatively as possible document access.
+It shows per-document C/A and C/B direction only after human review marks both compared answers as passing.
+A cheap unreviewed or incorrect answer therefore produces no direction.
 An ordinary-tools Bash denial invalidates that C/A direction.
 Model answer quality and citation support still require human review; a direction from M0 supports no public savings claim.
 The larger calibration, primary, and follow-up studies remain in the evaluation design.

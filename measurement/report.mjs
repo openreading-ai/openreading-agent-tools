@@ -2,6 +2,7 @@
  * Missing or incomplete trials remain visible. Usage on failed calls still counts.
  * Unverified or Bash-constrained baselines cannot produce a primary savings ratio.
  * Human quality review is an input, not a result inferred from cheap token usage.
+ * Probe directions also wait for that review: a cheap wrong answer is not a saving.
  */
 const identity = (row) => `${row.task_id}:${row.repetition}:${row.arm}`;
 const validInput = (row) =>
@@ -45,6 +46,7 @@ export function buildReport(manifest, trials, dataset) {
               }
             : null,
           state: trial?.state ?? "unrun",
+          stop_reason: trial?.usage?.status ?? null,
           usage: trial
             ? {
                 complete: validInput(trial),
@@ -53,6 +55,7 @@ export function buildReport(manifest, trials, dataset) {
                 input_cache_read: trial.usage?.input_cache_read ?? null,
                 input_total: trial.usage?.input_total ?? null,
                 output: trial.usage?.output ?? null,
+                models: trial.usage?.models ?? null,
               }
             : null,
           quality: trial
@@ -164,6 +167,7 @@ export function buildReport(manifest, trials, dataset) {
       ? {
           runtime_kind: "developer_harness",
           unscored: true,
+          probe_adherence: probeAdherence(rows, trials),
           probe: manifest.task_ids.map((task_id) => {
             const observations = ["A", "B", "C"].map((arm) =>
               trials.find((t) => t.task_id === task_id && t.arm === arm),
@@ -172,8 +176,8 @@ export function buildReport(manifest, trials, dataset) {
             const ratio = (baseline) =>
               baseline &&
               c &&
-              baseline.state === "completed" &&
-              c.state === "completed" &&
+              pass(baseline) &&
+              pass(c) &&
               validInput(baseline) &&
               validInput(c) &&
               baseline.usage.input_total > 0
@@ -181,6 +185,9 @@ export function buildReport(manifest, trials, dataset) {
                 : null;
             return {
               task_id,
+              document_size:
+                dataset?.tasks?.find((t) => t.id === task_id)?.document_size ??
+                null,
               c_over_a:
                 a?.baseline?.utility_verified && a.baseline.bash_denials === 0
                   ? ratio(a)
@@ -194,6 +201,8 @@ export function buildReport(manifest, trials, dataset) {
                       usage: t.usage,
                       wall_ms: t.wall_ms,
                       state: t.state,
+                      stop_reason: t.usage?.status ?? null,
+                      quality: t.quality ?? null,
                     }
                   : null,
               ),
@@ -217,5 +226,41 @@ export function buildReport(manifest, trials, dataset) {
       "Quality and citation support require independent human review.",
       "Fresh sessions do not establish cold provider caches.",
     ],
+  };
+}
+
+/** Tool-call classification is conservative: ordinary file tools may have read documents. */
+function probeAdherence(rows, trials) {
+  const counts = {
+    plugin_only: 0,
+    mixed: 0,
+    ordinary_only: 0,
+    no_observed_access: 0,
+  };
+  for (const trial of trials.filter((t) => t.arm === "C")) {
+    const names = Object.keys(trial.usage?.tool_calls ?? {});
+    const plugin = names.some(
+      (name) =>
+        name.startsWith("mcp__openreading__") ||
+        name.startsWith("mcp__plugin_openreading-local-proof_openreading__"),
+    );
+    const ordinary = names.some((name) =>
+      ["Read", "Glob", "Grep", "Bash"].includes(name),
+    );
+    counts[
+      plugin
+        ? ordinary
+          ? "mixed"
+          : "plugin_only"
+        : ordinary
+          ? "ordinary_only"
+          : "no_observed_access"
+    ]++;
+  }
+  const planned = rows.filter((row) => row.arm === "C").length;
+  return {
+    ...counts,
+    planned,
+    fraction_of_planned: planned ? counts.plugin_only / planned : null,
   };
 }

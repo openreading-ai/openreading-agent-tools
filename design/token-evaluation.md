@@ -377,6 +377,7 @@ Checked on 2026-09-10:
 
 Keep the ordinary-tools baseline usable before any paid trial, including the M0 probe.
 Every arm receives the same compact extraction recipes for its document, counted in actual input usage.
+The recipes include saving the extraction as a working-directory file, so ordinary Grep and ranged Read can search it.
 Freeze the utility executable hash and absolute command paths with the environment and manifest.
 Preflight extraction before querying and require new preparation when the machine or utility changes.
 Retain exact command matching instead of introducing a general shell-command parser.

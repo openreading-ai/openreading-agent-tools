@@ -259,7 +259,12 @@ class EnvironmentTests(unittest.TestCase):
             sibling.write_text("")
             for options in [{"origin": sibling}, {"commit": "0" * 40}]:
                 with self.assertRaises(RuntimeError):
-                    self.run_check(lock, module, [("openreading", "0.3.0")], **options)
+                    self.run_check(
+                        lock,
+                        module,
+                        [("openreading", "0.3.0"), ("docling-slim", "2.126.0")],
+                        **options,
+                    )
 
     def test_prohibited_modules_are_refused_even_outside_package_metadata(self):
         with (
@@ -354,4 +359,271 @@ class MemoryTests(unittest.TestCase):
         psutil = self.psutil()
         psutil.Process.side_effect = psutil.NoSuchProcess(1)
         with mock.patch.dict(sys.modules, {"psutil": psutil}):
+            self.assertEqual(feasibility.tree_rss(1), 0)
+
+
+class OrchestrationTests(unittest.TestCase):
+    def native_modules(self):
+        config = mock.Mock()
+        config.LocalDoclingConfig.return_value.validate_assets.return_value = {"model": "hash"}
+        config.MODEL_REPOSITORY = "example/model"
+        config.MODEL_REVISION = "pinned"
+        config.MODEL_FILES = ["model.onnx"]
+        return config
+
+    def test_model_preparation_is_pinned_and_fixture_generation_is_repeatable(self):
+        import reportlab
+
+        config = self.native_modules()
+        hub = mock.Mock()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with mock.patch.dict(
+                sys.modules,
+                {"huggingface_hub": hub, "openreading.adapters.docling_local.config": config},
+            ):
+                feasibility.prepare(SimpleNamespace(assets=root))
+                self.assertEqual(hub.snapshot_download.call_args.kwargs["revision"], "pinned")
+                config.LocalDoclingConfig.return_value.validate_assets.assert_called_once()
+            font = Path(reportlab.__file__).parent / "fonts/Vera.ttf"
+            with mock.patch.object(feasibility, "PAGE_COUNTS", (1, 2)):
+                first = feasibility.generate(root, font)
+                self.assertEqual(first, feasibility.generate(root, font))
+                self.assertEqual(set(first), {"case-1.pdf", "case-2.pdf"})
+
+    def test_conversion_observes_network_denial_and_all_three_results(self):
+        config = self.native_modules()
+        client, projection_module = mock.Mock(), mock.Mock()
+        schema, origins = projection(1, False)
+        response = SimpleNamespace(
+            to_schema_dict=lambda: schema,
+            status=SimpleNamespace(state=SimpleNamespace(value="succeeded")),
+            document=SimpleNamespace(text="text"),
+        )
+        projection_module.project_document.return_value = (response, origins)
+        client.LocalDoclingClient.return_value.convert.return_value = {"raw": "document"}
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "case-1.pdf").write_bytes(b"pdf")
+            args = SimpleNamespace(
+                assets=root,
+                output=root,
+                tesseract=root,
+                tessdata=root,
+                lock=root,
+                pages=1,
+                ocr=False,
+            )
+            with (
+                mock.patch.dict(
+                    sys.modules,
+                    {
+                        "openreading.adapters.docling_local.config": config,
+                        "openreading.adapters.docling_local.client": client,
+                        "openreading.adapters.docling_local.projection": projection_module,
+                    },
+                ),
+                mock.patch.object(feasibility, "selected_environment"),
+                mock.patch.dict("os.environ", {}, clear=True),
+            ):
+                for denied in (False, True):
+                    with (
+                        mock.patch.object(feasibility, "network_denied", return_value=denied),
+                        mock.patch("builtins.print") as printed,
+                    ):
+                        if not denied:
+                            with self.assertRaisesRegex(RuntimeError, "network denial"):
+                                feasibility.convert(args)
+                        else:
+                            feasibility.convert(args)
+                            rows = [json.loads(call.args[0]) for call in printed.call_args_list]
+                            self.assertTrue(feasibility.accepts(rows, 1, False))
+                            self.assertEqual(
+                                json.loads((root / "converted-1-False.json").read_text()),
+                                {"raw": "document"},
+                            )
+                            response.status.state.value = "failed"
+                            feasibility.convert(args)
+                            self.assertEqual(
+                                json.loads(printed.call_args.args[0])["status"], "failure"
+                            )
+
+    def test_measurement_keeps_failed_cells_and_always_reaps_the_process_group(self):
+        config = self.native_modules()
+        for fault in (
+            None,
+            "memory",
+            "deadline",
+            "memory_monitor",
+            "no_sample",
+            "bad_output",
+            "exit",
+        ):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                (root / "lock").write_text("pin")
+                (root / "font").write_text("font")
+                args = SimpleNamespace(
+                    assets=root,
+                    output=root / "evidence",
+                    tesseract=root / "ocr",
+                    tessdata=root,
+                    lock=root / "lock",
+                    font=root / "font",
+                )
+                children = []
+
+                def popen(command, fault=fault, children=children, **kwargs):
+                    ocr = "--ocr" in command
+                    kwargs["stdout"].write(
+                        "\n".join(json.dumps(row) for row in observations(1, ocr))
+                    )
+                    child = mock.Mock(pid=123, returncode=1 if fault == "exit" else 0)
+                    child.poll.side_effect = (
+                        [None, None] if fault == "memory_monitor" else [None, 0]
+                    )
+                    if fault == "no_sample":
+                        child.poll.side_effect = [0]
+                    children.append(child)
+                    return child
+
+                with (
+                    mock.patch.dict(
+                        sys.modules, {"openreading.adapters.docling_local.config": config}
+                    ),
+                    mock.patch.object(
+                        feasibility, "selected_environment", return_value={"core_commit": "pin"}
+                    ),
+                    mock.patch.object(feasibility.sys, "platform", "darwin"),
+                    mock.patch.object(feasibility.platform, "machine", return_value="arm64"),
+                    mock.patch.object(feasibility.platform, "platform", return_value="test-mac"),
+                    mock.patch.object(feasibility, "PAGE_COUNTS", (1,)),
+                    mock.patch.object(feasibility, "generate", return_value={"case-1.pdf": "hash"}),
+                    mock.patch.object(
+                        feasibility.subprocess,
+                        "run",
+                        return_value=SimpleNamespace(stdout="tesseract 5\n", stderr=""),
+                    ),
+                    mock.patch.object(feasibility.subprocess, "Popen", popen),
+                    mock.patch.object(
+                        feasibility,
+                        "tree_rss",
+                        return_value=None
+                        if fault == "memory_monitor"
+                        else (2**33 if fault == "memory" else 100),
+                    ),
+                    mock.patch.object(
+                        feasibility, "CELL_SECONDS", -1 if fault == "deadline" else 300
+                    ),
+                    mock.patch.object(feasibility.time, "sleep"),
+                    mock.patch.object(feasibility.os, "killpg") as kill,
+                    mock.patch("builtins.print"),
+                    mock.patch.object(
+                        feasibility, "accepts", wraps=feasibility.accepts
+                    ) as accepted,
+                ):
+                    if fault == "bad_output":
+                        accepted.return_value = False
+                    result = feasibility.measure(args)
+                    self.assertEqual(result, 0 if fault is None else 1)
+                    self.assertEqual(kill.call_count, 2)
+                    for child in children:
+                        child.wait.assert_called_once()
+                    report = json.loads((args.output / "matrix.json").read_text())
+                    self.assertEqual(len(report["cells"]), 2)
+                    if fault in ("memory", "deadline", "memory_monitor"):
+                        self.assertEqual(report["cells"][0]["failure"], fault)
+                    if fault == "no_sample":
+                        self.assertEqual(report["cells"][0]["rss_samples"], 0)
+
+    def test_network_probe_distinguishes_denial_from_refusal_or_success(self):
+        for failure, denied in [
+            (PermissionError(), True),
+            (ConnectionRefusedError(), False),
+            (None, False),
+        ]:
+            with (
+                mock.patch.object(feasibility.socket, "create_connection", side_effect=failure),
+                self.subTest(failure=failure),
+            ):
+                self.assertIs(feasibility.network_denied(), denied)
+
+    def test_command_rejects_missing_inputs_and_dispatches_selected_action(self):
+        for arguments in (
+            ["measure", "--assets", "."],
+            [
+                "measure",
+                "--assets",
+                ".",
+                "--output",
+                ".",
+                "--tesseract",
+                ".",
+                "--tessdata",
+                ".",
+                "--lock",
+                ".",
+            ],
+            [
+                "convert",
+                "--assets",
+                ".",
+                "--output",
+                ".",
+                "--tesseract",
+                ".",
+                "--tessdata",
+                ".",
+                "--lock",
+                ".",
+            ],
+        ):
+            with (
+                mock.patch("sys.argv", ["script", *arguments]),
+                mock.patch("sys.stderr"),
+                self.assertRaises(SystemExit),
+            ):
+                feasibility.main()
+        with (
+            mock.patch("sys.argv", ["script", "prepare", "--assets", "."]),
+            mock.patch.object(feasibility, "prepare", return_value=0) as prepare,
+        ):
+            self.assertEqual(feasibility.main(), 0)
+            self.assertTrue(prepare.call_args.args[0].assets.is_absolute())
+        with (
+            mock.patch.object(feasibility, "selected_environment"),
+            mock.patch.object(feasibility.sys, "platform", "linux"),
+            self.assertRaisesRegex(RuntimeError, "Apple Silicon"),
+        ):
+            feasibility.measure(SimpleNamespace(lock=Path("lock")))
+
+
+class ClosureAndMonitorTests(unittest.TestCase):
+    def test_dependency_closure_handles_cycles_extras_and_inactive_edges(self):
+        packages = {
+            "openreading-docling-feasibility": {
+                "source": {"virtual": "."},
+                "dependencies": [
+                    {"name": "core", "extra": ["ocr"]},
+                    {"name": "inactive", "marker": "python_version < '1'"},
+                ],
+            },
+            "core": {
+                "dependencies": [{"name": "core", "extra": ["ocr"]}],
+                "optional-dependencies": {"ocr": [{"name": "ocr"}]},
+            },
+            "ocr": {},
+        }
+        self.assertEqual(feasibility.required_packages(packages), {"core", "ocr"})
+
+    def test_rss_parent_can_be_inaccessible_or_exit_during_sampling(self):
+        psutil = MemoryTests().psutil()
+        psutil.Process.side_effect = psutil.AccessDenied()
+        with mock.patch.dict(sys.modules, {"psutil": psutil}):
+            self.assertIsNone(feasibility.tree_rss(1))
+            parent = mock.Mock(pid=1)
+            parent.children.return_value = []
+            parent.memory_info.side_effect = psutil.NoSuchProcess()
+            psutil.Process.side_effect = None
+            psutil.Process.return_value = parent
             self.assertEqual(feasibility.tree_rss(1), 0)

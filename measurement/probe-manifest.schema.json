@@ -26,7 +26,7 @@
     },
     "model_id": {
       "type": "string",
-      "pattern": "^claude-(opus|sonnet|haiku)-[0-9][a-z0-9-]+$"
+      "pattern": "^claude-(opus|sonnet|haiku|fable)-[0-9]+(-[0-9]+)*$"
     },
     "client_path": {
       "type": "string",
@@ -187,7 +187,7 @@
       "const": "developer_harness"
     },
     "retriever_revision": {
-      "const": "lexical-v2-dehyphenated"
+      "const": "lexical-v3-dehyphenated"
     },
     "retrieval_file": {
       "type": "string",

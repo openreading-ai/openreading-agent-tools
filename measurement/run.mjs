@@ -111,6 +111,7 @@ function baselineInventory(environment, manifest, dataset) {
         !recipe ||
         typeof recipe.whole !== "string" ||
         typeof recipe.page !== "string" ||
+        (manifest.schema_version === "2" && typeof recipe.file !== "string") ||
         !recipe.page.includes("{page}") ||
         !Number.isSafeInteger(recipe.pages) ||
         recipe.pages < 1 ||
@@ -118,6 +119,7 @@ function baselineInventory(environment, manifest, dataset) {
       )
         throw new Error();
       commands.push(recipe.whole);
+      if (recipe.file !== undefined) commands.push(recipe.file);
       for (let page = 1; page <= recipe.pages; page++)
         commands.push(recipe.page.replaceAll("{page}", String(page)));
     }
@@ -146,6 +148,11 @@ function baselinePrompt(run, task) {
     "One physical page: " +
     recipe.page +
     "\n" +
+    (recipe.file
+      ? "Save document text in your working directory for Read or Grep: " +
+        recipe.file +
+        "\n"
+      : "") +
     "Replace each {page} with the same integer from 1 through " +
     recipe.pages +
     ".\n"
@@ -193,6 +200,7 @@ export function validateRun(manifestPath, approvedHash) {
     ["environment_file", "environment_sha256"],
   ])
     paths[name] = checkedFile(root, manifest[name], manifest[hashName]);
+  let prices = null;
   if (probe) {
     if (
       JSON.parse(
@@ -227,6 +235,8 @@ export function validateRun(manifestPath, approvedHash) {
     const snapshot = execFileSync(
       manifest.source_python,
       [
+        "-I",
+        "-B",
         join(HERE, "../scripts/probe_environment.py"),
         "--profile",
         paths.profile,
@@ -250,6 +260,7 @@ export function validateRun(manifestPath, approvedHash) {
     if (
       retrieval.passed !== true ||
       restart.passed !== true ||
+      restart.retrieval_report_sha256 !== manifest.retrieval_sha256 ||
       retrieval.environment.core_commit !== manifest.core_commit ||
       retrieval.tasks.filter((t) => t.passed === true).length !== 9 ||
       profile.docling.ocr !== false ||
@@ -273,10 +284,11 @@ export function validateRun(manifestPath, approvedHash) {
       !["input", "cache_write", "cache_read", "output"].every(
         (k) =>
           Number.isFinite(pricing.usd_per_million?.[k]) &&
-          pricing.usd_per_million[k] >= 0,
+          pricing.usd_per_million[k] > 0,
       )
     )
       throw new Error("Model-specific dated pricing is required.");
+    prices = pricing.usd_per_million;
   } else {
     paths.runtime = contained(root, manifest.runtime_dir);
     paths.plugin = contained(root, manifest.plugin_dir);
@@ -365,7 +377,11 @@ export function validateRun(manifestPath, approvedHash) {
         "accounting.mjs",
         "report.mjs",
         ...(probe
-          ? ["../scripts/probe_environment.py", "probe-manifest.schema.json"]
+          ? [
+              "../scripts/probe_environment.py",
+              "../scripts/docling_feasibility.py",
+              "probe-manifest.schema.json",
+            ]
           : []),
       ].map((name) => readFileSync(join(HERE, name))),
     ),
@@ -385,8 +401,43 @@ export function validateRun(manifestPath, approvedHash) {
     paths,
     dataset,
     baseline: baselineInventory(environment, manifest, dataset),
+    prices,
     liveApproved: approvedHash === hash,
   };
+}
+
+/** Price complete usage with the frozen per-million rates for budget control.
+ * The frozen table prices only the selected model. An unexpected model leaves budget
+ * accounting incomplete. The SDK estimate depends on its own price table,
+ * which may not know the selected model; budget uses the larger of the two estimates.
+ */
+export function trialUsage(run, events) {
+  const usage = normalizeQuery(events);
+  if (!run.prices || !usage.complete) return usage;
+  const unpriced = Object.keys(usage.models).filter(
+    (model) => model !== run.manifest.model_id,
+  );
+  if (unpriced.length)
+    return { ...usage, frozen_price_usd: null, unpriced_models: unpriced };
+  const priced =
+    (usage.input_uncached * run.prices.input +
+      usage.input_cache_write * run.prices.cache_write +
+      usage.input_cache_read * run.prices.cache_read +
+      usage.output * run.prices.output) /
+    1e6;
+  return { ...usage, frozen_price_usd: priced };
+}
+
+/** Estimated spend charged against the study budget, or null when it is unknown. */
+export function charge(trial) {
+  const values = [trial.usage?.estimated_usd];
+  if (trial.schema_version === "2") values.push(trial.usage?.frozen_price_usd);
+  if (
+    trial.usage?.complete !== true ||
+    !values.every((value) => Number.isFinite(value) && value >= 0)
+  )
+    return null;
+  return Math.max(...values);
 }
 
 export function plannedTrials(run) {
@@ -523,7 +574,12 @@ export async function runTrial(
         "The measurement source must be frozen before live execution.",
       );
     if (
-      environment.account_key_sha256 !== digest(process.env.ANTHROPIC_API_KEY)
+      environment.account_key_sha256 !==
+      accountFingerprint(
+        process.env.ANTHROPIC_API_KEY,
+        environment,
+        run.manifest.schema_version,
+      )
     )
       throw new Error("Approved account key fingerprint does not match.");
     const version = execFileSync(run.manifest.client_path, ["--version"], {
@@ -615,6 +671,8 @@ export async function runTrial(
                   "-p",
                   "(version 1)(allow default)(deny network*)",
                   run.manifest.source_python,
+                  "-I",
+                  "-B",
                   "-m",
                   "openreading.mcp_server.main",
                   "--profile",
@@ -626,7 +684,12 @@ export async function runTrial(
                   "--artifact-root",
                   join(trialRoot, "artifacts"),
                 ],
-                env: { HF_HUB_OFFLINE: "1", TRANSFORMERS_OFFLINE: "1" },
+                env: {
+                  HF_HUB_OFFLINE: "1",
+                  TRANSFORMERS_OFFLINE: "1",
+                  PYTHONDONTWRITEBYTECODE: "1",
+                  PYTHONNOUSERSITE: "1",
+                },
               },
             },
           }
@@ -666,6 +729,14 @@ export async function runTrial(
     clearTimeout(timeout);
     controller.abort();
   }
+  let artifactEvidence = null;
+  if (probe && task.arm === "C") {
+    try {
+      artifactEvidence = verifyTrialArtifacts(run, trialRoot);
+    } catch {
+      state = "evidence_invalid";
+    }
+  }
   const trial = {
     schema_version: run.manifest.schema_version,
     ...task,
@@ -675,12 +746,13 @@ export async function runTrial(
     category: datasetTask.category,
     manifest_sha256: run.manifestHash,
     state,
-    usage: normalizeQuery(events),
+    usage: trialUsage(run, events),
     baseline: {
       utility_verified: run.baseline !== null,
       bash_denials: decisions.Bash ?? 0,
     },
     permission_denials: decisions,
+    ...(probe ? { artifact_evidence: artifactEvidence } : {}),
     quality: { passed: null, citation_valid: null },
     ...(probe
       ? {
@@ -752,15 +824,21 @@ export async function main(argv = process.argv.slice(2), { query } = {}) {
       const trial = JSON.parse(readFileSync(record));
       if (trial.manifest_sha256 !== run.manifestHash)
         throw new Error("Stored trial belongs to another manifest.");
+      // An edited record must not reset spent budget; its raw events remain authoritative.
+      const events = readFileSync(join(output, id, "events.jsonl"), "utf8")
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => JSON.parse(line));
+      if (!isDeepStrictEqual(trial.usage, trialUsage(run, events)))
+        throw new Error("Stored trial usage differs from its raw events.");
       trials.push(trial);
       completed.add(id);
-      if (
-        !trial.usage.complete ||
-        !Number.isFinite(trial.usage.estimated_usd) ||
-        trial.usage.estimated_usd < 0
-      )
-        incomplete = true;
-      else spent += trial.usage.estimated_usd;
+      const cost = charge(trial);
+      if (cost === null) incomplete = true;
+      else {
+        spent += cost;
+        if (cost > run.manifest.max_estimated_usd_per_trial) incomplete = true;
+      }
     }
     if (!incomplete && !reportOnly)
       for (const task of schedule) {
@@ -772,8 +850,10 @@ export async function main(argv = process.argv.slice(2), { query } = {}) {
           remainingBudget: run.manifest.max_estimated_usd_total - spent,
         });
         trials.push(trial);
-        if (!trial.usage.complete || trial.usage.estimated_usd === null) break;
-        spent += trial.usage.estimated_usd;
+        const cost = charge(trial);
+        if (cost === null) break;
+        spent += cost;
+        if (cost > run.manifest.max_estimated_usd_per_trial) break;
       }
     writeFileSync(
       join(output, "report.json"),
@@ -791,9 +871,62 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 )
-  main().catch(() => {
+  main().catch((error) => {
+    // Validation messages are fixed text; the runner never interpolates the account key.
     console.error(
-      "Experiment stopped. Check the manifest, approval, and private trial records.",
+      `Experiment stopped: ${error.message} Check the manifest, approval, and private trial records.`,
     );
     process.exitCode = 1;
   });
+
+/** A per-study salt prevents stored key fingerprints from linking separate evidence packs. */
+export function accountFingerprint(key, environment, version) {
+  if (version === "1") return digest(key);
+  if (!/^[0-9a-f]{64}$/.test(environment.account_key_salt ?? ""))
+    throw new Error("A salted account fingerprint is required.");
+  return digest(environment.account_key_salt + "\0" + key);
+}
+
+/** Changed grants change artifact identifiers; engine, source, and projected text must agree. */
+export function verifyTrialArtifacts(run, trialRoot) {
+  const root = join(trialRoot, "artifacts");
+  if (!existsSync(root)) return [];
+  const records = JSON.parse(
+    execFileSync(
+      run.manifest.source_python,
+      [
+        "-I",
+        "-B",
+        join(HERE, "../scripts/probe_environment.py"),
+        "--profile",
+        run.paths.profile,
+        "--lock",
+        run.paths.lock,
+        "--input-root",
+        join(run.root, "documents"),
+        "--artifact-root",
+        root,
+      ],
+      { timeout: 60000, maxBuffer: 4 * 1024 * 1024 },
+    ),
+  );
+  const retrieval = JSON.parse(readFileSync(run.paths.retrieval));
+  if (
+    !Array.isArray(records) ||
+    records.some((record) => {
+      const name = record.source_relative_path?.replace(/\.pdf$/, "");
+      const expected = retrieval.documents[name];
+      return (
+        !expected ||
+        !isDeepStrictEqual(record.engine, expected.engine) ||
+        record.document_sha256 !==
+          retrieval.generation.files[record.source_relative_path] ||
+        record.full_text_sha256 !== expected.full_text_sha256
+      );
+    })
+  )
+    throw new Error(
+      "Trial artifact differs from the frozen retrieval evidence.",
+    );
+  return records;
+}

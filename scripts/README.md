@@ -17,3 +17,8 @@ That prevents a local link or configuration file from silently reading outside t
 Run `uv run --frozen --project runtime --all-groups python -m scripts.package_smoke --runtime /absolute/runtime`.
 It checks synthetic import, bounded retrieval, physical-page evidence, Unicode paths, access refusal, and restart reuse.
 Its result identifies a development-machine smoke and never claims a clean-host or model trial.
+
+The Python coverage gate includes every proof script in this directory.
+Offline tests inject engine and transport failures into the same orchestration used by live checks.
+They verify refusal paths and report binding without claiming that a mock performs real extraction.
+The separate Docling and packaged-runtime lanes supply that execution evidence.

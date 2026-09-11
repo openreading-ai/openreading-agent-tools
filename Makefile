@@ -33,8 +33,8 @@ runtime-check:
 	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py tests/runtime
 	uv run --frozen --project runtime --all-groups coverage run --rcfile=runtime/pyproject.toml -m unittest discover -s tests/runtime
 	uv run --frozen --project runtime --all-groups coverage report --rcfile=runtime/pyproject.toml
-	uv run --frozen --project runtime --all-groups coverage json --rcfile=runtime/pyproject.toml -o .coverage.json
-	uv run --frozen --project runtime --all-groups python -m runtime.coverage_gate .coverage.json
+	uv run --frozen --project runtime --all-groups coverage json --rcfile=runtime/pyproject.toml -o coverage-report.json
+	uv run --frozen --project runtime --all-groups python -m runtime.coverage_gate coverage-report.json
 
 feasibility-lock-check:
 	uv lock --check --offline --project runtime/feasibility

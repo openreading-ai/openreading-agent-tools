@@ -91,9 +91,37 @@ test("missing cache counters and counter rollback cannot become zero usage", () 
   assert.equal(normalizeQuery([result(100), result(50)]).complete, false);
 });
 
-
 test("tool diagnostics count unique calls across repeated message fragments", () => {
-  const event = (id, name) => ({type: "assistant", message: {id: "same", content: [{type: "tool_use", id, name}]}});
-  const normalized = normalizeQuery([event("a", "Bash"), event("a", "Bash"), event("b", "Read"), event("c", "Bash"), result(100)]);
-  assert.deepEqual(normalized.tool_calls, {Bash: 2, Read: 1});
+  const event = (id, name) => ({
+    type: "assistant",
+    message: { id: "same", content: [{ type: "tool_use", id, name }] },
+  });
+  const normalized = normalizeQuery([
+    event("a", "Bash"),
+    event("a", "Bash"),
+    event("b", "Read"),
+    event("c", "Bash"),
+    result(100),
+  ]);
+  assert.deepEqual(normalized.tool_calls, { Bash: 2, Read: 1 });
+});
+
+test("per-model rows remain available and one model cannot hide another's rollback", () => {
+  const first = result(10, {
+    modelUsage: { main: usage(100), helper: usage(10) },
+  });
+  const last = result(10, {
+    modelUsage: { main: usage(110), helper: usage(20) },
+  });
+  const observed = normalizeQuery([first, last]);
+  assert.equal(observed.models.main.input_uncached, 110);
+  assert.equal(observed.models.helper.input_uncached, 20);
+  assert.equal(
+    normalizeQuery([
+      first,
+      result(10, { modelUsage: { main: usage(90), helper: usage(100) } }),
+    ]).complete,
+    false,
+  );
+  assert.equal(normalizeQuery([first, result(200)]).complete, false);
 });
