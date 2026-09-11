@@ -364,7 +364,9 @@ export function validateRun(manifestPath, approvedHash) {
         "run.mjs",
         "accounting.mjs",
         "report.mjs",
-        ...(probe ? ["../scripts/probe_environment.py"] : []),
+        ...(probe
+          ? ["../scripts/probe_environment.py", "probe-manifest.schema.json"]
+          : []),
       ].map((name) => readFileSync(join(HERE, name))),
     ),
   );

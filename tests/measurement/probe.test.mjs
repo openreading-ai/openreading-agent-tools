@@ -308,3 +308,15 @@ test("probe ordering matches the frozen Python preparation schedule", (t) => {
     ["C", "A", "B", "C", "B", "A", "A", "B", "C"],
   );
 });
+
+test("the closed probe schema accepts the actual frozen corpus task identifiers", (t) => {
+  const f = probeFixture(t);
+  const data = JSON.parse(readFileSync(join(f.root, "dataset.json")));
+  data.tasks.forEach((task) => {
+    task.id = `${task.category}-single_fact`;
+  });
+  f.manifest.task_ids = data.tasks.map((t) => t.id);
+  f.manifest.dataset_sha256 = f.put("dataset.json", data);
+  f.save();
+  assert.equal(plannedTrials(validateRun(f.path)).length, 9);
+});

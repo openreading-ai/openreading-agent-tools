@@ -2,6 +2,7 @@
 
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,8 @@ from unittest.mock import patch
 from measurement.corpus import generate, recipe
 from measurement.probe import finalize, main, prepare, schedule
 from runtime.verify import sha256
+
+REAL_RUN = subprocess.run
 
 
 class ProbeTests(unittest.TestCase):
@@ -202,3 +205,30 @@ class ProbeTests(unittest.TestCase):
                 ]
             )
             final.assert_called_once()
+
+    def test_python_preparation_round_trips_through_the_real_node_validator(self):
+        source = self.root / "source-python"
+        encoded = json.dumps(self.identity) + "\n"
+        source.write_text("#!/bin/sh\nprintf '%s' '" + encoded + "'\n")
+        source.chmod(0o755)
+        self.args["python"] = source
+        root = prepare(**self.args).parent
+        prices = root / "test-pricing.json"
+        prices.write_text(
+            json.dumps(
+                {
+                    "model_id": "claude-sonnet-4-6",
+                    "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+                    "checked_on": "2026-09-11",
+                    "usd_per_million": dict.fromkeys(
+                        ["input", "cache_write", "cache_read", "output"], 0
+                    ),
+                }
+            )
+        )
+        self.validation.side_effect = REAL_RUN
+        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "synthetic-offline-test"}):
+            manifest = finalize(root, "claude-sonnet-4-6", "synthetic-offline-test", prices)
+        self.assertTrue(manifest.exists())
+        self.assertFalse((root / "runs").exists())
+        self.assertNotIn("--live", self.validation.call_args.args[0])

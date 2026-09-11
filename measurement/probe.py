@@ -148,7 +148,13 @@ def prepare(output, evidence, python, client, assets, lock):
     version = subprocess.check_output([str(client), "--version"], text=True).split()[0]
     source = b"".join(
         (HERE / name).read_bytes()
-        for name in ["run.mjs", "accounting.mjs", "report.mjs", "../scripts/probe_environment.py"]
+        for name in [
+            "run.mjs",
+            "accounting.mjs",
+            "report.mjs",
+            "../scripts/probe_environment.py",
+            "probe-manifest.schema.json",
+        ]
     )
     environment = {
         "os": platform.platform(),
