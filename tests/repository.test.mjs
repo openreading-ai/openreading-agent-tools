@@ -77,3 +77,15 @@ test("MCPB resolves the binary command and preserves a configured directory argu
     "/documents/Unicode 界",
   ]);
 });
+
+test("coverage thresholds cannot fall below 95 percent", () => {
+  const config = JSON.parse(readFileSync(new URL("../package.json", import.meta.url)));
+  for (const metric of ["lines", "branches", "functions"]) {
+    const match = config.scripts.test.match(new RegExp(`--test-coverage-${metric}=(\\d+)`));
+    assert.ok(match && Number(match[1]) >= 95, metric);
+  }
+  const python = readFileSync(new URL("../runtime/pyproject.toml", import.meta.url), "utf8");
+  assert.ok(Number(python.match(/fail_under\s*=\s*(\d+)/)[1]) >= 95);
+  const make = readFileSync(new URL("../Makefile", import.meta.url), "utf8");
+  assert.ok(make.includes("python -m runtime.coverage_gate .coverage.json"));
+});

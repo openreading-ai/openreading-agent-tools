@@ -88,7 +88,7 @@ GitHub actions use full commit pins, read-only repository permissions, and bound
 Optional Git hooks run the same gate through `make hooks`.
 
 Add focused offline tests for product changes to this same gate.
-Python branch coverage and Node line, branch, and function coverage have enforced 80% floors.
+Python line and branch coverage and Node line, branch, and function coverage have enforced 95% floors.
 Do not create a percentage badge before a corresponding enforced check exists.
 Real host installation and paid model trials are explicit lanes, separate from offline tests.
 

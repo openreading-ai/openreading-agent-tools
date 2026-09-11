@@ -1,5 +1,10 @@
 # Changelog
 
+## Coverage requirements
+
+- Enforce 95% Python line and branch coverage and 95% Node line, branch, and function coverage.
+- Exercise runner authorization, runtime integrity, trial failures, and resumable budgets with offline fixtures.
+
 ## Reviewed Docling candidate
 
 - Pin core `f241c28` and reject missing active dependencies or inaccessible memory samples.

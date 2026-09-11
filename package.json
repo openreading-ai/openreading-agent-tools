@@ -10,7 +10,7 @@
   "scripts": {
     "verify": "npm run lint && npm test && npm run check:repo && npm run check:specs",
     "lint": "markdownlint-cli2",
-    "test": "node --test --experimental-test-coverage --test-coverage-include=\"measurement/*.mjs\" --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 tests/repository.test.mjs tests/measurement/*.test.mjs",
+    "test": "node --test --experimental-test-module-mocks --experimental-test-coverage --test-coverage-include=\"measurement/*.mjs\" --test-coverage-lines=95 --test-coverage-branches=95 --test-coverage-functions=95 tests/repository.test.mjs tests/measurement/*.test.mjs",
     "check:repo": "node scripts/check-repository.mjs",
     "check:specs": "productspec validate product/specs/local-document-proof.product-spec.md"
   },

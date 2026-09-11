@@ -79,3 +79,48 @@ class ReleaseTests(unittest.TestCase):
         self.assertFalse((self.root / "alias.dylib").is_symlink())
         self.assertEqual((self.root / "alias.dylib").read_bytes(), b"native library")
         self.assertEqual(inventory(self.root)["alias.dylib"], inventory(self.root)["library.dylib"])
+
+    def test_invalid_metadata_shapes_versions_and_notices_are_refused(self):
+        original = self.metadata.copy()
+        for key, value in [
+            ("unexpected", True),
+            ("format_version", "2"),
+            ("arch", "x86_64"),
+            ("core_commit", "not-a-digest"),
+            ("core_version", "latest"),
+            ("licenses", []),
+            ("licenses", ["missing"]),
+        ]:
+            with self.subTest(key=key, value=value):
+                self.metadata = {**original, key: value}
+                self.write_metadata()
+                with self.assertRaises(ReleaseIntegrityError):
+                    verify_release(self.root)
+
+    def test_special_files_and_symlink_metadata_are_refused(self):
+        import os
+
+        path = self.root / "pipe"
+        os.mkfifo(path)
+        with self.assertRaises(ReleaseIntegrityError):
+            inventory(self.root)
+        path.unlink()
+        metadata = self.root / "release.json"
+        saved = metadata.read_bytes()
+        metadata.unlink()
+        target = self.root / "metadata-copy"
+        target.write_bytes(saved)
+        metadata.symlink_to(target)
+        with self.assertRaises(ReleaseIntegrityError):
+            verify_release(self.root)
+
+    def test_internal_directory_links_are_materialized(self):
+        from runtime.build import materialize_links
+
+        directory = self.root / "framework"
+        directory.mkdir()
+        (directory / "library").write_bytes(b"library")
+        (self.root / "framework-alias").symlink_to(directory, target_is_directory=True)
+        materialize_links(self.root)
+        self.assertFalse((self.root / "framework-alias").is_symlink())
+        self.assertEqual((self.root / "framework-alias/library").read_bytes(), b"library")

@@ -70,7 +70,7 @@ make audit    # Requires internet access.
 ~~~
 
 The gate checks Python formatting, runtime integrity, packaging, synthetic dataset generation, usage accounting, and report decisions.
-Python branch coverage and Node line, branch, and function coverage each enforce an 80% floor.
+Python line and branch coverage and Node line, branch, and function coverage each enforce a 95% floor.
 Markdown, repository policy, local links, JSON/YAML, and ProductSpec checks also run.
 After dependency installation, verification needs no network, model credentials, backend server, or sibling checkout.
 

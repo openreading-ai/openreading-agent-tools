@@ -57,3 +57,19 @@ class BuildTests(unittest.TestCase):
         )
         with patch("runtime.build.importlib.metadata.distributions", return_value=[distribution]):
             self.assertIn("synthetic notice", notices())
+
+    def test_notice_inventory_skips_missing_license_files(self):
+        from types import SimpleNamespace
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            distribution = SimpleNamespace(
+                metadata={"Name": "example"},
+                version="1",
+                files=[Path("licenses/MISSING")],
+                locate_file=lambda file: root / file,
+            )
+            with patch(
+                "runtime.build.importlib.metadata.distributions", return_value=[distribution]
+            ):
+                self.assertIn("See included license text", notices())
