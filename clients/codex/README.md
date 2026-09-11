@@ -1,7 +1,8 @@
 # Codex local preview
 
 **Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
-The [revision 2 design](../../design/local-document-proof.md) replaces the distributed engine with Docling and is not implemented yet.
+The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
+See the [client matrix](../README.md) for the limits of existing evidence.
 Existing setup commands and test results below do not establish revision 2 compatibility.
 
 The package uses the portable Agent Plugins manifest and the same native worker as the Claude packages.

@@ -10,11 +10,12 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 2 developer proof implemented; client packaging remains pending.**
+**Status: revision 3 assistant integration designed; Docling client packaging remains pending.**
 The Docling corpus, retrieval/restart checks, and nine-trial probe are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The target bundle uses Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
-Existing build and test evidence does not establish that new engine profile.
+The [assistant design](design/assistant-clients.md) adds Claude Desktop and ChatGPT desktop targets with separate compatibility checks.
+Existing developer checks do not establish native installation or model invocation.
 No public binary or measured token-savings claim is released.
 The source license above does not describe bundled dependency licenses.
 
@@ -23,10 +24,13 @@ The source license above does not describe bundled dependency licenses.
 The first profile targets macOS on Apple Silicon.
 The revised proof targets a bundled local layout model and optional OCR, with resource limits selected from measured host timing.
 OpenReading keeps the extracted document locally and returns selected passages with physical page references.
-Claude Desktop, Claude Code, and Codex packages contain the same frozen runtime.
+The proposed Claude Desktop, ChatGPT desktop, Claude Code, and Codex integrations use the same frozen runtime.
+The [client matrix](clients/README.md) distinguishes documented routes from tested behavior.
 See the [runtime evidence table](runtime/README.md) for tested behavior and remaining host checks.
 
-A separate experiment tests whether selective retrieval reduces Claude token consumption while preserving answer quality.
+The implemented Claude probe tests selective retrieval before a larger study.
+Additional provider measurements require separate drivers, frozen manifests, and quality review.
+An API result does not establish a native chat app's token usage or subscription savings.
 Local parsing alone does not establish that claim.
 Excerpts returned to a cloud assistant enter that assistant's context.
 
@@ -48,9 +52,10 @@ Core never requires this checkout or a private company package.
 | --- | --- |
 | Goals, scope, user experience, and pass/fail criteria | [Product specification](product/specs/local-document-proof.product-spec.md) |
 | Build, package, verify, and inspect implementation evidence | [Runtime guide](runtime/README.md) |
-| Client setup | [Claude Desktop](clients/claude-desktop/README.md), [Claude Code](clients/claude-code/README.md), [Codex](clients/codex/README.md) |
+| Client compatibility and setup | [Client matrix](clients/README.md), [ChatGPT desktop](clients/chatgpt/README.md), [Claude Desktop](clients/claude-desktop/README.md), [Claude Code](clients/claude-code/README.md), [Codex](clients/codex/README.md) |
 | Prepare a frozen experiment and regenerate reports | [Measurement guide](measurement/README.md) |
-| Engine migration, timing, configuration, and distribution contract | [Revision 2 design](design/local-document-proof.md) |
+| Engine migration, timing, configuration, and distribution contract | [Docling engine design](design/local-document-proof.md) |
+| Shared configuration and assistant boundaries | [Assistant integration design](design/assistant-clients.md) |
 | Claude review resolutions | [Finding dispositions](design/review-disposition.md) |
 | Fair baselines, usage accounting, and claim limits | [Token evaluation design](design/token-evaluation.md) |
 | Ordered tasks, exact files, tests, and handoff rules | [Implementation plan](design/implementation-plan.md) |

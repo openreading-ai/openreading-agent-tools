@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+- Propose ProductSpec revision 3 for Claude Desktop and ChatGPT desktop with one local Docling runtime.
+- Define shared setup, client compatibility checks, provider-specific measurement, and explicit CLI/server preservation gates.
+- Preserve historical binaries, locks, and probe contracts; native client execution and additional measurement drivers remain unbuilt.
+
 - Add the frozen Docling corpus, exact-citation retrieval gate, and MCP restart check.
 - Pin the candidate to core v0.3 provenance and versioned dehyphenated retrieval.
 - Add an unscored nine-trial Docling probe with frozen source identity, usable baseline recipes, and explicit account approval.

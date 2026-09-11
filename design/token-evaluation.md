@@ -3,10 +3,12 @@
 **Status:** the revision 2 unscored M0 driver is implemented; calibration, primary, follow-up, and human grading remain proposed.
 The [measurement guide](../measurement/README.md) documents M0 and the historical revision 1 driver.
 The expanded full-study contracts below remain unimplemented beyond that explicitly bounded probe.
-**ProductSpec:** [revision 2](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17.
+**ProductSpec:** [revision 3](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17.
 **Execution:** requires a separately approved live manifest and account.
 
-The question is whether OpenReading reduces Claude token consumption per correctly completed document task.
+The question is whether OpenReading reduces token consumption per correctly completed document task in a named assistant workflow.
+Sections 1 through 11 specify the Claude study; the final section defines the proposed provider extension.
+Existing revision 2 probe manifests and their implementation remain unchanged.
 The experiment must also reveal retrieval failures and cases where an ordinary assistant is already efficient.
 Installation success is evaluated separately through the [runtime design](local-document-proof.md).
 
@@ -148,9 +150,9 @@ Paths are relative to the manifest's directory and must stay inside its approved
 
 | Field | Required value or meaning |
 | --- | --- |
-| schema_version | Literal "2" for the expanded manifest and trial contracts; old version 1 records remain historical. |
+| schema_version | Literal "3" for the proposed expanded manifest and trial contracts; historical versions 1 and 2 remain unchanged. |
 | experiment_id | Unique study identifier, not a customer name. |
-| spec_revision | 2, checked against the implemented engine and evaluation contracts; revision 1 evidence is historical only. |
+| spec_revision | 3 for new expanded studies, checked against the implemented contracts; existing version 2 probes retain revision 2. |
 | study_kind | probe, calibration, primary, or followup; each has a closed schedule definition. |
 | dataset_manifest, dataset_sha256 | Exact task/ground-truth manifest and its hash. |
 | model_id | Full provider model identifier; floating aliases are refused. |
@@ -256,8 +258,9 @@ Subscription usage limits are not inferred from either token totals or a list-pr
 
 ## 7. Trial result contract
 
-The revision 2 driver must add measurement/trial.schema.json and validate each record before writing or resuming it.
-That schema is not implemented by the existing revision 1 driver.
+The expanded driver must add `measurement/manifest.v3.schema.json` and `measurement/trial.v3.schema.json`.
+Validate each version 3 record before writing or resuming it; preserve historical schema files and dispatch by their actual version.
+These expanded contracts are not implemented by the existing revision 2 probe.
 The record has:
 
 - Identity: experiment_id, manifest_sha256, task_id, repetition, arm, trial_id.
@@ -384,3 +387,53 @@ Retain exact command matching instead of introducing a general shell-command par
 Record tool calls and permission denials; a baseline Bash denial makes the C/A savings outcome ineligible.
 A model choosing Read without a denial remains a valid baseline choice.
 The revision 1 runner implements these protections, but its records do not establish revision 2 evidence.
+
+## 12. Revision 3 provider extension
+
+This section changes the future study contract, not the implemented revision 2 Claude M0 driver.
+Preserve both historical manifest families and their validators without relabeling prior trials.
+Any new provider driver uses a new closed version 3 manifest and trial schema.
+The broader Claude study described above also adopts version 3 when implemented, instead of creating another incompatible version 2 family.
+
+The first provider adapter remains the existing Claude Agent SDK workflow.
+The next adapter should target a named OpenAI execution surface whose complete usage and tool access can be verified.
+Evaluate instrumented Codex first because it supplies an ordinary coding-agent baseline.
+An OpenAI Responses harness is an explicit alternative if its full local tool loop and usage semantics are proven.
+It must be labeled an API harness and cannot stand in for ChatGPT desktop behavior.
+Choosing that alternative changes the registered baseline and requires review before paid calls.
+
+Keep shared preparation, scheduling, quality review, evidence validation, and reporting independent of provider SDKs.
+Each adapter must implement environment validation, trial execution, raw-event capture, usage normalization, and supported cancellation/budget controls.
+SDK imports and model identifier rules belong inside their adapter, not the document runtime or core.
+Provider-specific raw events remain authoritative for replay; a shared summary never replaces them.
+
+The proposed version 3 manifest adds `provider_id`, `execution_surface`, `adapter_revision`, and `usage_contract_revision`.
+It records exact model, SDK and client versions, engine identity, tool inventory, account label, prices, and approved finite limits.
+No unrestricted provider string or generic model regex silently selects an untested adapter.
+Runtime/source identity, raw-event resume checks, and explicit approval remain at least as strict as the existing M0 driver.
+A provider without complete accounting remains functional-only and cannot pass token acceptance.
+
+Run A, B, and C within the same provider, model, execution surface, and policy.
+A gets usable ordinary search and page access; B and C share the identical extraction and page projection.
+Maintain the reviewed file-output baseline recipe and equivalent citation information across arms.
+Do not inherit an unavailable Claude tool name into an OpenAI baseline or compare different permissions as if they were equivalent.
+Report physical pages and actual extracted characters; provider-token sizes require that provider's verified tokenizer or usage records.
+Page counts alone do not represent document size.
+
+Validate each provider's counters from official documentation and pinned SDK fixtures before defining normalization.
+Fixtures must cover cache inclusion, reasoning/output overlap, cumulative snapshots, retries, failures, nested work, and missing totals.
+Do not assume another provider uses Claude's disjoint cache counters or final-result accounting unit.
+Deduplicate by verified request identity and preserve model-specific rows.
+Missing usage is unknown, not zero, and no fabricated counter may complete a trial.
+Report input volume, output volume, cached usage, cost estimates, and latency separately.
+
+Keep frozen-price checks independent of an SDK's cost estimate and stop on an unpriced model.
+Where the provider cannot enforce an in-flight monetary limit, disclose that limitation and bound request/turn/output limits before execution.
+A local estimate is not an absolute billing guarantee; observed overruns stop subsequent work.
+Approval binds the exact provider manifest and never transfers a Claude budget to an OpenAI run.
+
+Human review must pass both compared answers before reporting any favorable direction.
+Retain failed, limited, incomplete, mixed-access, and unrun trials with their reasons.
+Report C adherence and quality against the full preregistered denominator.
+Do not pool provider token counts or savings ratios into a universal “works with any assistant” claim.
+Native-chat quotas, hidden orchestration, and billing remain unmeasured unless that exact surface exposes complete evidence.

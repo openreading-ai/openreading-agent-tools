@@ -1,7 +1,7 @@
 # Docling local proof migration design
 
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
-**Intent:** [ProductSpec revision 2](../product/specs/local-document-proof.product-spec.md).
+**Intent:** [ProductSpec revision 3](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
 ## 1. Engine decision and boundaries
@@ -35,10 +35,8 @@ One Docling profile is the current decision; a fast PDFium-only profile requires
 
 ## 2. Setup and grant identity
 
-Desktop uses required `user_config` for the document directory and an OCR switch defaulting to false.
-Claude Code keeps its tested explicit installation configuration for the directory and gains the same setup-only OCR option.
-Codex uses the bundled worker's `--configure --input-root ABSOLUTE_DIRECTORY` command and adds explicit `--ocr on|off`, defaulting to off.
-The persisted configuration remains outside replaceable plugin caches under each client's application-data directory.
+The [assistant integration design](assistant-clients.md) owns the proposed client setup and shared configuration contract.
+It preserves explicit grants, setup-only OCR disabled by default, and settings outside replaceable plugin caches.
 Core receives a closed profile configuration; model-facing tools accept neither backend selectors nor OCR switches.
 A filename is required from the user; the skill asks when it is absent and never guesses paths or probes directories by trial imports.
 
@@ -100,7 +98,6 @@ Page-scoped navigation and PDF outlines remain later scope unless measured retri
 
 Keep read atomic: one unknown evidence identifier fails the request with `evidence_not_found`.
 The model uses returned identifiers and cursor continuation; it is never instructed to construct neighboring identifiers.
-Page-scoped navigation and PDF outlines remain later scope unless the recall gate demonstrates a concrete need.
 Keep complete artifact verification on load and import reuse initially.
 Measure its cost before considering per-operation verification, which would require a new integrity dependency proof.
 Do not replace staged copy-and-hash with a hash-only cache lookup that reopens mutable source paths.
