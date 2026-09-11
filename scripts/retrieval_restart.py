@@ -2,7 +2,8 @@
 
 Run with the same candidate and network-denial wrapper as retrieval_check.py. This checks
 stdio process restart, input-root isolation, and exact citation persistence. It does not
-exercise a Desktop installation or invoke a language model.
+exercise a Desktop installation or invoke a language model. Each process must expose exactly
+the three selected tools with identical schema hashes, negotiated protocol and server identity.
 """
 
 import argparse
@@ -78,7 +79,29 @@ async def check(args):
             stdio_client(params) as (reader, writer),
             ClientSession(reader, writer, read_timeout_seconds=timedelta(seconds=330)) as session,
         ):
-            await session.initialize()
+            initialized = await session.initialize()
+            tools = (await session.list_tools()).tools
+            if len(tools) != 3 or {tool.name for tool in tools} != {
+                "openreading_import",
+                "openreading_search",
+                "openreading_read",
+            }:
+                raise ValueError("The selected MCP tool catalog is not available.")
+            contract = [
+                {"name": tool.name, "input": tool.inputSchema, "output": tool.outputSchema}
+                for tool in sorted(tools, key=lambda tool: tool.name)
+            ]
+            schema_digest = hashlib.sha256(
+                json.dumps(contract, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest()
+            protocol = {
+                "protocol_version": initialized.protocolVersion,
+                "server_name": initialized.serverInfo.name,
+                "server_version": initialized.serverInfo.version,
+                "tool_schema_sha256": schema_digest,
+            }
+            if records and any(records[0][key] != value for key, value in protocol.items()):
+                raise ValueError("Restart changed the negotiated MCP contract.")
             for name, document in report["documents"].items():
                 receipt = payload(
                     await session.call_tool("openreading_import", {"path": f"{name}.pdf"})
@@ -116,7 +139,12 @@ async def check(args):
             if not refused.isError:
                 raise ValueError("The input root allowed ground-truth access.")
         records.append(
-            {"process_generation": generation, "exact_reads": count, "outside_grant_refused": True}
+            {
+                **protocol,
+                "process_generation": generation,
+                "exact_reads": count,
+                "outside_grant_refused": True,
+            }
         )
     (args.output / "restart-report.json").write_text(
         json.dumps(

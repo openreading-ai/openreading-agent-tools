@@ -1,18 +1,15 @@
 # Native connection and frozen-runtime probes
 
-**Status:** proposed experiments supporting ProductSpec revision 4. No checked result is implied by this plan.
+**Status:** native experiments remain proposed under ProductSpec revision 4. E0 and the P0 developer smoke are implemented; no native-host result is implied.
 **Owners:** Agent Tools owns host probes and capture; core owns engine, evidence, and worker behavior.
 **Prerequisites:** [assistant contract](assistant-clients.md) and [implementation order](implementation-plan.md).
 
 ## Shared experiment rules
 
-E1, E2, E3, and E5 use a tiny synthetic MCP server rather than loading Docling.
-It exposes `probe_echo` and `probe_delay`, plus a configurable initialization delay.
-Use read-only and non-read-only probe annotations to observe approval behavior without writing user documents.
-Requests carry unique nonces; a local event file records receipt, completion, progress, and cancellation with monotonic timestamps.
-Record PID, parent PID/executable, probe digest, app/version/mode, and effective transport.
-Collect only allowlisted synthetic arguments and environment variable names, never credential values or unrelated host configuration.
-Store raw logs, configuration diffs, and transcripts privately, outside document grants and trial read permissions.
+E1, E2, E3 and E5 use the [implemented synthetic probe](../scripts/README.md) without loading Docling.
+The probe logs process identity, setup substitutions, initialization, tool discovery, progress and cancellation.
+Native capture must add app/version/mode, effective transport and the host's own logs to those process observations.
+Store raw logs, configuration diffs and transcripts privately, outside document grants and trial read permissions.
 
 Host installation and model invocation require the owner's respective authorization.
 A probe needing a chat request is not automatically free; no synthetic content bypasses account or spending approval.
@@ -24,12 +21,10 @@ Independent tasks can proceed without claiming those cases passed.
 
 ## E0. Reproducible core protocol baseline
 
-Purpose: replace the unretained ad hoc tool-list observation with reviewable evidence.
-Add a `list_tools` assertion to the existing retrieval/restart checker with a failing regression test first.
-Require exactly the three selected core tools and record their schema digest, core/runtime identity, and protocol version.
-Bind the retained report to its retrieval evidence as the existing checker does.
-A protocol pass is not a native launch pass.
-This small guard is future implementation, not part of the documentation correction.
+Implemented in the [retrieval/restart checker](../measurement/README.md).
+Two fresh local processes passed with identical tool-schema digests and 51 exact citation reads per process.
+The report records protocol/server identity and binds to the original retrieval evidence.
+This is protocol evidence only; it cannot satisfy a native launch or ChatGPT mode criterion.
 
 ## E1. ChatGPT mode, local route, and setup
 
@@ -88,24 +83,12 @@ Core's independent stage-cancellation tests remain required even when the host e
 
 ## E4. P0 frozen Docling feasibility
 
-Blocks: native OpenReading N2 and later distribution. Requires no host installation or model call.
-Use one development-machine candidate and the selected feasibility dependency lock.
-Keep the historical PyMuPDF build and locks unchanged while evaluating a separate onedir build path.
-Collect on-disk core sources, complete transitive metadata, the exact lock, verified layout assets, and Tesseract data including `configs/tsv` and required language/orientation files.
-Relocate Tesseract and every dependent dynamic library; inspect actual loaded libraries and fail on accidental Homebrew dependencies.
-Do not add signing entitlements, relax identity, or perform dependency substitutions to force a pass.
-
-Run inventory verification, engine identity, initialization, and one native-text import through the frozen entrypoint.
-Add one OCR-enabled synthetic import to verify relocated Tesseract rather than merely inspecting its presence.
-Prove changed/missing source, metadata, lock, TSV configuration, or model files refuse before successful parsing.
-Record archive/installed size, cold/warm initialization, verification time, worker spawn, import, and sampled memory.
-Repeat from an unrelated working directory with developer tool paths unavailable.
-This tests onedir feasibility, not a clean OS image or supported performance percentile.
-Base-machine repetitions remain C1 work.
-
-P0 is an unsigned local feasibility exception before the cheap M0 decision.
-It permits no public upload, sharing with another user/machine, installer polishing, or bypass of OS protection.
-If it fails, report the narrow failure before spending on N2 or signed packaging.
+The [P0 builder and smoke](../runtime/p0/README.md) implement this development-machine check.
+The local candidate passed frozen native/OCR imports, warm conversion, restart reuse, loaded-library inspection, relocation and ten identity-file mutation/removal cases.
+Keep its raw inventory, timing and failure-injection records privately with the worker digest.
+The runtime guide owns reproduction; do not treat these observations as a clean-host or percentile measurement.
+Base-machine repetitions, complete phase timing, host deadlines and the release cap remain C1 work.
+A P0 pass permits owner-authorized native setup checks but supplies no permission to share, install or publish a binary.
 
 ## E5. Claude Desktop setup form
 

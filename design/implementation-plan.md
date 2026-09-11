@@ -1,6 +1,6 @@
 # Revision 4 implementation plan
 
-**Status:** assistant integration is proposed. Revision 2 developer engine, retrieval, and Claude M0 tooling exist; Docling client distribution remains unbuilt.
+**Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and additional provider measurement remain proposed.
 **Contracts:** [ProductSpec revision 4](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
@@ -12,7 +12,7 @@ ProductSpec revision 4 resolves mode-specific acceptance, setup, configuration c
 It does not rename `local-document-proof-v2`, modify historical locks, or authorize paid calls.
 Revision 1 binaries and revision 2 probe manifests retain their original meanings.
 This documentation pass adjudicates the review and defines E0 through E6 in the [probe plan](native-probes.md).
-No native probe, frozen build, client configuration change, or model invocation is performed by this pass.
+The implementation adds developer protocol and frozen-runtime checks. Native host installation, client registration and model invocation remain separate gates.
 N1, bounded P0 build work, and independently authorized native probes can begin without waiting on ChatGPT support.
 P0 assembles the diagnostic candidate alongside N1 and consumes its frozen-launch changes before N2.
 Then use measured C1 limits for release, perform Claude N2 first, and admit ChatGPT N2 only after E1.
@@ -36,7 +36,7 @@ Acceptance: AC-23 through AC-25. Files: ProductSpec, assistant design, client RE
 - [x] Define Claude Desktop and conditional ChatGPT Chat-mode acceptance, with Work and Codex local threads separately identified.
 - [x] Preserve the selected engine, core surface boundaries, historical execution contracts, and deferred alternate backends.
 - [x] Inspect current official connection guidance and installed CLI registration syntax without changing host configuration.
-- [ ] E0: retain a reproducible initialization/tool-list/refusal check; the prior ad hoc observation is not retained gate evidence.
+- [x] E0: retain the reproducible tool-list/refusal check with stable schema hashes and exact reads across two fresh processes.
 - [x] Record missing native evidence in the client matrix instead of transferring results between clients.
 - [ ] E1: establish the exact local ChatGPT mode, form, shared settings, approval prompts, and trace export.
 - [ ] E5: verify Claude Desktop form substitution, cancellation, and log capture.
@@ -51,23 +51,11 @@ Other common implementation work can continue without that unsupported claim.
 
 ## N1. Common configuration and launcher migration
 
-Prerequisites: reviewed revision 4 contract and usable core candidate.
-Acceptance: AC-2, AC-4, AC-13, AC-21, AC-23, AC-25.
-Owners: `runtime/configuration.py`, `runtime/entrypoint.py`, runtime tests, and the runtime README.
-
-1. Write failing tests for the closed version 2 setup object, exact OCR token table, direct-versus-persisted precedence, and unknown fields.
-2. Test missing grants, relative paths, cancelled setup, invalid replacements, roots, spaces, and Unicode; prove v1/v2 coexistence at distinct settings paths.
-3. Extend the existing configuration reader and atomic writer using core grant validation; do not create a second path-security implementation.
-4. Add the proposed `chatgpt` client label and setup-only OCR flag, treating labels solely as storage selection.
-5. Write the invocation-specific mode-0600 profile with its inventoried lock and resource paths; test parallel launches, cleanup, and missing inventory without changing model-facing tools.
-6. Preserve historical settings on failure and require explicit setup before migration; do not reinterpret revision 1 stores.
-7. Test that ordinary core behavior never depends on this configuration and that no provider SDK enters the document runtime.
-8. Update flag help, startup-error guidance, retained-data cleanup, and configuration examples beside their implementation.
-
-Resource defaults are a C1 measurement output, not values for an agent to invent.
-An intermediate developer launcher may require an explicitly labeled diagnostic profile; it cannot be packaged as release-ready.
-Pass focused regressions and `make verify`; prove fix-removal failures for defects discovered during implementation.
-Commit configuration and launcher changes together only when their tests pass.
+Implemented under ProductSpec revision 4. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
+Tests cover closed settings, exact OCR tokens, atomic replacement, grant refusal, direct-versus-saved precedence and v1/v2 coexistence.
+Independent profile lifetimes, exceptional cleanup and verified resource paths are exercised offline.
+The diagnostic launcher does not complete host-dependent AC-2, AC-13 or AC-23 by itself.
+C1 still owns supported limits, and N2 still owns actual form substitution and client installation.
 
 ## N2. Thin host adapters and native functional checks
 
@@ -77,13 +65,14 @@ Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tes
 
 1. Inspect the existing packaging implementation and keep the common runtime independent of any one host manifest format.
 2. Add host-specific setup translation and workflow delivery using the shared configuration semantics.
-3. Test argument arrays with shell metacharacters, spaces, Unicode, absent configuration, and host-qualified tool names.
-4. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
-5. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.
-6. Use frozen corpus task IDs and the page-2 instruction fixture; never regenerate the corpus to match a stale spec example.
-7. Add the offline citation checker and per-host transcript/tool capture; reject wrong pages, paraphrases, cross-artifact IDs, missing calls, and incomplete capture with regression fixtures.
-8. Verify restart, refusals, OCR, and the observed E3 interruption paths; unsupported cancellation stays explicit.
-9. Record application/version/mode, local process ancestry, runtime identity, setup path, instruction channel, approval prompts, and required host permissions.
+3. After E1, implement the named argument-free ChatGPT entrypoint and Python/tkinter helper in assistant design section 7, including inventory, coverage, and native GUI checks.
+4. Test argument arrays with shell metacharacters, spaces, Unicode, absent configuration, and host-qualified tool names.
+5. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
+6. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.
+7. Use frozen corpus task IDs and the page-2 instruction fixture; never regenerate the corpus to match a stale spec example.
+8. Add the offline citation checker and per-host transcript/tool capture; reject wrong pages, paraphrases, cross-artifact IDs, missing calls, and incomplete capture with regression fixtures.
+9. Verify restart, refusals, OCR, and the observed E3 interruption paths; unsupported cancellation stays explicit.
+10. Record application/version/mode, local process ancestry, runtime identity, setup path, instruction channel, approval prompts, and required host permissions.
 
 Keep host configuration changes scoped and reviewable; preserve preexisting registrations.
 If a model call requires an unapproved account or spend, stop that case and continue offline work.
@@ -112,22 +101,17 @@ Packaging must preserve complete engine identity, including installed dependency
 
 ## P0. Bounded unsigned frozen-build feasibility
 
-Prerequisites: selected core/Docling lock and a diagnostic profile. Acceptance inputs: AC-4, AC-13, AC-22.
-Owners: isolated build path, `runtime/build.py`, verifier tests, and runtime README.
-
-Implement E4 with a separate candidate output; preserve historical locks and the current PyMuPDF distribution.
-Prove inventoried source/metadata/lock/assets identity, relocated Tesseract, one native-text import, and one OCR import.
-Test missing or changed identity inputs fail before parsing and no dependency resolves through developer tool paths.
-Measure startup verification and worker-spawn costs without weakening checks.
-This bounded feasibility task is permitted before M0 and requires no model call or signing credentials.
-Installer polish, sharing, signing, and further distribution work still wait on the cheap probe decision.
-P0 supplies N2 with a real frozen launcher; do not create an unplanned source bypass.
+Implemented as a development-only [isolated builder and smoke](../runtime/p0/README.md), separate from historical client packaging.
+The local check covers frozen native/OCR import, a distinct warm conversion, exact physical-page evidence and restart reuse.
+Relocation and missing/changed identity-input checks supply development-machine evidence; native setup, signing and supported performance remain unverified.
+This result allows the corresponding owner-authorized N2 checks after E1 or E5, without claiming those checks have passed.
+P1 still waits on the cheap probe decision and its separate release requirements.
 
 ## M0. Cheap existing Claude probe before distribution packaging spend
 
 Acceptance: diagnostic only; M0 cannot pass AC-17 or establish public savings.
 Owners: existing measurement driver and its private evidence directory.
-Prerequisites: matching engine/retrieval/restart evidence, the frozen diagnostic profile, and explicit owner approval of account, manifest hash, model, and finite budget.
+Prerequisites: matching engine/retrieval/restart evidence, the existing M0 `profile.json` and its bound diagnostic settings (not a P0 frozen executable), and explicit owner approval of account, manifest hash, model, and finite budget.
 M0 does not require native timeout measurements or the final release page cap; its results cannot establish native support.
 
 - [ ] Revalidate the prepared draft against current executable sources and environment; regenerate only when its bound inputs changed.
@@ -184,7 +168,7 @@ Owners: runtime lock, build/verifier, package metadata, notices, packaging tests
 
 - [ ] Pin the passing core and complete runtime; reject prohibited packages and verify model, metadata, source, and tessdata inventory.
 - [ ] Inventory every collected dependency and applicable notice, rather than presenting the build-environment superset as an exact distribution audit.
-- [ ] Sign nested native components, record minimal entitlements, notarize, and then hash the final installed representation.
+- [ ] Sign nested native components, the helper app and argument-free launcher, record minimal entitlements, notarize, and then hash the final installed representation.
 - [ ] Exercise the signed app/installer fallback if MCPB extraction or notarization layout fails.
 - [ ] Record archive/installed size, extraction, full integrity-check cost, and online/offline first-launch behavior.
 

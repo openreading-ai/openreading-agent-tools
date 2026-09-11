@@ -2,7 +2,7 @@
 
 **Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
 The [revision 2 design](../design/local-document-proof.md) targets a Docling distribution.
-Its isolated feasibility harness is implemented; the distributed runtime still uses revision 1.
+Its [unsigned P0 build](p0/README.md) and version 2 configuration are implemented separately; historical client packages still use revision 1.
 Existing setup commands and test results below do not establish revision 2 compatibility.
 
 You can build a local review candidate containing Python, PyMuPDF, MCP, and an immutable core revision.
@@ -79,7 +79,7 @@ Uninstalling a plugin does not automatically remove this application data.
 ## Acceptance evidence
 
 The table below records historical revision 1 evidence.
-The governing [ProductSpec is now revision 2](../product/specs/local-document-proof.product-spec.md); changed criteria and AC-21/AC-22 require new evidence.
+The governing [ProductSpec is revision 4](../product/specs/local-document-proof.product-spec.md); changed criteria and AC-21/AC-22 require new evidence.
 An implemented mechanism does not establish every host-level criterion containing that mechanism.
 
 | Criteria | Evidence and remaining work |
@@ -103,3 +103,56 @@ No evidence here establishes thousand-page support or token savings.
 
 The [isolated feasibility harness](feasibility/README.md) targets revision 2 independently of the historical runtime.
 The revision 1 runtime pin remains unchanged until client and bundle migration checks pass.
+
+## Version 2 configuration and launcher
+
+A verified format-2 bundle selects `local-document-proof-v2` and its bundled Docling assets.
+The configuration selects a document directory and OCR; it cannot select another backend or a hosted endpoint.
+A client label selects local storage, not authentication of the calling application.
+The labels are `claude-desktop`, `chatgpt`, `claude-code`, and `codex`.
+The `chatgpt` label alone supplies no evidence that a ChatGPT conversation can invoke this runtime.
+
+After building the [development-only candidate](p0/README.md), these commands exercise explicit setup:
+
+~~~sh
+/absolute/runtime/openreading-worker --client codex --configure --input-root /absolute/documents --ocr off
+/absolute/runtime/openreading-worker --client codex
+~~~
+
+The second command serves MCP over stdio until its client disconnects.
+For a direct launch, supply `--input-root /absolute/documents` and optionally `--ocr on` instead of saving settings.
+An explicit directory uses only the explicit OCR value, defaulting to off.
+An OCR argument without an explicit directory is refused; saved and direct settings never merge.
+The exact accepted OCR tokens are `on` and `true`, or `off`, `false`, and the empty string.
+Omitting the switch means off during new setup; other values fail before tools register.
+
+Setup writes this closed object to `~/Library/Application Support/OpenReading/agent-tools/CLIENT/v2/config.json`:
+
+~~~json
+{"schema_version": 2, "input_root": "/absolute/documents", "ocr": false}
+~~~
+
+Unknown fields, relative paths, missing directories and overlapping source/artifact roots are refused.
+Core validates directory grants; the launcher atomically replaces settings after validation.
+Failed replacement preserves previous settings, and version 2 never reads or replaces the historical `config.json` or `v1/` store.
+Missing or invalid setup returns status 2 with sanitized `configuration_required` stderr before registering tools.
+No default grant comes from the current directory, home directory, another client or an environment variable.
+This grant limits OpenReading tools; your assistant may have separate file and shell access.
+
+The version 2 store is `CLIENT/v2/artifacts/` under the same application-data parent.
+Each launch creates a unique mode-0600 `CLIENT/v2/launch/ID/profile.json` inside private directories.
+The profile uses inventoried resource paths, 100 pages, a 300-second deadline, four-GiB sampled worker memory, and a 60-second idle timeout.
+These are diagnostic limits pending native host measurements, not supported product limits.
+`HF_HUB_OFFLINE` and `TRANSFORMERS_OFFLINE` are set to `1` for core and its children and restored when the launcher exits.
+No cloud fallback or model download occurs through this profile.
+The launcher removes its temporary profile after core closes its workers, including exceptional exits.
+Independent launches never overwrite each other's profiles.
+
+Stop the client before changing its grant or deleting retained data.
+Deleting `CLIENT/v2/artifacts/` removes retained sources and evidence; deleting `CLIENT/v2/` also removes version 2 settings.
+Changing a grant restricts access to older artifacts without deleting their bytes.
+Uninstalling a client package does not remove retained data.
+The historical package assembler refuses format-2 candidates until the native setup work supplies compatible client packages.
+
+The configuration and launcher tests cover closed settings, atomic failure, missing grants, exact OCR tokens, concurrent profiles, cleanup and v1/v2 coexistence.
+These checks do not establish native form substitution, helper-app behavior, host timeouts or cancellation controls.

@@ -18,7 +18,7 @@ class PackagingTests(unittest.TestCase):
             (runtime / "release.json").write_text("{}")
             with patch(
                 "runtime.package.verify_release",
-                return_value={"worker_sha256": "a" * 64},
+                return_value={"format_version": "1", "worker_sha256": "a" * 64},
             ):
                 paths = package_clients(runtime, root / "packages")
                 for client, path in paths.items():

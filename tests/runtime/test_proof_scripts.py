@@ -34,10 +34,17 @@ class Session:
         pass
 
     async def initialize(self):
-        pass
+        return Box(
+            protocolVersion="2025-11-25", serverInfo=Box(name="openreading", version="0.3.0")
+        )
 
     async def list_tools(self):
-        return Box(tools=[Box(name=f"openreading_{name}") for name in ("import", "search", "read")])
+        return Box(
+            tools=[
+                Box(name=f"openreading_{name}", inputSchema={"type": "object"}, outputSchema=None)
+                for name in ("import", "search", "read")
+            ]
+        )
 
     async def call_tool(self, name, args):
         data, error = self.handler(name, args)
@@ -45,19 +52,51 @@ class Session:
 
 
 class RestartTests(unittest.TestCase):
+    def test_wrong_tool_catalog_cannot_pass_restart(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "retrieval-report.json").write_text(
+                json.dumps({"passed": True, "environment": {}, "documents": {}, "tasks": []})
+            )
+
+            async def wrong(session):
+                return Box(tools=[Box(name="unrelated_upload")])
+
+            with (
+                patch.object(retrieval_restart, "network_denied", return_value=True),
+                patch.object(retrieval_restart, "selected_environment", return_value={}),
+                patch.object(retrieval_restart, "stdio_client", channel),
+                patch.object(
+                    retrieval_restart,
+                    "ClientSession",
+                    side_effect=lambda *a, **k: Session(lambda *a: ({}, True)),
+                ),
+                patch.object(Session, "list_tools", wrong),
+            ):
+                with self.assertRaises(ValueError):
+                    asyncio.run(
+                        retrieval_restart.check(Box(output=root, assets=root, lock=root / "lock"))
+                    )
+            self.assertFalse((root / "restart-report.json").exists())
+
     def test_restart_requires_matching_identity_and_preserves_every_citation(self):
-        for fault in (
-            None,
-            "report",
-            "network",
-            "environment",
-            "reuse",
-            "id",
-            "quote",
-            "page",
-            "refusal",
-            "mcp",
-        ):
+        self._exercise_restart(
+            (
+                None,
+                "report",
+                "network",
+                "environment",
+                "reuse",
+                "id",
+                "quote",
+                "page",
+                "refusal",
+                "mcp",
+            )
+        )
+
+    def _exercise_restart(self, faults):
+        for fault in faults:
             with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 args = Box(output=root, assets=root, lock=root / "lock")
@@ -128,11 +167,62 @@ class RestartTests(unittest.TestCase):
                         records = asyncio.run(retrieval_restart.check(args))
                         self.assertEqual([r["exact_reads"] for r in records], [1, 1])
                         self.assertEqual(len(calls), 6)
+                        self.assertEqual(records[0]["protocol_version"], "2025-11-25")
+                        self.assertEqual(len(records[0]["tool_schema_sha256"]), 64)
+                        self.assertEqual(
+                            records[0]["tool_schema_sha256"], records[1]["tool_schema_sha256"]
+                        )
                         result = json.loads((root / "restart-report.json").read_text())
                         self.assertEqual(
                             result["retrieval_report_sha256"],
                             hashlib.sha256(source.read_bytes()).hexdigest(),
                         )
+
+    def test_changed_protocol_or_schema_cannot_pass_restart(self):
+        for field in ("protocol", "schema"):
+            self._check_drift(field)
+
+    def _check_drift(self, field):
+        with self.subTest(field=field), tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "retrieval-report.json").write_text(
+                json.dumps({"passed": True, "environment": {}, "documents": {}, "tasks": []})
+            )
+            count = 0
+            original_initialize = Session.initialize
+            original_tools = Session.list_tools
+
+            async def initialize(session):
+                nonlocal count
+                count += 1
+                value = await original_initialize(session)
+                if field == "protocol" and count == 2:
+                    value.protocolVersion = "changed"
+                return value
+
+            async def tools(session):
+                value = await original_tools(session)
+                if field == "schema" and count == 2:
+                    value.tools[0].inputSchema = {"type": "string"}
+                return value
+
+            with (
+                patch.object(retrieval_restart, "network_denied", return_value=True),
+                patch.object(retrieval_restart, "selected_environment", return_value={}),
+                patch.object(retrieval_restart, "stdio_client", channel),
+                patch.object(
+                    retrieval_restart,
+                    "ClientSession",
+                    side_effect=lambda *a, **k: Session(lambda *a: ({}, True)),
+                ),
+                patch.object(Session, "initialize", initialize),
+                patch.object(Session, "list_tools", tools),
+                self.assertRaisesRegex(ValueError, "changed"),
+            ):
+                asyncio.run(
+                    retrieval_restart.check(Box(output=root, assets=root, lock=root / "lock"))
+                )
+            self.assertFalse((root / "restart-report.json").exists())
 
     def test_restart_cli_passes_resolved_arguments(self):
         async def check(args):

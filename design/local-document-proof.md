@@ -35,7 +35,8 @@ One Docling profile is the current decision; a fast PDFium-only profile requires
 
 ## 2. Setup and grant identity
 
-The [assistant integration design](assistant-clients.md) owns the proposed client setup and shared configuration contract.
+The [runtime guide](../runtime/README.md) owns the implemented shared configuration contract.
+The [assistant integration design](assistant-clients.md) owns the remaining native setup work.
 It preserves explicit grants, setup-only OCR disabled by default, and settings outside replaceable plugin caches.
 Core receives a closed profile configuration; model-facing tools accept neither backend selectors nor OCR switches.
 A filename is required from the user; the skill asks when it is absent and never guesses paths or probes directories by trial imports.
@@ -69,6 +70,11 @@ These are starting hypotheses for the installed mode, not measured deadlines or 
 E2 must record startup, initial tool visibility, eventual discovery, and per-call timeout separately under the actual setup route.
 Claude Desktop limits remain unverified; do not assume its SDK supplies the same defaults.
 
+Keep full inventory verification before core import, worker dispatch, and MCP registration; do not move it to the first parse.
+The Python/freezer bootstrap and verifier necessarily execute to perform that check; do not claim verification precedes all executable code.
+The startup allowance means the initialization timeout, not the optional-server catalog grace.
+A server missing the initial catalog may pass only if E2 proves later discovery and the guide waits for explicit ready/tool visibility before the first question.
+If later discovery fails, that registration remains unsupported; do not weaken identity to fit a one-second catalog window.
 Measure frozen cold startup from process creation through inventory verification and MCP initialization.
 Worker startup repeats verification in the current launcher, so include that cost in cold import timing too.
 Require cold/warm startup p95 within 80% of the observed startup allowance and imports within 80% of the observed tool allowance.

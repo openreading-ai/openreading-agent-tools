@@ -1,10 +1,10 @@
-.PHONY: sync verify lint test repo-check productspec-validate audit hooks runtime-check feasibility-lock-check
+.PHONY: sync verify lint test repo-check productspec-validate audit hooks runtime-check feasibility-lock-check p0-lock-check
 
 sync:
 	npm ci --ignore-scripts --no-audit --no-fund
 	uv sync --frozen --project runtime --all-groups
 
-verify: runtime-check feasibility-lock-check
+verify: runtime-check feasibility-lock-check p0-lock-check
 	npm run verify
 
 lint:
@@ -24,13 +24,14 @@ productspec-validate:
 audit:
 	npm audit --audit-level=high
 	uv audit --frozen --preview-features audit-command --project runtime/feasibility
+	uv audit --frozen --preview-features audit-command --project runtime/p0
 
 hooks:
 	git config core.hooksPath .githooks
 
 runtime-check:
-	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py tests/runtime
-	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py tests/runtime
+	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py scripts/host_probe.py scripts/docling_package_smoke.py tests/runtime
+	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py scripts/host_probe.py scripts/docling_package_smoke.py tests/runtime
 	uv run --frozen --project runtime --all-groups coverage run --rcfile=runtime/pyproject.toml -m unittest discover -s tests/runtime
 	uv run --frozen --project runtime --all-groups coverage report --rcfile=runtime/pyproject.toml
 	uv run --frozen --project runtime --all-groups coverage json --rcfile=runtime/pyproject.toml -o coverage-report.json
@@ -38,3 +39,6 @@ runtime-check:
 
 feasibility-lock-check:
 	uv lock --check --offline --project runtime/feasibility
+
+p0-lock-check:
+	uv lock --check --offline --project runtime/p0

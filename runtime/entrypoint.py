@@ -49,9 +49,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run the verified local OpenReading document tools."
     )
-    parser.add_argument(
-        "--client", required=True, choices=["claude-desktop", "claude-code", "codex"]
-    )
+    docling = metadata.get("format_version") == "2"
+    clients = ["claude-desktop", "claude-code", "codex"] + (["chatgpt"] if docling else [])
+    parser.add_argument("--client", required=True, choices=clients)
+    if docling:
+        parser.add_argument("--ocr", help="setup-only OCR: on/true or off/false; default off")
     parser.add_argument(
         "--configure", action="store_true", help="save an explicit input grant for this client"
     )
@@ -60,6 +62,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
+        if docling:
+            from runtime.docling_profile import launch
+
+            return launch(args, root)
         if args.configure:
             if args.input_root is None:
                 raise ValueError("Setup requires --input-root with an explicit directory.")

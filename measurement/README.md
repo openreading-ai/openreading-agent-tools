@@ -145,6 +145,7 @@ The full-text files contain the same Docling page text that selective retrieval 
 
 The second command starts two fresh MCP processes against the retained store.
 It verifies reused artifact identities, every recorded exact quote, and refusal outside the input grant.
+It also requires the three selected tools, records negotiated protocol/server identity, and compares sorted tool-schema hashes across restarts.
 Its report records the retrieval report's SHA-256; preparation and the runner refuse restart evidence for another retrieval run.
 The 100-page, 300-second, four-GiB sampled-memory configuration is a diagnostic profile, not a supported product limit.
 OCR-disabled 24-, 48-, and 80-page inputs form the proposed token cohort.
@@ -251,3 +252,7 @@ A cheap unreviewed or incorrect answer therefore produces no direction.
 An ordinary-tools Bash denial invalidates that C/A direction.
 Model answer quality and citation support still require human review; a direction from M0 supports no public savings claim.
 The larger calibration, primary, and follow-up studies remain in the evaluation design.
+
+The separate [functional case registry](functional-cases.json) fixes the exact document-instruction prompt and pass rubric for future native checks.
+It does not modify the corpus, source hashes or token-study task schedule.
+A complete tool trace is required to pass; missing capture is incomplete even when the final answer looks correct.

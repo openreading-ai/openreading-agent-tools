@@ -71,10 +71,12 @@ def verify_release(root: Path) -> dict:
             "files",
             "licenses",
         }
+        if isinstance(metadata, dict) and metadata.get("format_version") == "2":
+            expected.update({"profile", "distribution"})
         if not isinstance(metadata, dict) or set(metadata) != expected:
             raise ValueError("Unexpected release fields")
         if (
-            metadata["format_version"] != "1"
+            metadata["format_version"] not in ("1", "2")
             or metadata["os"] != "darwin"
             or metadata["arch"] != "arm64"
         ):
@@ -104,6 +106,23 @@ def verify_release(root: Path) -> dict:
             or any(name not in actual for name in metadata["licenses"])
         ):
             raise ValueError("Missing dependency notice")
+        if metadata["format_version"] == "2":
+            required = [
+                "resources/docling-runtime.uv.lock",
+                "resources/models/docling-project--docling-layout-heron-onnx/model.onnx",
+                "resources/tessdata/eng.traineddata",
+                "resources/tessdata/osd.traineddata",
+                "resources/tessdata/configs/tsv",
+                "resources/tesseract/bin/tesseract",
+            ]
+            if (
+                metadata["profile"] != "local-document-proof-v2"
+                or metadata["distribution"] != "development-only"
+                or any(name not in actual for name in required)
+                or metadata["dependency_lock_sha256"] != actual[required[0]]["sha256"]
+                or not actual[required[-1]]["executable"]
+            ):
+                raise ValueError("Invalid Docling profile resources")
         return metadata
     except (OSError, ValueError, TypeError, KeyError, RecursionError):
         raise ReleaseIntegrityError(

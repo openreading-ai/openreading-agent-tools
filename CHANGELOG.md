@@ -16,6 +16,13 @@
 
 ## Unreleased
 
+- Implement version 2 grants, closed OCR settings and private Docling launch profiles with v1 coexistence.
+- Add an isolated, unsigned P0 freezer preserving candidate pins, complete identity inputs and relocated Tesseract libraries.
+- Discover Docling plugin entry points during freezing; refuse diagnostic bundles in historical client packages.
+- Add frozen native/OCR/restart checks, reproducible E0 tool-schema checks and a synthetic host probe server.
+- Register the exact document-instruction case and clarify helper, timing and citation-checker handoffs.
+- Keep native installation, helper signing, supported page limits and paid studies pending.
+
 - Revise the assistant proposal to revision 4 after design review, with mode-specific ChatGPT acceptance and a concrete helper-app setup candidate.
 - Correct frozen-task references and specify versioned settings, citation capture/checking, startup budgets, a bounded frozen-build spike, and isolated Codex trials.
 - Preserve executable behavior, corpus hashes, historical locks, and existing probe manifests.

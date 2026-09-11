@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 4 proposal. No new client launcher, package, or provider driver is implemented by this design.
+**Status:** revision 4 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and additional provider drivers remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -60,69 +60,15 @@ A separate server implementation per assistant would duplicate security and prov
 A remote bridge would add transport, authentication, and data-location obligations before proving the local product.
 Neither alternative belongs in this first slice.
 
-## 3. Configuration ownership and proposed interface
+## 3. Configuration ownership and remaining host setup
 
-The same configuration semantics apply to every supported host.
-The selected backend is fixed by the verified release profile, not an assistant setting.
-The host owns the launch command, its argument array, enablement, and its own permissions.
-OpenReading owns the explicit document grant, OCR choice, retained store, and verified engine configuration.
-The cloud model account remains in the host; OpenReading requires no model-provider key to parse locally.
-
-Extend the existing `runtime/configuration.py` and `runtime/entrypoint.py` rather than introducing a daemon or configuration service.
-The proposed setup flags retain `--client`, `--configure`, and `--input-root`, and add `--ocr`.
-Accept only lowercase `on` or `true` as enabled, and `off` or `false` as disabled.
-An absent option means off for explicit setup; an explicit empty string also means off to support an omitted host boolean.
-A bare option without a value, whitespace, `1`, `0`, uppercase tokens, and unresolved placeholders are errors.
-Persist a JSON boolean, never the original token or generic string truthiness.
-The Claude form adapter passes its boolean rendering through this closed mapping, with actual substitution verified by E5.
-OCR defaults to off during a new setup, including when a host form omits its optional switch.
-The client identifiers become `claude-desktop`, `chatgpt`, `claude-code`, and `codex`.
-A client identifier chooses a settings location; it is not authentication of the calling application.
-Do not claim that an executable receiving `--client chatgpt` proves ChatGPT invoked it.
-
-The proposed persisted setup object is closed and versioned:
-
-~~~json
-{
-  "schema_version": 2,
-  "input_root": "/absolute/path/to/documents",
-  "ocr": false
-}
-~~~
-
-It contains no endpoint, backend identifier, credential, resource-limit override, or model asset path.
-Those unknown fields fail validation, avoiding a configuration that appears effective but is ignored.
-Input paths must be absolute, existing directories and must pass core's grant/store validation.
-Use `<client>/v2/config.json` under OpenReading's existing application-data parent.
-Retain artifacts under `<client>/v2/artifacts/`; reserve `<client>/v2/launch/` for temporary launch configuration.
-Never read or rewrite `<client>/config.json` or the historical `<client>/v1/` store.
-Successful and failed version 2 setup must leave the revision 1 launcher usable with its original settings.
-Ship the exact selected lock as `resources/docling-runtime.uv.lock` inside the verified bundle inventory.
-Construct the closed core profile using that lock and verified bundled assets, never a sibling checkout path.
-Create `<client>/v2/launch/<unique-id>/profile.json` exclusively with mode 0600 inside mode-0700 directories.
-Pass its absolute path through core's `--profile-config`; keep it until owned workers exit, then remove that invocation directory.
-Never overwrite another process's profile or use a shared mutable filename.
-Use reviewed release limits or an explicitly labeled diagnostic profile for P0; do not inherit revision 1 limits.
-An assistant cannot change this profile through tool arguments.
-
-Host forms may pass explicit grant and OCR arguments directly to the launcher, as current Claude setup does.
-A persisted setup is used only when no direct setup arguments are supplied.
-Do not combine an explicit OCR override with a silently loaded grant; require a complete explicit setup or the complete saved object.
-An explicit grant with no OCR switch means off.
-An OCR switch without an explicit grant is invalid outside a complete saved configuration.
-These precedence rules require tests with conflicting direct and saved values.
-
-Validate before writing and use the existing atomic configuration write pattern.
-A cancelled first setup creates no configuration; a cancelled replacement preserves the previous valid setup.
-Changing a grant takes effect on the next process start, after the old process is stopped.
-It restricts artifact access without promising deletion of previously retained source copies.
-Do not import revision 1 settings automatically: require explicit selection of the directory and OCR choice through setup.
-A legacy settings file remains untouched if a replacement setup fails.
-
-Missing or invalid setup exits nonzero with sanitized stderr before registering tools.
-Use the engine design's `configuration_required` startup contract for recoverable setup failures.
-No fallback grant comes from the working directory, home directory, adjacent repo, `.env`, or another client's settings.
-Core still owns canonical path checks and source access; the launcher must not duplicate or weaken them.
+The implemented setup object, precedence, private profiles and retention rules live in the [runtime guide](../runtime/README.md).
+The [P0 candidate](../runtime/p0/README.md) supplies one verified Docling launcher for native integration work.
+Host-specific work must translate forms to that closed interface without adding backend selection, secret fields or a default input grant.
+E5 must verify actual boolean and directory substitutions in Claude Desktop before its adapter is accepted.
+The `chatgpt` storage label does not prove that a ChatGPT conversation can invoke the runtime; E1 remains required.
+A cancelled form must preserve saved settings by avoiding a configure invocation until the user submits a valid replacement.
+Native setup guides must show the observed host log location and permission-recovery path after host checks establish them.
 
 ### Host-shared settings
 
@@ -235,3 +181,27 @@ The engine design's signing, notarization, clean-machine, and installer fallback
 Keep compatibility, installation, answer quality, and token results separate in release notes.
 A working local integration may ship without a savings claim after its functional and distribution gates pass.
 The owner reviews and merges; no stage authorizes automatic merge or publication.
+
+## 7. Remaining helper and citation-checker implementation
+
+ChatGPT N2 includes `runtime/chatgpt_entrypoint.py` and the argument-free executable `openreading-chatgpt` beside `openreading-worker`.
+Both executables belong to the same release inventory and shared frozen dependency tree.
+The host entrypoint selects only the `chatgpt` settings namespace; internal worker dispatch retains its original arguments.
+It accepts no user-supplied grant or backend arguments and never infers the client from a parent process name.
+Implement it only after E1, with verified dispatch and subprocess regression tests under `tests/runtime/`.
+
+The helper uses the pinned Python 3.11.15/PyInstaller toolchain with tkinter for its minimal folder-picker and OCR interface.
+Pin and inventory the actual Tcl/Tk assets in the helper build before claiming a usable GUI; they are not required by P0.
+Put configuration and controller logic in `runtime/setup.py` and its thin UI binding in `runtime/setup_ui.py`.
+Both modules and their headless boundary tests belong to the existing Python line/branch 95% coverage gate.
+Do not introduce unmeasured Swift application logic outside that gate.
+Native widget behavior remains an additional manual host check rather than a substitute for controller tests.
+P1 owns signing and notarization of `OpenReading Setup.app` and the argument-free launcher alongside the engine.
+The helper's inventory, executable path resolution, cancelled Save, failed writes, and pending host registration all require explicit N2 tasks.
+
+The N2 citation checker runs under the ordinary `runtime/` test environment as a protocol client.
+It resolves retained evidence through the selected frozen candidate's `openreading_read` MCP tool, not the revision 1 Python read API.
+Use captured synthetic MCP responses for offline checker tests under `tests/runtime/`; include `measurement/` in existing coverage.
+A real-candidate integration check then validates the protocol boundary through the P0 binary.
+A development-only run may launch the pinned feasibility interpreter explicitly, recording that different execution environment.
+Never import v2 core through `runtime/` or through an ambient sibling checkout.

@@ -2,6 +2,7 @@
 
 The output contains review candidates, not published releases. MCPB validation and packing
 use the separately pinned official CLI. No archive is signed or submitted automatically.
+The historical assembler refuses format-2 Docling candidates until native setup is verified.
 """
 
 from __future__ import annotations
@@ -17,7 +18,11 @@ REPOSITORY = Path(__file__).resolve().parent.parent
 
 
 def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
-    verify_release(runtime)
+    metadata = verify_release(runtime)
+    if metadata["format_version"] != "1":
+        raise ValueError(
+            "Docling client packaging awaits native setup checks; P0 is development-only."
+        )
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     paths = {}
