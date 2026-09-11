@@ -9,7 +9,10 @@
 
 - Pin core `f241c28` and reject missing active dependencies or inaccessible memory samples.
 
-## Unreleased Docling feasibility
+## Unreleased
+
+- Add the frozen Docling corpus, exact-citation retrieval gate, and MCP restart check.
+- Pin the candidate to core v0.3 provenance and versioned dehyphenated retrieval. Docling feasibility
 
 - Add an isolated, immutable core/dependency candidate for revision 2 feasibility.
 - Add a network-denied engine matrix with synthetic inputs and explicit failure checks.

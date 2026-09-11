@@ -111,3 +111,46 @@ Node tests exercise cumulative accounting, duplicates, incomplete usage, claim r
 Python tests generate and inspect the actual synthetic PDFs and preparation hashes.
 `make verify` runs these checks without importing the SDK's live query function or contacting a model.
 Raw trial records and transcripts remain outside Git; review the redacted report before sharing it.
+
+## Revision 2 offline retrieval gate
+
+The Docling corpus uses ReportLab 4.4.10 and its bundled Vera font.
+The [public recipe](corpus.json) freezes twelve questions, supporting physical pages, required qualifiers, diagnostic queries, and expected PDF hashes.
+`corpus.py` generates identical bytes in independent offline tests and keeps ground truth outside `documents/`.
+Historical revision 1 preparation and binaries keep their original pins.
+The ordinary test environment adds ReportLab only as a development dependency.
+
+Install the separate candidate with `uv sync --frozen --project runtime/feasibility`.
+With the pinned layout assets and your Tesseract paths, run on macOS:
+
+~~~sh
+/usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' \
+  runtime/feasibility/.venv/bin/python scripts/retrieval_check.py \
+  --assets /absolute/models --output /absolute/new-evidence-directory \
+  --lock runtime/feasibility/uv.lock \
+  --tesseract /absolute/tesseract --tessdata /absolute/tessdata
+/usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' \
+  runtime/feasibility/.venv/bin/python scripts/retrieval_restart.py \
+  --assets /absolute/models --output /absolute/new-evidence-directory \
+  --lock runtime/feasibility/uv.lock
+~~~
+
+The first command verifies the installed core commit and dependencies, and observes network denial through a connection attempt.
+Every answerable task must retrieve every supporting physical page within the top five hits of its frozen queries.
+Each query records its own recall. Exact reads must match verified retained spans and include every required qualifier.
+Missing-fact answers remain untested scoped-refusal tasks, separate from positive recall.
+The document instruction on page two is inert adversarial data; no model adherence result is claimed.
+The full-text files contain the same Docling page text that selective retrieval uses, without duplicated block encodings.
+
+The second command starts two fresh MCP processes against the retained store.
+It verifies reused artifact identities, every recorded exact quote, and refusal outside the input grant.
+The 100-page, 300-second, four-GiB sampled-memory configuration is a diagnostic profile, not a supported product limit.
+OCR-disabled 24-, 48-, and 80-page inputs form the proposed token cohort.
+A separate six-page PDF exercises scans, mixed origins, blank pages, columns, ligatures, and line-break hyphens with OCR on and off.
+Printed labels differ from physical pages, and the report table has a qualifier on the following physical page.
+The cross-page questions need separate items from multiple pages; they do not prove native multi-page item provenance.
+
+On 2026-09-11, core `b01e3149e0c20bca92db2a49c67b4d829d10fc68` passed all nine answerable tasks and both functional modes.
+Two fresh MCP processes each verified 51 exact reads and refused the outside-grant request.
+The three missing-fact tasks and document-instruction behavior still require model and human review.
+This is local engine evidence, not an installation result or a token-saving claim.

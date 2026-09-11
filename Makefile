@@ -29,8 +29,8 @@ hooks:
 	git config core.hooksPath .githooks
 
 runtime-check:
-	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py tests/runtime
-	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py tests/runtime
+	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py tests/runtime
+	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py tests/runtime
 	uv run --frozen --project runtime --all-groups coverage run --rcfile=runtime/pyproject.toml -m unittest discover -s tests/runtime
 	uv run --frozen --project runtime --all-groups coverage report --rcfile=runtime/pyproject.toml
 	uv run --frozen --project runtime --all-groups coverage json --rcfile=runtime/pyproject.toml -o .coverage.json

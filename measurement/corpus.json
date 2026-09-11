@@ -1,0 +1,310 @@
+{
+  "revision": "docling-corpus-v2.1",
+  "toolchain": "reportlab==4.4.10; bundled Vera.ttf; invariant PDF metadata; Pillow rasterization",
+  "documents": {
+    "agreement": {
+      "pages": 24,
+      "title": "Harbor service agreement",
+      "special": {
+        "3": [
+          "Standard renewal notice",
+          "Provide notice at least 60 days before renewal. Notices must be received in writing by the contract administrator."
+        ],
+        "9": [
+          "Insolvency renewal exception",
+          "An insolvency event suspends automatic renewal. The exception takes effect only after the conditions on the following page are satisfied."
+        ],
+        "10": [
+          "Conditions of the insolvency exception",
+          "The administrator must receive written notice and a signed insolvency declaration. Both documents are required before automatic renewal is suspended."
+        ],
+        "17": [
+          "Early termination notice",
+          "Early termination without cause requires 90 days of written notice. This period differs from the standard renewal notice."
+        ]
+      }
+    },
+    "manual": {
+      "pages": 48,
+      "title": "Circulation system operations manual",
+      "special": {
+        "6": [
+          "Emergency restart procedure",
+          "After emergency shutdown, isolate the circulation pump power for 15 minutes before restarting. Record the isolation time in the maintenance log."
+        ],
+        "18": [
+          "Revision D precedence",
+          "Revision D supersedes earlier emergency restart procedures. During a pressure alarm, the restart exception on the following page also applies."
+        ],
+        "19": [
+          "Pressure alarm restart exception",
+          "During a pressure alarm, obtain approval from two supervisors before restarting. The power isolation interval remains required under Revision D."
+        ],
+        "24": [
+          "Routine cooldown procedure",
+          "Routine cooldown lasts 5 minutes before restarting the circulation pump. Emergency shutdown uses a different interval."
+        ]
+      }
+    },
+    "report": {
+      "pages": 80,
+      "title": "Harbor quarterly operations report",
+      "special": {
+        "11": [
+          "Current quarter revenue table",
+          "Region | Reported revenue",
+          "North | 480",
+          "South | 320",
+          "Combined | 800",
+          "Revenue figures are subject to the note on the following page."
+        ],
+        "12": [
+          "Revenue table note",
+          "All revenue figures are in thousands of dollars. Pending credits are excluded from the current quarter revenue figures."
+        ],
+        "35": [
+          "Prior quarter revenue",
+          "Prior quarter combined revenue was 660 thousand dollars. Pending credits were excluded on the same basis."
+        ]
+      }
+    }
+  },
+  "tasks": [
+    {
+      "id": "agreement-single_fact",
+      "document": "agreement",
+      "document_category": "agreement",
+      "task_kind": "single_fact",
+      "question": "How much notice does standard renewal require?",
+      "accepted_answer": "At least 60 days, received in writing by the contract administrator.",
+      "support": {
+        "3": [
+          "60 days",
+          "in writing",
+          "contract administrator"
+        ]
+      },
+      "queries": [
+        "standard renewal notice",
+        "administrator received writing"
+      ]
+    },
+    {
+      "id": "agreement-cross_page",
+      "document": "agreement",
+      "document_category": "agreement",
+      "task_kind": "cross_page",
+      "question": "When does the insolvency exception suspend automatic renewal?",
+      "accepted_answer": "An insolvency event plus receipt by the administrator of both written notice and a signed insolvency declaration.",
+      "support": {
+        "9": [
+          "insolvency",
+          "suspends automatic renewal"
+        ],
+        "10": [
+          "written notice",
+          "signed insolvency declaration",
+          "Both documents"
+        ]
+      },
+      "queries": [
+        "insolvency automatic renewal",
+        "signed insolvency declaration"
+      ]
+    },
+    {
+      "id": "agreement-missing_fact",
+      "document": "agreement",
+      "document_category": "agreement",
+      "task_kind": "missing_fact",
+      "question": "Which jurisdiction governs disputes under this agreement?",
+      "accepted_answer": "The available evidence does not establish a governing jurisdiction. Do not infer absence solely from a failed search.",
+      "support": {},
+      "queries": [
+        "governing jurisdiction",
+        "dispute law"
+      ]
+    },
+    {
+      "id": "agreement-comparison",
+      "document": "agreement",
+      "document_category": "agreement",
+      "task_kind": "comparison",
+      "question": "Compare standard renewal notice with early termination without cause.",
+      "accepted_answer": "Standard renewal requires at least 60 days; early termination without cause requires 90 days. Both require written notice.",
+      "support": {
+        "3": [
+          "60 days",
+          "in writing"
+        ],
+        "17": [
+          "90 days",
+          "written notice"
+        ]
+      },
+      "queries": [
+        "standard renewal notice",
+        "early termination without cause"
+      ]
+    },
+    {
+      "id": "manual-single_fact",
+      "document": "manual",
+      "document_category": "manual",
+      "task_kind": "single_fact",
+      "question": "How long must power be isolated before an emergency restart?",
+      "accepted_answer": "Isolate circulation pump power for 15 minutes and record the isolation time.",
+      "support": {
+        "6": [
+          "15 minutes",
+          "Record the isolation time"
+        ]
+      },
+      "queries": [
+        "emergency restart isolate power",
+        "isolation time maintenance"
+      ]
+    },
+    {
+      "id": "manual-cross_page",
+      "document": "manual",
+      "document_category": "manual",
+      "task_kind": "cross_page",
+      "question": "Which revision controls a pressure-alarm restart and what extra approval is needed?",
+      "accepted_answer": "Revision D supersedes earlier procedures; approval from two supervisors is required during a pressure alarm, with the isolation interval still required.",
+      "support": {
+        "18": [
+          "Revision D supersedes",
+          "pressure alarm"
+        ],
+        "19": [
+          "two supervisors",
+          "isolation interval remains required"
+        ]
+      },
+      "queries": [
+        "Revision D precedence",
+        "pressure alarm supervisors"
+      ]
+    },
+    {
+      "id": "manual-missing_fact",
+      "document": "manual",
+      "document_category": "manual",
+      "task_kind": "missing_fact",
+      "question": "What torque should be applied to the pump housing bolts?",
+      "accepted_answer": "The available evidence does not establish the bolt torque. A failed keyword search alone does not prove the value is absent.",
+      "support": {},
+      "queries": [
+        "pump housing torque",
+        "bolt tightening"
+      ]
+    },
+    {
+      "id": "manual-comparison",
+      "document": "manual",
+      "document_category": "manual",
+      "task_kind": "comparison",
+      "question": "Compare the wait before emergency restart with routine cooldown.",
+      "accepted_answer": "Emergency restart requires 15 minutes of power isolation; routine cooldown lasts 5 minutes.",
+      "support": {
+        "6": [
+          "15 minutes"
+        ],
+        "24": [
+          "5 minutes"
+        ]
+      },
+      "queries": [
+        "emergency restart isolate power",
+        "routine cooldown lasts"
+      ]
+    },
+    {
+      "id": "report-single_fact",
+      "document": "report",
+      "document_category": "report",
+      "task_kind": "single_fact",
+      "question": "What number appears in the North row of the current quarter revenue table?",
+      "accepted_answer": "480.",
+      "support": {
+        "11": [
+          "North",
+          "480"
+        ]
+      },
+      "queries": [
+        "North reported revenue",
+        "current quarter revenue table"
+      ]
+    },
+    {
+      "id": "report-cross_page",
+      "document": "report",
+      "document_category": "report",
+      "task_kind": "cross_page",
+      "question": "What is combined current quarter revenue, including the units and credit treatment?",
+      "accepted_answer": "800 thousand dollars, excluding pending credits.",
+      "support": {
+        "11": [
+          "Combined",
+          "800"
+        ],
+        "12": [
+          "thousands of dollars",
+          "Pending credits are excluded"
+        ]
+      },
+      "queries": [
+        "Combined reported revenue",
+        "revenue table note credits"
+      ]
+    },
+    {
+      "id": "report-missing_fact",
+      "document": "report",
+      "document_category": "report",
+      "task_kind": "missing_fact",
+      "question": "What is the projected annual operating margin?",
+      "accepted_answer": "The available evidence does not establish a projected annual operating margin. Do not infer it from revenue.",
+      "support": {},
+      "queries": [
+        "projected annual operating margin",
+        "margin forecast"
+      ]
+    },
+    {
+      "id": "report-comparison",
+      "document": "report",
+      "document_category": "report",
+      "task_kind": "comparison",
+      "question": "How much did combined revenue change from the prior quarter, on what basis?",
+      "accepted_answer": "It increased from 660 to 800 thousand dollars, a rise of 140 thousand dollars; pending credits are excluded in both quarters.",
+      "support": {
+        "11": [
+          "Combined",
+          "800"
+        ],
+        "12": [
+          "thousands of dollars",
+          "Pending credits are excluded"
+        ],
+        "35": [
+          "660 thousand dollars",
+          "Pending credits were excluded"
+        ]
+      },
+      "queries": [
+        "Combined reported revenue",
+        "revenue table note credits",
+        "prior quarter combined revenue"
+      ]
+    }
+  ],
+  "expected_hashes": {
+    "agreement.pdf": "57e71dafbdc8ad59b4ee7772e38d468dfe24c4b4183ef334356b204e52a97af9",
+    "functional.pdf": "9a01f7262daf6521b14916ac14b05b62b0092c45a57e5799ffde83b1ece70572",
+    "manual.pdf": "7869971d9cd08c4f54d969f6b8babc37d46a64e127607a0615215ce137249491",
+    "report.pdf": "48d6057283a8594b1258aa4e6ac0737ed8f8cb3e56581b076ae3042904d64c99"
+  }
+}

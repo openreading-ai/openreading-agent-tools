@@ -89,21 +89,14 @@ Production limits remain an explicit unresolved measurement output; no support c
 
 ## 4. Evidence, OCR, and retrieval
 
-Core's v0.2 artifact and tool contracts implement engine identity, physical-page spans, and measured text origins.
+Core's v0.3 artifact and tool contracts implement engine identity, physical-page spans, and measured text origins.
 Their owning documentation is `openreading.artifacts.models`, `service`, and `adapters.docling_local.projection`.
 The client migration must consume those contracts without relabeling revision 1 artifacts or inventing page associations.
 Explain retained source copies during setup and preserve OCR labels in answers.
-Table header, cell, and footnote coverage across the broader retrieval corpus remains a C3 gate.
-
-Name and freeze the retriever revision in the artifact and experiment identities.
-Search-side dehyphenation may join a hyphen followed by a line break and lowercase continuation while preserving an offset map to original text.
-Stored passages and quoted substrings remain unchanged; joined search terms never rewrite evidence.
-Add a synthetic offline retrieval gate with two or three frozen ordinary-language queries per answerable task.
-Every required supporting page must appear in the top five results of at least one registered query, and every answerable task must pass before paid trials.
-Evaluate individual-query recall separately, and keep these diagnostic queries hidden from the model prompts.
-Add line-break hyphens, ligatures, columns, repeated headers, mismatched printed page numbers, and a table footnote to the corpus.
-Missing-fact questions use a separate scoped-refusal rubric; they cannot have positive retrieval ground truth.
-If common-term flooding still fails the gate, evaluate a separately versioned deterministic term-weighting change and rerun the same frozen queries.
+The implemented corpus, frozen queries, and real retrieval checks are documented in the [measurement guide](../measurement/README.md).
+The source schema preserves blank and unknown origins; lexical search keeps original offsets when joining line-break hyphens.
+Missing-fact and adversarial-document answers remain a model and human quality gate.
+Page-scoped navigation and PDF outlines remain later scope unless measured retrieval failures demonstrate a need.
 
 Keep read atomic: one unknown evidence identifier fails the request with `evidence_not_found`.
 The model uses returned identifiers and cursor continuation; it is never instructed to construct neighboring identifiers.

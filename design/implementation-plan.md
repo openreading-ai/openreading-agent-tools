@@ -61,17 +61,12 @@ These implementation checks do not establish every product criterion or a packag
 
 ## C3. Corpus and offline retrieval gate
 
-Files: tools `measurement/prepare.py`, public synthetic generation manifest/rubric, and offline tests; core lexical search and passage tests.
-Acceptance: AC-7, AC-11, AC-22; prerequisites for EVAL-1 and EVAL-2.
-
-- [ ] Replace the synthetic generator's PyMuPDF dependency with a permitted deterministic PDF-generation toolchain.
-- [ ] Publish the synthetic questions, answers, task-kind mapping, generation recipe, expected hashes, and diagnostic query set.
-- [ ] Prove byte-identical independent generation and isolate ground truth outside live document grants.
-- [ ] Include the extraction edge cases named in the engine design.
-- [ ] Version search identity, add offset-preserving dehyphenation, and enforce top-five supporting-page recall across the frozen answerable tasks.
-- [ ] Keep missing-fact and adversarial-document behavior separate from positive retrieval recall.
-
-Do not pay for model trials while this deterministic gate fails.
+Implemented by the revision 2 corpus and retrieval commands in [measurement](../measurement/README.md).
+Core v0.3 records blank and unknown origins and freezes `lexical-v2-dehyphenated` in engine identity.
+Offline tests prove deterministic generation and reject invalid citations or missing supporting evidence.
+The reviewed real-engine run passed all nine answerable tasks, both functional modes, and two MCP process restarts.
+Missing-fact and document-instruction behavior remain model/human checks, not positive recall results.
+Native multi-page item provenance is separate from cross-page questions and remains a C1 check.
 
 ## M0. Cheap unscored token probe
 

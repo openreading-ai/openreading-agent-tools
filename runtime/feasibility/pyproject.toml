@@ -3,7 +3,7 @@ name = "openreading-docling-feasibility"
 version = "0.1.0a1"
 requires-python = "==3.11.15"
 dependencies = [
-  "openreading[agent,docling-local] @ git+https://github.com/openreading-ai/openreading-core.git@f241c28b9709dd1d87f0ff139846646bfe4a5d20",
+  "openreading[agent,docling-local] @ git+https://github.com/openreading-ai/openreading-core.git@b01e3149e0c20bca92db2a49c67b4d829d10fc68",
   "mcp==1.30.0",
   "reportlab==4.4.10",
   "psutil==7.2.2",
