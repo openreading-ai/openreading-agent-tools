@@ -29,8 +29,10 @@ Acceptance: AC-4, AC-9, AC-21, AC-22.
 
 - [x] Pin a candidate torch-free Docling/PDFium/ONNX dependency set in an isolated harness, including transformers preprocessing.
 - [x] Run with prohibited packages absent, weights/data local, network blocked, OCR off and explicitly on.
-- [x] Inspect table-region text, mixed-origin passages, and every cross-page provenance entry.
+- [x] Inspect table-region text, page markers, and measured page origin on every physical page of the synthetic matrix.
+- [ ] Inspect mixed-origin passages and cross-page provenance entries from selected-engine output; the synthetic matrix has no cross-page items.
 - [x] Run the developer engine matrix with explicit repetitions, raw timings, sampled RSS, and extraction checks.
+- [x] Rerun the matrix with the `docling-feasibility.v2` identity, warning, page-marker, and network-canary checks against reviewed core `f241c28`.
 - [ ] Complete base-machine, independent cold/p95, artifact-phase, and synthetic native-host timeout measurements.
 - [ ] Derive the release page cap, deadline, RSS threshold, idle policy, and SDK trial timeout from those measurements.
 - [x] Record upstream initialization incompatibilities and the rejected dependency candidate in the feasibility guide.
@@ -42,7 +44,7 @@ Native host timing measurements can wait with installation testing, but no depen
 
 ## C2. Core adapter, identity, and worker supervision
 
-Implemented in core candidate `f997ee62fcb83f9c93f2670e025e17bf48f6fadf`.
+Implemented in reviewed core candidate `f241c28b9709dd1d87f0ff139846646bfe4a5d20`.
 Durable contracts now live in core's adapter, artifact, and MCP module documentation.
 The [feasibility guide](../runtime/feasibility/README.md) owns the candidate lock and reproduction commands.
 
@@ -51,7 +53,7 @@ The [feasibility guide](../runtime/feasibility/README.md) owns the candidate loc
 - Versioned origins and engine identity, explicit asset/lock hashes, and measured OCR executable version.
 - Canonical descriptor-bound grants, root replacement checks, Unicode alias behavior, FIFO rejection, and permission errors.
 - Atomic retained evidence, strict reads, exact source snapshots, and restart reuse.
-- Core gate: 3,607 tests pass, 94.11% coverage, clean pyright and all smoke checks on Python 3.11.15.
+- Core gate: 3,617 tests pass, 94.13% coverage, clean pyright and all smoke checks on Python 3.11.15.
 - Fix-removal checks detect numeric success flags, changed assets, and shifted physical-page origin numbers.
 
 Acceptance still depends on the separate host/resource and release checks below.

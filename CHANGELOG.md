@@ -1,9 +1,15 @@
 # Changelog
 
+## Reviewed Docling candidate
+
+- Pin core `f241c28` and reject missing active dependencies or inaccessible memory samples.
+
 ## Unreleased Docling feasibility
 
 - Add an isolated, immutable core/dependency candidate for revision 2 feasibility.
 - Add a network-denied engine matrix with synthetic inputs and explicit failure checks.
+- Require per-page markers, no unexpected projection warnings, locked installed identity, and an observed network-denial canary in each matrix cell.
+- Audit the candidate lock in `make audit`.
 - Preserve revision 1 runtime and study pins until their separate migrations pass.
 
 ## [Unreleased]

@@ -572,7 +572,7 @@ wheels = [
 [[package]]
 name = "openreading"
 version = "0.3.0"
-source = { git = "https://github.com/openreading-ai/openreading-core.git?rev=f997ee62fcb83f9c93f2670e025e17bf48f6fadf#f997ee62fcb83f9c93f2670e025e17bf48f6fadf" }
+source = { git = "https://github.com/openreading-ai/openreading-core.git?rev=f241c28b9709dd1d87f0ff139846646bfe4a5d20#f241c28b9709dd1d87f0ff139846646bfe4a5d20" }
 dependencies = [
     { name = "jsonschema" },
     { name = "puremagic" },
@@ -606,7 +606,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "mcp", specifier = "==1.30.0" },
-    { name = "openreading", extras = ["agent", "docling-local"], git = "https://github.com/openreading-ai/openreading-core.git?rev=f997ee62fcb83f9c93f2670e025e17bf48f6fadf" },
+    { name = "openreading", extras = ["agent", "docling-local"], git = "https://github.com/openreading-ai/openreading-core.git?rev=f241c28b9709dd1d87f0ff139846646bfe4a5d20" },
     { name = "psutil", specifier = "==7.2.2" },
     { name = "reportlab", specifier = "==4.4.10" },
 ]

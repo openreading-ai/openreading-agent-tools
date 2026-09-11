@@ -59,6 +59,8 @@ Use the [candidate harness](../runtime/feasibility/README.md) and its immutable 
 The launcher must pass explicit resource limits and close the service during shutdown.
 Packaging must preserve private control descriptors and owned process-group cleanup.
 These integration obligations still need installed-host validation.
+Regression tests must cover cancellation before startup, during model loading, during OCR, and just before commit.
+Cancellation during an OCR child has developer observation only; treat each missing stage test as open work.
 
 ### Limits and timing acceptance
 
@@ -67,8 +69,9 @@ The revision 1 values are documented beside [the current implementation](../runt
 Page count, import deadline, worker RSS ceiling, and idle policy require a measured revision 2 profile before release.
 No missing profile field may silently inherit the old 100-page/45-second combination.
 
-The feasibility harness explores cold and warm 1-, 10-, 30-, and 100-page inputs, with OCR off and on.
-It includes a base M-series machine and records model initialization, staging, preflight, conversion, commit, peak sampled RSS, and total elapsed time.
+The feasibility harness explores first and warm 1-, 10-, 30-, and 100-page inputs, with OCR off and on.
+It currently records first-conversion time including initialization, conversion with projection, peak sampled RSS, and total cell time.
+The release measurement must add a base M-series machine and separate staging, preflight, and commit phases.
 Use finite diagnostic caps of 300 seconds and 4 GiB aggregate sampled RSS; these are probe safeguards, not supported product limits.
 Record repetitions, raw timings, failures, and sample size; do not infer a reliable 95th percentile from one successful run.
 
@@ -147,6 +150,6 @@ Their current APIs are not a substitute for running the selected locked dependen
 [Apple notarization guidance](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution) establishes the signing and hardened-runtime workflow.
 [Apple packaging guidance](https://developer.apple.com/documentation/xcode/packaging-mac-software-for-distribution) informs the container fallback.
 
-Unresolved evidence includes broader table/footnote coverage, base-machine and host deadlines, resource constants, and complete licensing/notarization results.
+Unresolved evidence includes broader table/footnote coverage, cross-page provenance from engine output, orientation detection, base-machine and host deadlines, resource constants, and complete licensing/notarization results.
 The feasibility guide records developer-engine observations separately from these release requirements.
 The [implementation plan](implementation-plan.md) assigns each one a pass/fail task before dependent work.
