@@ -1,6 +1,6 @@
 {
-  "revision": "docling-corpus-v2.1",
-  "toolchain": "reportlab==4.4.10; bundled Vera.ttf; invariant PDF metadata; Pillow rasterization",
+  "revision": "docling-corpus-v2.2",
+  "toolchain": "reportlab==4.4.10; bundled Vera.ttf; invariant PDF metadata; frozen synthetic scan pixels",
   "documents": {
     "agreement": {
       "pages": 24,
@@ -306,5 +306,9 @@
     "functional.pdf": "9a01f7262daf6521b14916ac14b05b62b0092c45a57e5799ffde83b1ece70572",
     "manual.pdf": "7869971d9cd08c4f54d969f6b8babc37d46a64e127607a0615215ce137249491",
     "report.pdf": "48d6057283a8594b1258aa4e6ac0737ed8f8cb3e56581b076ae3042904d64c99"
+  },
+  "raster_sha256": {
+    "invoices.png": "e8e442cb21a9bfd028bdf7edfd1192814e50a7c9fd0c489a9130f37920281410",
+    "signatures.png": "14d8ad0bd0c7320187385e0554e1490f159ef998ac67d537d11f37105479ce09"
   }
 }

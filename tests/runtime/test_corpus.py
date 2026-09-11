@@ -42,3 +42,29 @@ class CorpusTests(unittest.TestCase):
             generate(root)
             with self.assertRaises(FileExistsError):
                 generate(root)
+
+    def test_generation_does_not_depend_on_platform_rasterization(self):
+        from unittest.mock import patch
+
+        from measurement.corpus import generate, recipe
+
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch("PIL.ImageFont.truetype", side_effect=AssertionError("platform rasterizer")),
+        ):
+            result = generate(Path(temporary))
+            self.assertEqual(result["files"], recipe()["expected_hashes"])
+
+    def test_changed_frozen_scan_is_refused(self):
+        from unittest.mock import patch
+
+        from measurement.corpus import generate, recipe
+
+        altered = recipe()
+        altered["raster_sha256"]["invoices.png"] = "0" * 64
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch("measurement.corpus.recipe", return_value=altered),
+        ):
+            with self.assertRaisesRegex(ValueError, "scan changed"):
+                generate(Path(temporary))

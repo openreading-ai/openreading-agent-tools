@@ -7,11 +7,9 @@ OCR-disabled token cohort. Generation refuses existing output instead of changin
 
 import hashlib
 import json
-from io import BytesIO
 from pathlib import Path
 
 import reportlab
-from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -44,12 +42,12 @@ def _lines(canvas, lines, *, x=54, y=692):
         y -= 12
 
 
-def _raster(canvas, text, y):
-    image = Image.new("RGB", (1500, 180), "white")
-    ImageDraw.Draw(image).text((30, 60), text, fill="black", font=ImageFont.truetype(str(FONT), 34))
-    data = BytesIO()
-    image.save(data, format="PNG")
-    canvas.drawImage(ImageReader(data), 54, y, width=500, height=60)
+def _raster(canvas, name, y):
+    # FreeType differs across wheels. Frozen pixels keep the OCR input identical on every host.
+    path = Path(__file__).parent / "fixtures" / name
+    if hashlib.sha256(path.read_bytes()).hexdigest() != recipe()["raster_sha256"][name]:
+        raise ValueError("Frozen synthetic scan changed.")
+    canvas.drawImage(ImageReader(str(path)), 54, y, width=500, height=60)
 
 
 def generate(root: Path):
@@ -95,10 +93,10 @@ def generate(root: Path):
     canvas = _canvas(documents / "functional.pdf")
     _lines(canvas, ["Native evidence: retain the inspection record for 30 days."])
     canvas.showPage()
-    _raster(canvas, "Scanned evidence: invoices are payable within 45 days.", 600)
+    _raster(canvas, "invoices.png", 600)
     canvas.showPage()
     _lines(canvas, ["Native mixed-page evidence: approval is required."])
-    _raster(canvas, "Scanned mixed-page evidence: two signatures are required.", 500)
+    _raster(canvas, "signatures.png", 500)
     canvas.showPage()
     canvas.showPage()  # Physical page four deliberately contains no text or image.
     _lines(canvas, ["Left column: filter inspection", "Replace damaged filters."], x=54)
