@@ -65,6 +65,7 @@ class NativeBundleTests(unittest.TestCase):
                 with (
                     self.subTest(paths=paths),
                     patch.object(module, "dependencies", return_value=paths),
+                    patch.object(module.subprocess, "check_output", return_value=""),
                     self.assertRaises(ValueError),
                 ):
                     module.bundle_native(binary, destination)

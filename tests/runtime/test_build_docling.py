@@ -72,6 +72,7 @@ class DoclingBuildTests(unittest.TestCase):
                     return_value={"core_commit": "a" * 40, "packages": {"openreading": "0.3.0"}},
                 ),
                 patch.object(module.platform, "machine", return_value="arm64"),
+                patch.object(module.platform, "mac_ver", return_value=("15.1", "", "")),
                 patch.object(module.platform, "python_version", return_value="3.11.15"),
                 patch.object(module.sys, "platform", "darwin"),
                 patch.object(module.subprocess, "run", side_effect=freeze),
