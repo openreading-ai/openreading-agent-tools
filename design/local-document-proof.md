@@ -1,7 +1,7 @@
 # Docling local proof migration design
 
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
-**Intent:** [ProductSpec revision 4](../product/specs/local-document-proof.product-spec.md).
+**Intent:** [ProductSpec revision 5](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
 ## 1. Engine decision and boundaries
@@ -103,8 +103,8 @@ Adding a later mode requires revalidating the shared profile; an untested mode c
 The application deadline cannot exceed that host budget, and the SDK trial timeout must allow the frozen retrieval workflow to finish.
 If the minimum useful document size cannot fit, stop and review a smaller cap or a separately scoped fast profile.
 Do not introduce asynchronous jobs to hide an incompatible timeout.
-If the accepted cap excludes a corpus document, revise and refreeze the scored packaged study before paid execution.
-The existing M0 developer probe is diagnostic under its separately frozen safeguards and remains independent of release caps.
+If the accepted cap excludes a document, record the refusal and do not claim support for its size.
+Register separate large-document Desktop fixtures within measured limits; keep the original citation corpus unchanged.
 Production limits remain an explicit unresolved measurement output; no support claim exists until that output is reviewed.
 
 ## 4. Evidence, OCR, and retrieval

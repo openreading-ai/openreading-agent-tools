@@ -7,7 +7,7 @@ The [ProductSpec](../product/specs/local-document-proof.product-spec.md) owns th
 | --- | --- |
 | [Local document proof](local-document-proof.md) | Revision 2 Docling migration, grants, supervision, evidence, timing decisions, and signing fallback. |
 | [Review dispositions](review-disposition.md) | Every Claude design finding, accepted contract change, exception, and unresolved evidence gate. |
-| [Token evaluation](token-evaluation.md) | Controlled comparisons, accounting rules, quality thresholds, and claim decisions. |
+| [Token evaluation](token-evaluation.md) | Desktop document-access comparisons, token-claim boundaries, and retired API-study history. |
 | [Implementation plan](implementation-plan.md) | Ordered tasks, exact proposed files, regression examples, and review boundaries. |
 
 The design defines interfaces once.

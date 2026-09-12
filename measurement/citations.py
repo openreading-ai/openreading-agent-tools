@@ -8,7 +8,7 @@ Review v1 labels follow their quote in filename/page/origin order on its final l
 Review v2 adds a presentation_span for a closed source-header or source-list layout.
 It consumes the whole block and refuses overlapping windows or intervening prose.
 Unsupported layouts refuse verification; semantic association still needs human review.
-Filename and physical-page labels are exact; OCR/mixed evidence needs a visible origin label.
+Filename and physical-page labels are exact; OCR/mixed/unknown evidence needs a visible origin label.
 A reviewer must attest citation inventory completeness. This cannot detect an omitted
 citation in arbitrary prose or authenticate a fabricated capture. A pass verifies evidence
 links, never answer correctness, instruction adherence, host support or token savings.
@@ -133,10 +133,15 @@ def native_placement(answer, citation, windows):
     skeleton = " ".join("".join(pieces).split())
     evidence = re.escape(citation["evidence_id"])
     artifact = re.escape(citation["artifact_id"])
+    source = r"@F@, @P@, evidence(?: ID)? " + evidence
     header = (
-        r"(?:From |Exact quote \()@F@, @P@, evidence(?: ID)? "
-        + evidence
-        + r'(?: \(@O@ text\)|, @O@ text)?\)?: ["“]?@Q@["”]?'
+        r"(?:From "
+        + source
+        + r"(?: \(@O@ text\))?"
+        + r"|Exact quote \("
+        + source
+        + r"(?:, @O@ text)?\))"
+        + r': ["“]?@Q@["”]?'
     )
     source_list = (
         r'Quote: ["“]?@Q@["”]? [•*-] @P@ [•*-] Text origin: @O@'
@@ -340,7 +345,7 @@ async def check(capture, review, resolve):
             "Visible physical-page label differs.",
         )
         origin = citation["text_origin"]
-        if origin in ("ocr", "mixed") or citation["origin_span"] is not None:
+        if origin in ("ocr", "mixed", "unknown") or citation["origin_span"] is not None:
             require(
                 label(answer, citation["origin_span"]).casefold() == origin,
                 "Visible origin label is missing or differs.",

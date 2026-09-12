@@ -76,7 +76,7 @@ It must also include the hashed Tesseract `configs/tsv` output configuration.
 
 Native host timeout probes, base-machine measurements, and supported release defaults remain unverified.
 The artifact service requires explicit page, deadline, RSS, idle, asset, and lock configuration.
-The offline retrieval corpus and paid token study are separate steps.
+The offline retrieval corpus supports native Desktop checks. Provider API token studies are retired.
 Signing, notarization, bundled OCR dependencies, and Desktop installation are later release prerequisites.
 
 The selected candidate pins Docling slim 2.126.0, Transformers 5.16.1, and CPU ONNX Runtime 1.30.0.

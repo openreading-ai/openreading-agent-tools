@@ -5,6 +5,9 @@ The reviewer assessed commit `1436bcb`; its full scratch report remains ignored 
 This record owns decisions about unbuilt work, not descriptions of shipped code.
 The [probe plan](native-probes.md) defines empirical checks without treating proposed experiments as results.
 
+Revision 5 supersedes all provider API, budget and M0/M1/M2 decisions in this historical record.
+Existing Desktop checks remain active; API studies cannot gate packaging or installation.
+
 ## Accepted findings and bounded corrections
 
 | Finding | Decision and correction |
@@ -34,8 +37,8 @@ Claude Desktop can complete its own release gates while ChatGPT capability remai
 The broader ChatGPT objective stays open; it is not silently replaced by a developer-only Codex integration.
 If only Codex mode can call local tools, its value is verified evidence and possible efficiency, not newly gained local-file access.
 Work mode is eligible only after local execution is observed; remote/cloud-task probes are excluded from this local proof.
-The existing Claude M0 remains the cheapest diagnostic and does not wait for a new provider adapter.
-Instrumented Codex remains the next measurement candidate after E6; an API harness is a separately reviewed alternative.
+The former M0 and instrumented Codex measurement proposals are retired by revision 5.
+The current implementation plan proceeds through native Desktop evidence and signed packaging without an API study.
 
 ## Verification and unresolved observations
 

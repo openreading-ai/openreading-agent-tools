@@ -1,272 +1,52 @@
-"""Probe preparation is offline and cannot turn an unresolved account into approval."""
+"""Historical probe schedules and disabled compatibility commands stay explicit."""
 
-import hashlib
+import contextlib
+import io
 import json
-import os
-import subprocess
-import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
-from measurement.corpus import generate, recipe
-from measurement.probe import MODEL_ID, finalize, main, prepare, schedule
-from runtime.verify import sha256
-
-REAL_RUN = subprocess.run
+from measurement.probe import MODEL_ID, main, schedule
 
 
 class ProbeTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name).resolve()
-        self.evidence = self.root / "evidence"
-        generation = generate(self.evidence)
-        self.environment = {"core_commit": "a" * 40, "packages": {"openreading": "0.3.0"}}
-        self.report = {
-            "passed": True,
-            "generation": generation,
-            "environment": self.environment,
-            "tasks": [
-                {"task_id": t["id"], "passed": bool(t["support"])} for t in recipe()["tasks"]
-            ],
-            "documents": {},
-        }
-        for name in ("agreement", "manual", "report"):
-            text = self.evidence / f"{name}-ocr-False.txt"
-            text.write_text(f"[Physical page 1]\n{name} extracted text")
-            self.report["documents"][name] = {
-                "full_text_sha256": sha256(text),
-                "engine": {"extraction_settings": {"retriever": "lexical-v3-dehyphenated"}},
-            }
-        self.save_report()
-        self.utility = self.root / "utility"
-        self.utility.write_text("fake local executable")
-        self.identity = {
-            "environment": self.environment,
-            "engine": {"extraction_settings": {"retriever": "lexical-v3-dehyphenated"}},
-        }
-        self.args = dict(
-            output=self.root / "probe",
-            evidence=self.evidence,
-            python=self.utility,
-            client=self.utility,
-            assets=self.root / "assets",
-            lock=self.utility,
-        )
-        self.which = patch("measurement.probe.shutil.which", return_value=str(self.utility)).start()
-        self.calls = patch(
-            "measurement.probe.subprocess.check_output", side_effect=self.command
-        ).start()
-        patch("measurement.probe.platform.platform", return_value="test-os").start()
-        patch("measurement.probe.platform.machine", return_value="arm64").start()
-        self.validation = patch("measurement.probe.subprocess.run").start()
-        self.validation.return_value = subprocess.CompletedProcess([], 0, "", "")
-        self.addCleanup(patch.stopall)
-
-    def save_report(self):
-        (self.evidence / "retrieval-report.json").write_text(json.dumps(self.report))
-        bound = sha256(self.evidence / "retrieval-report.json")
-        (self.evidence / "restart-report.json").write_text(
-            json.dumps({"passed": True, "retrieval_report_sha256": bound})
-        )
-
-    def command(self, args, **kwargs):
-        if "--profile" in args:
-            return (json.dumps(self.identity) + "\n").encode()
-        if "--version" in args:
-            return "2.1.267 (Claude Code)"
-        return b"usable baseline text"
-
-    def test_probe_preparation_is_separate_and_unapproved(self):
-        self.assertEqual(len(schedule()), 9)
-        path = prepare(**self.args)
-        manifest = json.loads(path.read_text())
-        self.assertIsNone(manifest["model_id"])
-        self.assertIsNone(manifest["account_label"])
-        self.assertEqual(manifest["max_trials"], 9)
-        # Whole, saved-file, and per-page forms for 24 + 48 + 80 physical pages.
-        self.assertEqual(len(manifest["allowed_bash_commands"]), 158)
-        environment = json.loads((path.parent / "environment.json").read_text())
-        recipe_file = environment["baseline"]["recipes"]["documents/report.pdf"]["file"]
-        self.assertTrue(recipe_file.endswith(" report.txt"))
-        self.assertIn(recipe_file, manifest["allowed_bash_commands"])
-        self.assertEqual(manifest["max_estimated_usd_per_trial"], 0.5)
-        self.assertFalse((path.parent / "manifest.json").exists())
-        dataset = json.loads((path.parent / "dataset.json").read_text())
-        self.assertEqual(len(dataset["tasks"]), 12)
-        self.assertEqual(dataset["tasks"][0]["document_size"]["physical_pages"], 24)
-        self.assertGreater(dataset["tasks"][0]["document_size"]["extracted_characters"], 0)
+    def test_historical_schedule_preserves_every_arm_and_question(self):
+        rows = schedule()
+        self.assertEqual(len(rows), 9)
         self.assertEqual(
-            dataset["tasks"][0]["document_size"]["baseline_characters"], len("usable baseline text")
+            {(r["task_id"], r["arm"]) for r in rows},
+            {(n + "-single_fact", a) for n in ("agreement", "manual", "report") for a in "ABC"},
         )
-        self.assertNotIn("support", dataset["tasks"][0])
-        self.assertNotIn("ground-truth.json", dataset["files"])
-        self.assertTrue((path.parent / "approval-needed.json").exists())
-        with self.assertRaises(ValueError):
-            prepare(**self.args)
+        self.assertEqual(rows, schedule())
 
-    def test_rejects_unverified_corpus_engine_extraction_and_baseline(self):
-        for condition in (
-            "report",
-            "generation",
-            "engine",
-            "identity",
-            "extraction",
-            "utility",
-            "empty",
-        ):
-            with self.subTest(condition=condition):
-                self.args["output"] = self.root / condition
-                with patch("measurement.probe.recipe", wraps=recipe) as get_recipe:
-                    self.report["passed"] = condition != "report"
-                    self.save_report()
-                    if condition == "generation":
-                        altered = recipe()
-                        altered["expected_hashes"] = {}
-                        get_recipe.return_value = altered
-                    self.identity["environment"] = {} if condition == "engine" else self.environment
-                    self.identity["engine"]["extraction_settings"]["retriever"] = (
-                        "changed" if condition == "identity" else "lexical-v3-dehyphenated"
-                    )
-                    if condition == "extraction":
-                        (self.evidence / "agreement-ocr-False.txt").write_text("changed")
-                    self.which.return_value = None if condition == "utility" else str(self.utility)
-                    self.calls.side_effect = (
-                        (lambda *a, **kw: b"") if condition == "empty" else self.command
-                    )
-                    if condition == "empty":
-                        self.calls.side_effect = lambda args, **kw: (
-                            self.command(args, **kw)
-                            if "--profile" in args or "--version" in args
-                            else b" "
-                        )
-                    with self.assertRaises(ValueError):
-                        prepare(**self.args)
-                    (self.evidence / "agreement-ocr-False.txt").write_text(
-                        "[Physical page 1]\nagreement extracted text"
-                    )
-
-    def test_model_identifiers_match_the_node_schema_contract(self):
+    def test_historical_model_identifiers_match_the_schema(self):
         schema = json.loads(Path("measurement/probe-manifest.schema.json").read_text())
         self.assertEqual(schema["properties"]["model_id"]["pattern"], f"^{MODEL_ID.pattern}$")
-        for model in ("claude-opus-5", "claude-fable-5-1", "claude-haiku-4-5-20251001"):
-            self.assertTrue(MODEL_ID.fullmatch(model), model)
-        for model in ("claude-opus-latest", "claude-sonnet", "gpt-5"):
-            self.assertFalse(MODEL_ID.fullmatch(model), model)
+        self.assertTrue(MODEL_ID.fullmatch("claude-sonnet-4-6"))
+        self.assertFalse(MODEL_ID.fullmatch("claude-latest"))
 
-    def test_rejects_restart_evidence_for_another_retrieval_report(self):
-        (self.evidence / "restart-report.json").write_text(
-            json.dumps({"passed": True, "retrieval_report_sha256": "0" * 64})
-        )
-        with self.assertRaisesRegex(ValueError, "restart"):
-            prepare(**self.args)
-
-    def test_rejects_git_output_and_generation_drift(self):
-        (self.root / ".git").mkdir()
-        with self.assertRaises(ValueError):
-            prepare(**self.args)
-        (self.root / ".git").rmdir()
-        with patch("measurement.probe.generate", return_value={}):
-            with self.assertRaisesRegex(ValueError, "Generation"):
-                prepare(**self.args)
-
-    def test_finalization_requires_account_and_never_runs_a_model(self):
-        root = prepare(**self.args).parent
-        prices = self.root / "prices.json"
-        prices.write_text('{"model_id":"claude-sonnet-4-6"}')
-        with patch.dict(os.environ, {}, clear=True):
-            with self.assertRaises(ValueError):
-                finalize(root, "claude-sonnet-4-6", "account", prices)
-        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "synthetic-test-key"}):
-            for model, account in [
-                ("latest", "account"),
-                ("claude-latest", "account"),
-                ("claude-sonnet-latest", "account"),
-                ("claude-sonnet-4-6", " "),
-            ]:
-                with self.assertRaises(ValueError):
-                    finalize(root, model, account, prices)
-            with self.assertRaises(ValueError):
-                finalize(root, "claude-opus-4-6", "account", prices)
-            self.validation.return_value = subprocess.CompletedProcess(
-                [], 1, "", "Experiment stopped: Model-specific dated pricing is required."
-            )
-            with self.assertRaisesRegex(ValueError, "dated pricing"):
-                finalize(root, "claude-sonnet-4-6", "account", prices)
-            self.assertFalse((root / "manifest.json").exists())
-            self.assertFalse((root / "manifest-pending.json").exists())
-            self.validation.return_value = subprocess.CompletedProcess([], 0, "", "")
-            path = finalize(root, "claude-sonnet-4-6", "account", prices)
-            manifest = json.loads(path.read_text())
-            self.assertEqual(manifest["model_id"], "claude-sonnet-4-6")
-            self.assertNotIn("synthetic-test-key", path.read_text())
-            environment = json.loads((root / "environment.json").read_text())
-            salted = hashlib.sha256(
-                (environment["account_key_salt"] + "\0synthetic-test-key").encode()
-            ).hexdigest()
-            self.assertEqual(environment["account_key_sha256"], salted)
-            with self.assertRaises(FileExistsError):
-                finalize(root, "claude-sonnet-4-6", "account", prices)
-
-    def test_cli_routes_only_local_preparation_or_finalization(self):
-        with (
-            patch("measurement.probe.prepare", return_value="draft") as prep,
-            patch("builtins.print"),
+    def test_old_cli_commands_refuse_without_preparing_a_study(self):
+        for args in (
+            [
+                "prepare",
+                *[
+                    v
+                    for name in ("output", "evidence", "python", "client", "assets", "lock")
+                    for v in ("--" + name, "/missing")
+                ],
+            ],
+            [
+                "finalize",
+                "/missing",
+                "--model",
+                "model",
+                "--account",
+                "account",
+                "--pricing",
+                "/missing",
+            ],
         ):
-            main(
-                [
-                    "prepare",
-                    *[
-                        part
-                        for key, value in self.args.items()
-                        for part in (f"--{key}", str(value))
-                    ],
-                ]
-            )
-            self.assertEqual(prep.call_args.kwargs["python"], self.utility)
-        with (
-            patch("measurement.probe.finalize", return_value="manifest") as final,
-            patch("builtins.print"),
-        ):
-            main(
-                [
-                    "finalize",
-                    str(self.root),
-                    "--model",
-                    "model",
-                    "--account",
-                    "label",
-                    "--pricing",
-                    str(self.utility),
-                ]
-            )
-            final.assert_called_once()
-
-    def test_python_preparation_round_trips_through_the_real_node_validator(self):
-        source = self.root / "source-python"
-        encoded = json.dumps(self.identity) + "\n"
-        source.write_text("#!/bin/sh\nprintf '%s' '" + encoded + "'\n")
-        source.chmod(0o755)
-        self.args["python"] = source
-        root = prepare(**self.args).parent
-        prices = root / "test-pricing.json"
-        prices.write_text(
-            json.dumps(
-                {
-                    "model_id": "claude-sonnet-4-6",
-                    "source": "https://platform.claude.com/docs/en/about-claude/pricing",
-                    "checked_on": "2026-09-11",
-                    "usd_per_million": dict.fromkeys(
-                        ["input", "cache_write", "cache_read", "output"], 1
-                    ),
-                }
-            )
-        )
-        self.validation.side_effect = REAL_RUN
-        with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "synthetic-offline-test"}):
-            manifest = finalize(root, "claude-sonnet-4-6", "synthetic-offline-test", prices)
-        self.assertTrue(manifest.exists())
-        self.assertFalse((root / "runs").exists())
-        self.assertNotIn("--live", self.validation.call_args.args[0])
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                with self.assertRaisesRegex(ValueError, "Provider API trials are disabled"):
+                    main(args)
+            self.assertEqual(output.getvalue(), "")

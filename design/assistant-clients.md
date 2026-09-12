@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 4 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and additional provider drivers remain unbuilt.
+**Status:** revision 5 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -8,7 +8,7 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” is this project's packaging description, not an upstream package name or a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 4 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 5 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and setup-enabled Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
@@ -126,7 +126,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 | Interruption | Record host cancel notification, deadline, and process-stop paths separately; each tested path leaves no owned extraction or OCR work and no successful artifact. |
 | Invalid setup | Tools never register, and the guide's recovery steps correspond to the observed host error. |
 
-Where the model cannot be invoked without account or spending authorization, retain the pending case instead of substituting SDK calls.
+Owner-operated checks use existing Desktop app accounts. Provider API calls and SDK substitutes are prohibited.
 Use the frozen task IDs and rubrics from `measurement/corpus.json`; never edit fixtures to match an old example.
 E1/N2 records each host's actual transcript export and tool-log location, format, and application version.
 If host logs omit payloads, use an explicit diagnostic STDIO capture relay with the same invocation arguments and byte-preserving forwarding.
@@ -148,9 +148,9 @@ A short successful request does not establish the deadline for a 100-page OCR im
 ## 6. Packaging and release order
 
 First prove the shared source protocol and native connection route; then implement common setup and host adapters.
-Allow one bounded P0 frozen-build feasibility task before M0 to test identity, relocation, one import, and startup.
+Use bounded P0 frozen-build feasibility to test identity, relocation, one import, and startup.
 It produces no distributed artifact, installer polish, or clean-machine claim.
-Run the cheap approved M0 probe before further distribution packaging expenditure.
+M0 and provider API studies are retired. Packaging does not depend on token measurements.
 Native functional checks use P0 after the owner authorizes host installation; they remain developer-machine evidence.
 
 The packaged candidate includes the same engine bytes for every wrapper on the same platform.

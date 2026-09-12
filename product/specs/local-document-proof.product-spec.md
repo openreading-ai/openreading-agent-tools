@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 4
+spec_revision: 5
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-11T00:00:00Z"
@@ -47,7 +47,11 @@ Both hypotheses are falsifiable.
 A clean-machine installation can fail even when a developer-machine demo works.
 Selective retrieval can increase token usage or miss evidence when a normal assistant already searches efficiently.
 
-This proof measures installation success, answer correctness, citation accuracy, token consumption, and elapsed time separately.
+This proof measures Desktop installation, document access, answer correctness, citation accuracy, and elapsed time separately.
+Token reduction remains untested, not falsified. It is not a release prerequisite.
+Only complete, verified usage exposed by the actual Desktop app could support a future token claim.
+No provider API integration or API trials are permitted, even with a key, budget, or prior approval.
+Owner-operated testing through existing Desktop subscriptions remains in scope.
 It does not infer one outcome from another.
 
 ## Product Summary
@@ -72,17 +76,18 @@ The proof intentionally tests a narrower PDF profile than the [core adapter cata
 
 Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
-The private company repository holds private evaluation documents and live trial records.
+The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 4 assistant integration proposal, not implemented.**
-The revision 2 Docling developer harness, retrieval checks, and Claude token-probe driver are implemented.
+**Review status: revision 5 Desktop-only proof; API studies are retired.**
+The Docling developer harness, retrieval checks, and citation checker are implemented.
+Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Client binaries remain the historical revision 1 PyMuPDF prototype.
 Revision 3 added ChatGPT desktop, explicit client compatibility gates, and separate provider measurement contracts.
-Revision 4 resolves review gaps in mode selection, setup, timing, citation verification, configuration coexistence, and experiment prerequisites.
+Revision 5 removes API studies and their packaging prerequisite, while retaining revision 4 host, setup, timing, and provenance requirements.
 It preserves the selected `local-document-proof-v2` engine profile and does not relabel historical binaries or trials.
 The existing CLI, Python API, HTTP server, and other core backends remain independent of assistant setup.
 Approving this specification authorizes its scope only when the owner also requests implementation.
-It does not authorize a release, paid model calls, or merging a PR.
+It does not authorize release or merging. Provider API model calls are prohibited, rather than awaiting approval.
 
 ## Scope
 
@@ -96,9 +101,11 @@ in:
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
   - Refuse unreadable, oversized, unsupported, or disallowed inputs with explicit errors and no hosted fallback.
   - Package the same runtime for Claude Code and Codex, with separate installation evidence for each supported host version.
-  - Measure each supported provider workflow separately using controlled ordinary-tool, full-extraction, and selective-evidence arms, with complete accounting and reviewed quality.
-  - Publish a truthful proof result, including an unsuccessful token hypothesis when the measurements do not support it.
+  - Test the actual Claude and ChatGPT Desktop workflows independently, including large documents, exact citations, explicit limitations, and setup.
+  - Record document byte size, physical pages, extracted characters, native upload outcomes, and local resource costs without inventing token counts.
+  - Publish only supported native functional results; label token savings unmeasured unless the actual Desktop app exposes complete verified counters.
 out:
+  - Do not invoke provider model APIs, use an agent SDK as a substitute for Desktop, buy API credits, or run separately metered trials.
   - Do not build an account, hosted service, tenant model, billing system, or company document index.
   - Do not include a local language model, Docker, Cuttlefish, PyMuPDF, torch, torchvision, or docling-ibm-models in the distributed proof.
   - Do not implement ChatGPT web, mobile, remote execution, tunneling, Windows, Linux, or Intel Mac support in this proof.
@@ -177,10 +184,11 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 4 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 5 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
+Revision 5 replaces the API study criteria AC-15 through AC-17 and EVAL-2 with Desktop-only evidence requirements.
 All earlier identifiers remain stable; unchanged engine criteria still need their separate release evidence.
 The runtime evidence table describes historical revision 1 checks only; changed criteria require new evidence.
 
@@ -214,11 +222,11 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-14
   criterion: Install, restart, update, removal, spaces in paths, Unicode filenames, read-only source files, and configured-root changes each have a recorded expected result and test evidence for each desktop mode included in a release.
 - id: AC-15
-  criterion: Each implemented provider measurement driver validates its own frozen trial manifest and accounting contract, refuses live execution without explicit authorization and an estimated spend ceiling, and reproduces accounting results from offline synthetic logs.
+  criterion: Provider API execution, study preparation and finalization refuse unconditionally before credential access, subprocess execution, or output creation; no provider execution SDK is installed, while offline historical accounting and reporting remain available.
 - id: AC-16
-  criterion: Each completed proof report identifies its provider, exact model, client or API harness, and all preregistered trials, usage completeness, correctness, citation validity, failures, and latency, and applies the evaluation decision rules without discarding unfavorable outcomes.
+  criterion: Each native proof record names the application version, mode, setup route, selected model when visible, source hash, byte size, physical pages, extracted characters, results, failures, timing and capture completeness; unknown fields stay explicitly unknown and cannot pass corresponding acceptance checks.
 - id: AC-17
-  criterion: A token-reduction claim names the measured provider and execution surface and requires registered quality and reduction thresholds against a usable ordinary-tools baseline; incomplete usage or a failed baseline yields no savings percentage, and API or coding-client results never imply native-chat billing or quota savings.
+  criterion: No token, cost or subscription-quota reduction is claimed without complete verified usage and quality evidence from the actual named Desktop app; API records, extracted character counts, tool payload size and successful large-document access cannot substitute for those measurements; missing counters do not block a functional release.
 - id: AC-18
   criterion: Repository verification stays offline, never requires sibling checkouts, and checks every product implementation added to this repository through meaningful tests and a measured coverage gate.
 - id: AC-19
@@ -226,11 +234,11 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-20
   criterion: The final walkthrough names tested clients and limits, explains what reaches the model, links its reviewed proof evidence, and removes completed proposal records after moving durable facts beside the implementation.
 - id: AC-21
-  criterion: OCR is disabled by default and changes only through explicit setup; OCR-derived or mixed-origin evidence is labeled in every passage and search hit, all source provenance entries are handled without invented page attribution, and missing table text is disclosed.
+  criterion: OCR is disabled by default and changes only through explicit setup; OCR, mixed and unknown text origins are visibly labeled in citations, all source provenance entries are handled without invented page attribution, and missing table text is disclosed.
 - id: AC-22
-  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no runtime downloads, and passes the frozen offline retrieval gate before an approved paid study.
+  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no runtime downloads, and passes the frozen offline retrieval gate before native Desktop acceptance testing.
 - id: AC-23
-  criterion: Assistant launchers and provider SDKs remain optional consumers of core; an isolated ordinary core installation preserves CLI, Python API, HTTP contracts, and backend selection without requiring Agent Tools, assistant settings, or local model assets.
+  criterion: Assistant launchers remain optional consumers of core; an isolated ordinary core installation preserves CLI, Python API, HTTP contracts, and backend selection without requiring Agent Tools, assistant settings, or local model assets.
 - id: AC-24
   criterion: Every supported client mode has recorded configuration, native launch, tool discovery, cited answer, refusal, restart, and observed interruption-path results against common core schemas and frozen cases; a deterministic checker binds citations to captured calls and retained evidence, unsupported host cancellation stays explicit, and documentation or another client cannot substitute for native evidence.
 - id: AC-25
@@ -259,14 +267,15 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: EVAL-2
   type: human_review
   evaluator: human
-  pass_threshold: 0.9
+  pass_threshold: 1
   cases:
-    - input: Execute the registered paired question set from the token evaluation design across all three arms.
-      expected: Meet the registered correctness and citation rules before considering a token reduction claim.
+    - input: In each supported Desktop mode, compare its normal document access with OpenReading using the same separately registered large synthetic PDF within the measured local profile.
+      expected: Record the native upload result and limit message verbatim; OpenReading must answer the registered question using exact evidence and physical pages, without a fallback upload or invented content.
   checks:
-    - Ground truth is frozen before model trials.
-    - Correctness uses the common paired trial denominator, including failures.
-    - The detailed evaluation design controls the stricter citation and paired-baseline conditions.
+    - Freeze the source hash, byte size, physical pages, text density, question and answer rubric before the walkthrough; preserve the existing citation corpus hashes.
+    - Do not force native failure or handicap its ordinary tools. Claim access beyond an app limit only if that limit was observed on the same source bytes and app version.
+    - Keep failures, unsupported cases and unavailable counters visible. A large-document success establishes usability, not token savings.
+    - Run through the owner's existing Desktop app. No provider API or coding SDK can substitute for this check.
 ~~~
 
 ## Success Metrics
@@ -318,8 +327,9 @@ Ship one platform and one parser first, with signing and real installation as ea
 Additional hosts wrap that tested runtime instead of reimplementing it.
 
 **A selective baseline already wins.**
-The experiment permits ordinary search and local tools in the baseline.
-If OpenReading adds overhead without better answers, report that result and revisit the product hypothesis.
+A Desktop comparison permits the app's ordinary supported upload and search workflow.
+If OpenReading adds overhead without improving document access or answers, report that outcome.
+Unavailable token counters leave the token hypothesis untested.
 
 **A citation looks stronger than the extraction.**
 The proof identifies physical pages and literal extracted spans.
@@ -335,18 +345,14 @@ Publication requires a reviewed, sanitized evidence summary and dependency licen
 
 ## Rollout
 
-The [implementation plan](../../design/implementation-plan.md) orders assistant contracts, connection feasibility, shared configuration, native functional proof, and provider-specific measurement.
+The [implementation plan](../../design/implementation-plan.md) orders shared configuration, frozen-build feasibility, native Desktop proof, measured resource limits, signing, and clean-host installation.
 Existing engine feasibility and retrieval checks remain prerequisites.
-A cheap approved M0 probe still precedes further packaging expenditure; a second provider does not enlarge the approved budget.
-M0 is unscored and cannot establish a public token claim.
-A bounded unsigned frozen-build feasibility check may run on the development machine before M0; it is not distribution or installation evidence.
-M0 remains diagnostic under its own explicit limits, independent of a later native release page cap.
-Real client installation, signing, and paid execution remain deferred until their respective prerequisites and owner approvals are available.
-The primary study follows calibration and separate approval of its frozen schedule and budget.
-
-A functional install can be released without a token-saving claim.
-A failed token hypothesis remains a useful proof result.
-Neither outcome authorizes an agent to merge or publish.
+M0, M1 and M2 provider API studies are retired and cannot block P1 packaging or H1 installation.
+Preserve their prepared drafts as superseded, unrun records. No approval can reactivate API execution.
+The bounded unsigned P0 build remains development evidence, not a distribution or clean-installation pass.
+A functional release needs its native, resource, signing and installation checks, independently of token measurements.
+Token savings remain untested until reliable evidence is available from the actual Desktop app.
+No result authorizes an agent to merge or publish.
 
 ## Open Questions
 
@@ -357,14 +363,14 @@ The following owner actions remain release dependencies:
 - Approve the core contract scope in core before changing its public schemas or MCP surface.
 - Review the complete Docling bundle, including native dependencies, model weights, and OCR data, before sharing it.
 - Supply a clean macOS virtual machine and the Developer ID identity required for release signing and notarization.
-- Authorize a specific live experiment manifest, account, and estimated spend ceiling.
+- Run the remaining owner-operated native walkthroughs using existing Desktop accounts, with app identity and complete evidence capture.
 - Review the evidence and approve any public release or marketing claim.
 
 Measured import limits remain unresolved until the engine and host timing probes finish.
 A second text-only profile or a different OCR engine requires a separate decision, never a silent fallback.
 
 These dependencies do not block writing or reviewing this proposal.
-They do block the corresponding implementation, live trial, or distribution step.
+They block the corresponding implementation, native walkthrough, or distribution step.
 
 ## Related Artifacts
 
@@ -381,7 +387,7 @@ They do block the corresponding implementation, live trial, or distribution step
   item_id: AC-5
 - type: engineering_spec
   url: design/token-evaluation.md
-  title: Paired token experiment and claim rules
+  title: Desktop evidence and token-claim boundaries
   section_id: acceptance_criteria
   item_id: AC-17
 - type: engineering_spec

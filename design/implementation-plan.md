@@ -1,28 +1,29 @@
-# Revision 4 implementation plan
+# Revision 5 implementation plan
 
-**Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and additional provider measurement remain proposed.
-**Contracts:** [ProductSpec revision 4](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
+**Contracts:** [ProductSpec revision 5](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
 Each implementation commit names the acceptance criteria it addresses and leaves unmet host checks explicit.
-A passing offline gate is necessary but cannot replace native application, signing, or paid-study evidence.
+A passing offline gate is necessary but cannot replace native application or signing evidence.
 
-ProductSpec revision 4 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
-It does not rename `local-document-proof-v2`, modify historical locks, or authorize paid calls.
+ProductSpec revision 5 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
+Revision 5 prohibits provider API trials and removes their release prerequisites.
+It preserves `local-document-proof-v2`, historical locks, native acceptance, and owner-operated Desktop testing.
 Revision 1 binaries and revision 2 probe manifests retain their original meanings.
 This documentation pass adjudicates the review and defines E0 through E6 in the [probe plan](native-probes.md).
 The implementation adds developer protocol and frozen-runtime checks. Native host installation, client registration and model invocation remain separate gates.
 N1, bounded P0 build work, and independently authorized native probes can begin without waiting on ChatGPT support.
 P0 assembles the diagnostic candidate alongside N1 and consumes its frozen-launch changes before N2.
 Then use measured C1 limits for release, perform Claude N2 first, and admit ChatGPT N2 only after E1.
-M0 may run independently under its own approval; E6 precedes the Codex adapter, and P1 precedes clean-host H1.
+M0/M1/M2 are retired. P1 precedes clean-host H1 without an API-study dependency.
 
 ## Existing baseline
 
 The [feasibility guide](../runtime/feasibility/README.md) owns the implemented Docling candidate, immutable lock, and reproduction commands.
 Core owns the adapter, worker supervision, provenance, retained artifacts, and lexical retrieval contracts.
-The [measurement guide](../measurement/README.md) owns the implemented corpus, retrieval/restart gate, and unscored Claude M0 driver.
+The [measurement guide](../measurement/README.md) owns the implemented corpus, retrieval/restart gate, and offline historical accounting.
 Use those current contracts rather than copying historical core commits, test counts, or retriever constants from a proposal.
 The [review dispositions](review-disposition.md) preserve unresolved design obligations and earlier decisions.
 
@@ -51,7 +52,7 @@ Other common implementation work can continue without that unsupported claim.
 
 ## N1. Common configuration and launcher migration
 
-Implemented under ProductSpec revision 4. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
+Implemented under ProductSpec revision 5. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
 Tests cover closed settings, exact OCR tokens, atomic replacement, grant refusal, direct-versus-saved precedence and v1/v2 coexistence.
 Independent profile lifetimes, exceptional cleanup and verified resource paths are exercised offline.
 The diagnostic launcher does not complete host-dependent AC-2, AC-13 or AC-23 by itself.
@@ -75,7 +76,7 @@ Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tes
 10. Record application/version/mode, local process ancestry, runtime identity, setup path, instruction channel, approval prompts, and required host permissions.
 
 Keep host configuration changes scoped and reviewable; preserve preexisting registrations.
-If a model call requires an unapproved account or spend, stop that case and continue offline work.
+Use only the owner-authorized Desktop app for model-assisted checks. Provider API calls and SDK substitutes are prohibited.
 The existing launcher refuses source execution; N2 uses the P0 frozen candidate with owner-authorized local installation.
 Keep signing and clean-machine evidence in P1/H1; an unsigned candidate is not distributed.
 A host without a skill mechanism gets supported instructions, not a fork of the evidence workflow.
@@ -95,8 +96,7 @@ Acceptance: AC-4, AC-9, AC-21, AC-22. Owners: candidate harness, core tests, and
 - [ ] Stop release when useful imports cannot fit; do not introduce asynchronous jobs or an unapproved fallback profile.
 
 The developer harness's 300-second/4-GiB limits are diagnostic safeguards, not release defaults.
-The release cap constrains scored packaged studies, which must refreeze an incompatible corpus before paid execution.
-Diagnostic M0 retains its separately frozen developer limits and can run before the final release cap; report this distinction.
+The release cap bounds native large-document checks. Register their source bytes and density separately without rewriting the frozen citation corpus.
 Packaging must preserve complete engine identity, including installed dependency metadata, source files, OCR configuration, and native versions.
 
 ## P0. Bounded unsigned frozen-build feasibility
@@ -105,64 +105,35 @@ Implemented as a development-only [isolated builder and smoke](../runtime/p0/REA
 The local check covers frozen native/OCR import, a distinct warm conversion, exact physical-page evidence and restart reuse.
 Relocation and missing/changed identity-input checks supply development-machine evidence; native setup, signing and supported performance remain unverified.
 This result allows the corresponding owner-authorized N2 checks after E1 or E5, without claiming those checks have passed.
-P1 still waits on the cheap probe decision and its separate release requirements.
+P1 waits on its resource, native, licensing and signing requirements. It does not wait on M0 or token measurements.
 
-## M0. Cheap existing Claude probe before distribution packaging spend
+## M0, M1 and M2. Retired API studies
 
-Acceptance: diagnostic only; M0 cannot pass AC-17 or establish public savings.
-Owners: existing measurement driver and its private evidence directory.
-Prerequisites: matching engine/retrieval/restart evidence, the existing M0 `profile.json` and its bound diagnostic settings (not a P0 frozen executable), and explicit owner approval of account, manifest hash, model, and finite budget.
-M0 does not require native timeout measurements or the final release page cap; its results cannot establish native support.
+The nine-trial probe, provider driver expansion and scored API study are superseded by the owner's Desktop-only decision.
+Do not finalize, execute or revive them, even when historical files contain account or budget approval fields.
+Keep unrun drafts with a supersession record outside Git. Preserve offline accounting and report readers for historical records.
+No provider execution SDK or API-key study path belongs in the active implementation.
 
-- [ ] Revalidate the prepared draft against current executable sources and environment; regenerate only when its bound inputs changed.
-- [ ] Finalize after the owner selects the exact model, account, and dated prices. Finalization alone is not spending approval.
-- [ ] Run the frozen nine trials only after approval, retaining failures, limited baselines, incomplete usage, and mixed document access.
-- [ ] Review paired answer quality before interpreting direction, reporting actual character sizes alongside page counts.
-- [ ] Decide whether to pursue a token headline or emphasize installation and citations from the observed outcome.
+## D1. Desktop document-access and optional usage evidence
 
-This documentation revision does not invalidate an otherwise matching version 2 draft by itself.
-Do not relabel it as a newer revision or enlarge its budget to include another provider.
-A negative or incomplete probe is a finding, not a reason to handicap the baseline.
+Acceptance: AC-15 through AC-18 and EVAL-2. Owners: native walkthroughs, citation checks, and private evidence.
 
-## M1. Provider-neutral measurement extension
+1. Add negative tests proving old execution/finalization entry points refuse before credentials, processes or writes.
+2. Complete N2 on each supported Desktop mode using the owner's existing app account.
+3. Register a separate large synthetic document, realistic text density, source hashes, resource bounds, question and rubric; preserve the frozen citation corpus.
+4. Observe the app's ordinary upload and document workflow on those exact bytes without constraining its tools.
+5. Test OpenReading on the same bytes; record retrieval calls, exact citations, missing evidence, timings and resource use.
+6. Claim access beyond an app limit only when its actual failure and OpenReading's successful sourced answer are both recorded.
+7. Inspect whether that Desktop app exposes complete usage. If not, report token savings as unmeasured without blocking packaging.
+8. Any future token comparison requires a separate Desktop-specific counter and quality protocol; provider API adapters are not a fallback.
 
-Prerequisites: N0 contract, existing fair baseline, and E6 proof of isolation, API authentication, complete counters, and actual budget controls.
-Acceptance: AC-15 through AC-18, EVAL-2.
-Owners: `measurement/` adapters and versioned schemas, accounting/report modules, synthetic log fixtures, and measurement README.
-
-1. Inventory the existing runner's execution, permission, identity, budget, and accounting boundaries before extracting shared code.
-2. Preserve the version 1 driver and version 2 Claude probe; write new closed version 3 manifest/trial contracts with explicit provider and surface.
-3. Move provider execution behind the design's small adapter interface with fixture tests proving unchanged Claude outcomes.
-4. Implement isolated per-trial Codex state and instructions only after E6 rejects evidence/sentinel reads and verifies the API-key account path; never mutate shared host configuration.
-5. Verify pinned raw-counter semantics and test caches, cumulative updates, nested work, retries, errors, missing usage, and reasoning/output overlap.
-6. Freeze usable A tools and identical B/C extraction, including physical-page citation information and treatment instructions.
-7. Preserve identity, replay, pricing, approved budgets, and stop reasons; add the finite watchdog and disclose unverified in-flight caps instead of inventing CLI flags.
-8. Generate independent provider reports with quality-gated comparisons, all failures, actual input sizes, and C adherence.
-9. Add calibration, null controls, and the separately registered primary/follow-up schedules before claiming full-study support.
-10. Require separate owner approval for every provider run; no live invocation belongs in `make verify`.
-
-Do not introduce a generic API loop that lacks the ordinary tools the comparison claims to represent.
-If a native chat host lacks complete counters, keep it functional-only rather than estimating hidden tokens.
-All affected Python and Node coverage metrics retain their enforced 95% floors.
-New accounting and budget regressions must fail when their fixes are removed.
-
-## M2. Approved calibration and scored execution
-
-Prerequisites: M1 tooling, verified provider instrumentation, frozen tasks fitting the chosen measured profile, and independent approval of each manifest/account/budget.
-Owners: measurement execution and private evidence; acceptance AC-15 through AC-17 and EVAL-2.
-
-- [ ] Run the registered calibration and null controls; retain all failures and inspect baseline usability and complete usage.
-- [ ] Refreeze after any calibration-driven change and obtain new approval before the primary schedule.
-- [ ] Execute the primary study, review quality and deterministic citations, and publish only the supported reviewed conclusion.
-- [ ] Run separately registered follow-ups after the primary result is fixed; never pool them into first-use totals.
-- [ ] Report each provider and execution surface separately, including over-limit and unrun trials.
-
-A packaged-client study requires the corresponding P1/H1 installation evidence; a developer study labels its narrower runtime explicitly.
-A functional release may proceed without savings claims while M2 remains incomplete.
+Keep application/version/mode, source size, physical pages, extracted characters, failures, and capture completeness in every record.
+A sparse 80-page fixture does not establish performance on a dense 80-page document or a thousand-page input.
+No quota, billing, context-window or total-token claim follows from smaller returned tool payloads.
 
 ## P1. Later signed distribution
 
-Prerequisites: C1 release profile, reviewed native connection routes, and M0 decision.
+Prerequisites: C1 release profile and reviewed native connection routes. No API study or token measurement is required.
 Acceptance: AC-1, AC-13, AC-19.
 Owners: runtime lock, build/verifier, package metadata, notices, packaging tests, and client guides.
 

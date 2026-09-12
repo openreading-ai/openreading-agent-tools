@@ -1,6 +1,6 @@
 # Native connection and frozen-runtime probes
 
-**Status:** native experiments remain proposed under ProductSpec revision 4. E0 and the P0 developer smoke are implemented; no native-host result is implied.
+**Status:** native experiments remain proposed under ProductSpec revision 5. E0 and the P0 developer smoke are implemented; no native-host result is implied.
 **Owners:** Agent Tools owns host probes and capture; core owns engine, evidence, and worker behavior.
 **Prerequisites:** [assistant contract](assistant-clients.md) and [implementation order](implementation-plan.md).
 
@@ -12,7 +12,7 @@ Native capture must add app/version/mode, effective transport and the host's own
 Store raw logs, configuration diffs and transcripts privately, outside document grants and trial read permissions.
 
 Host installation and model invocation require the owner's respective authorization.
-A probe needing a chat request is not automatically free; no synthetic content bypasses account or spending approval.
+Use the owner's existing Desktop app for chat requests; no provider API, SDK substitute, or separate metered study is allowed.
 Prepare configuration changes for review, preserve preexisting registrations, and restore only this experiment's changes afterward.
 Do not overwrite concurrent host edits by restoring an entire stale backup.
 Do not change organization policy, expose an endpoint, bypass OS protection, or use a remote executor.
@@ -99,21 +99,10 @@ Verify the launcher's closed token mapping, including refusal of unresolved plac
 Record save/cancel behavior, executable permissions, extraction location, and actual host error/log paths.
 An unsigned local wrapper is developer-only and cannot pass signing or distribution acceptance.
 
-## E6. Codex measurement isolation and accounting
+## E6. Retired provider API measurement probe
 
-Blocks: the additional provider driver, not the Claude M0 probe.
-The offline portion checks a fresh per-trial state directory, effective settings, unrelated MCP absence, and no changes to the user's shared configuration.
-Do not change the parent agent's home or Codex state.
-Plant recognizable instructions in otherwise excluded user/project locations to detect inherited context.
-Use a separate synthetic workspace, approved tool inventory, scratch output, and sentinel files outside the intended read boundary.
-
-The live portion requires an exact account/model, API authentication, approved finite budget, and watchdog.
-Verify that attempted reads of ground truth, other extractions, earlier events, and unrelated files fail through ordinary tools, shell, and symlink paths.
-A read-only sandbox that can read the evidence fails this experiment; it is not sufficient isolation.
-Confirm legitimate local search and scratch-file output still work for the ordinary-tools arm.
-
-Capture raw usage events and establish cumulative versus per-request behavior, cached-input inclusion, model rows, errors, and completeness.
-Verify the authenticated account source and refusal of quota-login fallback.
-Identify actual available turn/output/request controls without inventing unsupported CLI flags.
-Record timeout behavior and residual in-flight billing risk; missing counters or ineffective isolation block paid studies.
-Use the evaluation design's separate version 3 contracts only after these observations support an adapter.
+The proposed Codex API authentication, isolation and spending experiment is retired.
+It is not a prerequisite for packaging, native connection testing, or release.
+Use E1/E2/E3/E5 for actual Desktop mode, timing, interruption and setup observations.
+A future usage investigation may inspect counters exposed by the actual Desktop app, without invoking provider APIs.
+Missing or incomplete counters mean token savings remain unmeasured.

@@ -6,14 +6,14 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 4 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
-The revision 2 developer feasibility harness, corpus/retrieval gate, and Claude token-probe driver are implemented.
+ProductSpec revision 5 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
+The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
-The separate P0 freezer supports development-only checks; native setup and additional provider drivers remain proposed.
+The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
 The core candidate implements local Docling supervision; client installation and signed distribution remain unbuilt.
 Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
 No public binary or measured token savings are released.
-The remaining release and live-study gates stay in `design/`.
+The remaining native and release gates stay in `design/`.
 
 ## Ownership
 
@@ -93,11 +93,14 @@ Optional Git hooks run the same gate through `make hooks`.
 Add focused offline tests for product changes to this same gate.
 Python line and branch coverage and Node line, branch, and function coverage have enforced 95% floors.
 Do not create a percentage badge before a corresponding enforced check exists.
-Real host installation and paid model trials are explicit lanes, separate from offline tests.
+Real host installation and owner-operated Desktop walkthroughs remain separate from offline tests.
+Never invoke provider model APIs, run separately metered trials, or add an execution SDK as a Desktop substitute.
 
 Synthetic fixtures belong in public tests.
 Private documents, labeled customer data, screenshots of private chats, keys, and live transcripts do not.
-Run a live model experiment only with an explicit account, run manifest, and approved spend limit.
+Existing Desktop app accounts may be used for owner-authorized native checks.
+Historical API account, budget or approval fields authorize nothing; execution and finalization must always refuse.
+Token savings remain unmeasured unless verified counters from the actual Desktop app support them.
 
 ## Truth at the product boundary
 
@@ -149,4 +152,4 @@ assets/brand/   shared OpenReading brand asset
 .githooks/      optional local commit and push checks
 ~~~
 
-Real host and paid-study evidence remain separate from offline verification.
+Native Desktop evidence remains separate from offline verification. No provider API trials are permitted.

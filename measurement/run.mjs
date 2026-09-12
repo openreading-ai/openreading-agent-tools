@@ -1,15 +1,11 @@
-/** Execute only an explicitly approved, frozen synthetic experiment.
- * Every arm receives frozen PDF extraction recipes. Utility preflight precedes queries.
- * Filename filters and canonical targets bound base-tool grants, not content regexes.
- * Dry validation does not import the model SDK or perform network calls.
- * A manifest hash authorizes one account label and bounded SDK-estimated spend.
- * The SDK cap is not a hard billing cap: an in-flight request can exceed it.
- * Failed or incomplete usage stops scheduling instead of assuming unspent budget.
+/** Offline validation and replay of historical experiment records.
+ * Provider API trials are permanently disabled, including injected transports.
+ * Historical account/budget fields describe old records, never execution authority.
+ * Desktop functional checks use the actual app and do not enter this module.
  */
 import { createHash } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import {
-  appendFileSync,
   closeSync,
   existsSync,
   lstatSync,
@@ -136,30 +132,12 @@ function baselineInventory(environment, manifest, dataset) {
   }
 }
 
-function baselinePrompt(run, task) {
-  if (!run.baseline) return "";
-  const recipe = run.baseline.recipes[task.document];
-  return (
-    "\nAvailable local PDF utility (same in every arm). Choose Read or local extraction as appropriate. " +
-    "Bash permits these exact forms; no pipes or redirects.\n" +
-    "Whole document: " +
-    recipe.whole +
-    "\n" +
-    "One physical page: " +
-    recipe.page +
-    "\n" +
-    (recipe.file
-      ? "Save document text in your working directory for Read or Grep: " +
-        recipe.file +
-        "\n"
-      : "") +
-    "Replace each {page} with the same integer from 1 through " +
-    recipe.pages +
-    ".\n"
-  );
-}
-
-export function validateRun(manifestPath, approvedHash) {
+/** Report replay validates captured inputs without executing or revalidating old installations. */
+export function validateRun(
+  manifestPath,
+  approvedHash,
+  { recordOnly = false } = {},
+) {
   const path = realpathSync(manifestPath),
     bytes = readFileSync(path),
     manifest = JSON.parse(bytes);
@@ -202,17 +180,6 @@ export function validateRun(manifestPath, approvedHash) {
     paths[name] = checkedFile(root, manifest[name], manifest[hashName]);
   let prices = null;
   if (probe) {
-    if (
-      JSON.parse(
-        readFileSync(
-          join(
-            HERE,
-            "../node_modules/@anthropic-ai/claude-agent-sdk/package.json",
-          ),
-        ),
-      ).version !== manifest.sdk_version
-    )
-      throw new Error("Installed SDK version differs from the frozen probe.");
     for (const name of [
       "runtime",
       "profile",
@@ -227,26 +194,29 @@ export function validateRun(manifestPath, approvedHash) {
         manifest[`${name}_file`],
         manifest[`${name}_sha256`],
       );
-    if (
-      !isAbsolute(manifest.source_python) ||
-      fileHash(manifest.source_python) !== manifest.source_python_sha256
-    )
-      throw new Error("Source interpreter hash mismatch.");
-    const snapshot = execFileSync(
-      manifest.source_python,
-      [
-        "-I",
-        "-B",
-        join(HERE, "../scripts/probe_environment.py"),
-        "--profile",
-        paths.profile,
-        "--lock",
-        paths.lock,
-      ],
-      { timeout: 60000, maxBuffer: 4 * 1024 * 1024 },
-    );
-    if (digest(snapshot) !== manifest.runtime_sha256)
-      throw new Error("Source environment changed; prepare a new probe.");
+    let snapshot = readFileSync(paths.runtime);
+    if (!recordOnly) {
+      if (
+        !isAbsolute(manifest.source_python) ||
+        fileHash(manifest.source_python) !== manifest.source_python_sha256
+      )
+        throw new Error("Source interpreter hash mismatch.");
+      snapshot = execFileSync(
+        manifest.source_python,
+        [
+          "-I",
+          "-B",
+          join(HERE, "../scripts/probe_environment.py"),
+          "--profile",
+          paths.profile,
+          "--lock",
+          paths.lock,
+        ],
+        { timeout: 60000, maxBuffer: 4 * 1024 * 1024 },
+      );
+      if (digest(snapshot) !== manifest.runtime_sha256)
+        throw new Error("Source environment changed; prepare a new probe.");
+    }
     const runtime = JSON.parse(snapshot);
     if (
       runtime.environment.core_commit !== manifest.core_commit ||
@@ -301,11 +271,12 @@ export function validateRun(manifestPath, approvedHash) {
     );
     if (release.core_commit !== manifest.core_commit)
       throw new Error("Runtime core revision mismatch.");
-    runtimeInventory(paths.runtime, release);
+    if (!recordOnly) runtimeInventory(paths.runtime, release);
   }
   if (
-    !isAbsolute(manifest.client_path) ||
-    fileHash(manifest.client_path) !== manifest.client_sha256
+    !recordOnly &&
+    (!isAbsolute(manifest.client_path) ||
+      fileHash(manifest.client_path) !== manifest.client_sha256)
   )
     throw new Error("Client executable hash mismatch.");
   const dataset = JSON.parse(readFileSync(paths.dataset_manifest));
@@ -347,6 +318,7 @@ export function validateRun(manifestPath, approvedHash) {
   for (const [name, hash] of Object.entries(environment.plugin_files ?? {}))
     checkedFile(root, name, hash);
   if (
+    !recordOnly &&
     environment.package_lock_sha256 &&
     environment.package_lock_sha256 !==
       fileHash(join(HERE, "../package-lock.json"))
@@ -387,6 +359,7 @@ export function validateRun(manifestPath, approvedHash) {
     ),
   );
   if (
+    !recordOnly &&
     environment.measurement_source_sha256 &&
     environment.measurement_source_sha256 !== sourceHash
   )
@@ -400,9 +373,11 @@ export function validateRun(manifestPath, approvedHash) {
     root,
     paths,
     dataset,
-    baseline: baselineInventory(environment, manifest, dataset),
+    baseline: recordOnly
+      ? null
+      : baselineInventory(environment, manifest, dataset),
     prices,
-    liveApproved: approvedHash === hash,
+    liveApproved: false,
   };
 }
 
@@ -463,336 +438,39 @@ export function plannedTrials(run) {
   return trials;
 }
 
-function permission(run, workspace, decisions) {
-  const readable = [
-    workspace,
-    ...Object.keys(run.dataset.files)
-      .filter((name) => /\.pdf$/.test(name))
-      .map((name) => join(run.root, name)),
-  ];
-  const decide = (name, input) => {
-    if (
-      name.startsWith("mcp__openreading") ||
-      name.startsWith("mcp__plugin_openreading-local-proof_openreading__")
-    )
-      return { behavior: "allow", updatedInput: input };
-    if (
-      name === "Bash" &&
-      run.manifest.allowed_bash_commands.includes(input.command)
-    )
-      return { behavior: "allow", updatedInput: input };
-    if (["Read", "Glob", "Grep"].includes(name)) {
-      let candidate;
-      try {
-        candidate = realpathSync(
-          resolve(
-            workspace,
-            (name === "Read" ? input.file_path : input.path) ?? ".",
-          ),
-        );
-      } catch {
-        return {
-          behavior: "deny",
-          message: "The requested evidence path is unavailable.",
-        };
-      }
-      // Grep's pattern is content, while its glob and Glob's pattern select filenames.
-      // Restrict filename expansion syntax so braces or escapes cannot hide traversal.
-      const pattern =
-        name === "Glob"
-          ? input.pattern
-          : name === "Grep"
-            ? input.glob
-            : undefined;
-      const boundedPattern =
-        pattern === undefined ||
-        (typeof pattern === "string" &&
-          !isAbsolute(pattern) &&
-          !pattern.startsWith("~") &&
-          !pattern.split("/").includes("..") &&
-          ![...pattern].some((character) => "\\{}()[]!".includes(character)));
-      if (
-        boundedPattern &&
-        readable.some(
-          (path) =>
-            candidate === path ||
-            (path === workspace && candidate.startsWith(path + sep)),
-        )
-      )
-        return { behavior: "allow", updatedInput: input };
-    }
-    return {
-      behavior: "deny",
-      message:
-        "This experiment grants only its frozen document inputs and approved local commands.",
-    };
-  };
-  return async (name, input) => {
-    const result = decide(name, input);
-    if (result.behavior === "deny")
-      decisions[name] = (decisions[name] ?? 0) + 1;
-    return result;
-  };
+export async function runTrial() {
+  throw new Error(
+    "Provider API trials are disabled. Use the Desktop app for functional checks.",
+  );
 }
 
-export async function runTrial(
-  run,
-  task,
-  { query, remainingBudget = run.manifest.max_estimated_usd_per_trial } = {},
-) {
-  if (!run.liveApproved)
-    throw new Error("Model execution requires an approved manifest hash.");
-  run = validateRun(run.manifestPath, run.manifestHash);
-  if (!query && !run.baseline)
+export async function main(argv = process.argv.slice(2)) {
+  if (argv.includes("--live"))
     throw new Error(
-      "Prepare a verified local PDF baseline before live execution.",
+      "Provider API trials are disabled. Use the Desktop app for functional checks.",
     );
-  const datasetTask = run.dataset.tasks.find(
-    (item) => item.id === task.task_id,
-  );
-  if (run.baseline && datasetTask) {
-    const text = execFileSync(
-      run.baseline.executable,
-      ["-f", "1", "-l", "1", join(run.root, datasetTask.document), "-"],
-      { encoding: "utf8", timeout: 5000, maxBuffer: 2 * 1024 * 1024 },
-    );
-    if (!text.trim())
-      throw new Error(
-        "Baseline utility produced no text; no model call was started.",
-      );
-  }
-  if (!query) {
-    if (!process.env.ANTHROPIC_API_KEY)
-      throw new Error("Live experiments require an explicit API account key.");
-    const environment = JSON.parse(readFileSync(run.paths.environment_file));
-    if (
-      !environment.measurement_source_sha256 ||
-      (run.manifest.schema_version === "1" && !environment.plugin_files) ||
-      !environment.package_lock_sha256
-    )
-      throw new Error(
-        "The measurement source must be frozen before live execution.",
-      );
-    if (
-      environment.account_key_sha256 !==
-      accountFingerprint(
-        process.env.ANTHROPIC_API_KEY,
-        environment,
-        run.manifest.schema_version,
-      )
-    )
-      throw new Error("Approved account key fingerprint does not match.");
-    const version = execFileSync(run.manifest.client_path, ["--version"], {
-      encoding: "utf8",
-    }).trim();
-    if (
-      run.manifest.schema_version === "2"
-        ? version.split(/\s+/)[0] !== run.manifest.client_version
-        : !version.startsWith(run.manifest.client_version)
-    )
-      throw new Error("Installed client version differs from the manifest.");
-    ({ query } = await import("@anthropic-ai/claude-agent-sdk"));
-  }
-  if (
-    !datasetTask ||
-    !plannedTrials(run).some(
-      (item) =>
-        item.task_id === task.task_id &&
-        item.arm === task.arm &&
-        item.repetition === task.repetition,
-    )
-  )
-    throw new Error("Unplanned trial.");
-  const id = `${task.task_id}-${task.repetition}-${task.arm}`;
-  const trialRoot = join(run.root, "runs", run.manifest.experiment_id, id);
-  mkdirSync(trialRoot, { recursive: true, mode: 0o700 });
-  const eventsPath = join(trialRoot, "events.jsonl");
-  closeSync(openSync(eventsPath, "wx", 0o600));
-  const events = [],
-    controller = new AbortController();
-  const started = Date.now();
-  let state = "completed",
-    rawBytes = 0;
-  const timeout = setTimeout(
-    () => controller.abort(),
-    run.manifest.timeout_seconds_per_trial * 1000,
-  );
-  let prompt =
-    readFileSync(run.paths.prompt_file, "utf8") +
-    "\nQuestion: " +
-    datasetTask.question +
-    "\n";
-  if (task.arm === "B")
-    prompt +=
-      "Complete local extraction with physical page markers:\n" +
-      readFileSync(join(run.root, datasetTask.extraction), "utf8");
-  else
-    prompt +=
-      "Document: " +
-      (task.arm === "C"
-        ? datasetTask.document.split("/").at(-1)
-        : join(run.root, datasetTask.document));
-  prompt += baselinePrompt(run, datasetTask);
-  const probe = run.manifest.schema_version === "2";
-  if (probe && task.arm === "C")
-    prompt += "\n" + readFileSync(run.paths.skill_file, "utf8");
-  const decisions = {};
-  const options = {
-    model: run.manifest.model_id,
-    pathToClaudeCodeExecutable: run.manifest.client_path,
-    cwd: trialRoot,
-    settingSources: [],
-    tools: ["Read", "Glob", "Grep", "Bash"],
-    permissionMode: "default",
-    canUseTool: permission(run, trialRoot, decisions),
-    maxTurns: run.manifest.max_turns_per_trial,
-    maxBudgetUsd: Math.min(
-      remainingBudget,
-      run.manifest.max_estimated_usd_per_trial,
-    ),
-    abortController: controller,
-    persistSession: false,
-    env: {
-      PATH: process.env.PATH,
-      HOME: trialRoot,
-      TMPDIR: trialRoot,
-      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
-    },
-    ...(task.arm === "C"
-      ? probe
-        ? {
-            mcpServers: {
-              openreading: {
-                command: "/usr/bin/sandbox-exec",
-                timeout: 330000,
-                alwaysLoad: true,
-                args: [
-                  "-p",
-                  "(version 1)(allow default)(deny network*)",
-                  run.manifest.source_python,
-                  "-I",
-                  "-B",
-                  "-m",
-                  "openreading.mcp_server.main",
-                  "--profile",
-                  "local-document-proof-v2",
-                  "--profile-config",
-                  run.paths.profile,
-                  "--input-root",
-                  dirname(join(run.root, datasetTask.document)),
-                  "--artifact-root",
-                  join(trialRoot, "artifacts"),
-                ],
-                env: {
-                  HF_HUB_OFFLINE: "1",
-                  TRANSFORMERS_OFFLINE: "1",
-                  PYTHONDONTWRITEBYTECODE: "1",
-                  PYTHONNOUSERSITE: "1",
-                },
-              },
-            },
-          }
-        : {
-            plugins: [{ type: "local", path: run.paths.plugin }],
-            settings: {
-              pluginConfigs: {
-                "openreading-local-proof": {
-                  options: {
-                    input_root: dirname(join(run.root, datasetTask.document)),
-                  },
-                },
-              },
-            },
-          }
-      : {}),
-  };
-  try {
-    for await (const event of query({ prompt, options })) {
-      const line = JSON.stringify(event) + "\n";
-      rawBytes += Buffer.byteLength(line);
-      if (rawBytes > 50 * 1024 * 1024) {
-        controller.abort();
-        throw new Error("Evidence limit");
-      }
-      appendFileSync(eventsPath, line);
-      events.push(event);
-    }
-    if (
-      controller.signal.aborted ||
-      events.filter((e) => e.type === "result").at(-1)?.subtype !== "success"
-    )
-      state = "failed";
-  } catch {
-    state = controller.signal.aborted ? "timeout" : "failed";
-  } finally {
-    clearTimeout(timeout);
-    controller.abort();
-  }
-  let artifactEvidence = null;
-  if (probe && task.arm === "C") {
-    try {
-      artifactEvidence = verifyTrialArtifacts(run, trialRoot);
-    } catch {
-      state = "evidence_invalid";
-    }
-  }
-  const trial = {
-    schema_version: run.manifest.schema_version,
-    ...task,
-    ...(probe
-      ? { runtime_kind: "developer_harness", task_kind: datasetTask.task_kind }
-      : {}),
-    category: datasetTask.category,
-    manifest_sha256: run.manifestHash,
-    state,
-    usage: trialUsage(run, events),
-    baseline: {
-      utility_verified: run.baseline !== null,
-      bash_denials: decisions.Bash ?? 0,
-    },
-    permission_denials: decisions,
-    ...(probe ? { artifact_evidence: artifactEvidence } : {}),
-    quality: { passed: null, citation_valid: null },
-    ...(probe
-      ? {
-          turns:
-            events.filter((e) => e.type === "result").at(-1)?.num_turns ?? null,
-        }
-      : {}),
-    wall_ms: Date.now() - started,
-    evidence: { events: relative(run.root, eventsPath) },
-  };
-  writeFileSync(
-    join(trialRoot, "trial.json"),
-    JSON.stringify(trial, null, 2) + "\n",
-    { flag: "wx", mode: 0o600 },
-  );
-  return trial;
-}
-
-export async function main(argv = process.argv.slice(2), { query } = {}) {
   const path = argv[0];
   if (!path || argv.includes("--help")) {
     console.log(
-      "node measurement/run.mjs MANIFEST [--report | --live --approved-manifest-sha256 HASH]",
+      "node measurement/run.mjs MANIFEST [--report] (offline historical validation only; API trials disabled)",
     );
     return 0;
   }
   const reportOnly = argv.includes("--report");
-  if (reportOnly && argv.includes("--live"))
-    throw new Error("Choose report or live execution.");
-  const live = argv.includes("--live"),
-    approval = argv.indexOf("--approved-manifest-sha256");
-  if (live && approval < 0)
-    throw new Error("Live mode requires an approved manifest hash.");
-  const run = validateRun(path, approval >= 0 ? argv[approval + 1] : undefined),
+  const approval = argv.indexOf("--approved-manifest-sha256");
+  const run = validateRun(
+      path,
+      approval >= 0 ? argv[approval + 1] : undefined,
+      { recordOnly: reportOnly },
+    ),
     schedule = plannedTrials(run);
-  if (!live && !reportOnly) {
+  if (!reportOnly) {
     console.log(
       JSON.stringify(
         {
           mode: "dry-run",
+          execution: "disabled",
+          scope: "historical record validation, not Desktop usage evidence",
           manifest_sha256: run.manifestHash,
           planned_trials: schedule.length,
           estimated_usd_ceiling: run.manifest.max_estimated_usd_total,
@@ -810,17 +488,11 @@ export async function main(argv = process.argv.slice(2), { query } = {}) {
     fd = openSync(lock, "wx", 0o600),
     trials = [];
   try {
-    let spent = 0,
-      incomplete = false;
-    const completed = new Set();
-    // Account for all existing trials before scheduling anything after a restart.
+    // Recompute historical usage from raw events; editing a summary cannot rewrite usage.
     for (const task of schedule) {
       const id = `${task.task_id}-${task.repetition}-${task.arm}`;
       const record = join(output, id, "trial.json");
-      if (!existsSync(record)) {
-        if (existsSync(join(output, id, "events.jsonl"))) incomplete = true;
-        continue;
-      }
+      if (!existsSync(record)) continue;
       const trial = JSON.parse(readFileSync(record));
       if (trial.manifest_sha256 !== run.manifestHash)
         throw new Error("Stored trial belongs to another manifest.");
@@ -832,33 +504,18 @@ export async function main(argv = process.argv.slice(2), { query } = {}) {
       if (!isDeepStrictEqual(trial.usage, trialUsage(run, events)))
         throw new Error("Stored trial usage differs from its raw events.");
       trials.push(trial);
-      completed.add(id);
-      const cost = charge(trial);
-      if (cost === null) incomplete = true;
-      else {
-        spent += cost;
-        if (cost > run.manifest.max_estimated_usd_per_trial) incomplete = true;
-      }
     }
-    if (!incomplete && !reportOnly)
-      for (const task of schedule) {
-        if (completed.has(`${task.task_id}-${task.repetition}-${task.arm}`))
-          continue;
-        if (spent >= run.manifest.max_estimated_usd_total) break;
-        const trial = await runTrial(run, task, {
-          query,
-          remainingBudget: run.manifest.max_estimated_usd_total - spent,
-        });
-        trials.push(trial);
-        const cost = charge(trial);
-        if (cost === null) break;
-        spent += cost;
-        if (cost > run.manifest.max_estimated_usd_per_trial) break;
-      }
     writeFileSync(
       join(output, "report.json"),
-      JSON.stringify(buildReport(run.manifest, trials, run.dataset), null, 2) +
-        "\n",
+      JSON.stringify(
+        {
+          ...buildReport(run.manifest, trials, run.dataset),
+          execution: "disabled",
+          scope: "historical API record replay; not Desktop usage evidence",
+        },
+        null,
+        2,
+      ) + "\n",
       { mode: 0o600 },
     );
   } finally {
@@ -874,7 +531,7 @@ if (
   main().catch((error) => {
     // Validation messages are fixed text; the runner never interpolates the account key.
     console.error(
-      `Experiment stopped: ${error.message} Check the manifest, approval, and private trial records.`,
+      `Experiment stopped: ${error.message} Check the historical manifest and private records. API execution cannot be enabled.`,
     );
     process.exitCode = 1;
   });

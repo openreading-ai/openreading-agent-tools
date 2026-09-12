@@ -383,6 +383,31 @@ class CitationTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError, "follow their quote"):
             await self.check(capture, review, retained)
 
+    async def test_v1_refuses_the_new_page_label_spellings(self):
+        for page in ("physical page 3", "Physical page: 3"):
+            capture, review, retained = fixture()
+            answer = capture["events"][-1]["text"].replace("physical PDF page 3", page)
+            capture["events"][-1]["text"] = answer
+            start = answer.index(page)
+            review["citations"][0]["page_span"] = [start, start + len(page)]
+            with self.assertRaisesRegex(ValueError, "Visible physical-page label differs"):
+                await self.check(capture, review, retained)
+
+    async def test_unknown_origin_requires_visible_disclosure(self):
+        capture, review, retained = fixture()
+        retained["passages"][0]["text_origin"] = "unknown"
+        capture["events"][5]["result"]["content"][0]["text"] = json.dumps(retained)
+        search = json.loads(capture["events"][3]["result"]["content"][0]["text"])
+        search["hits"][0]["text_origin"] = "unknown"
+        capture["events"][3]["result"]["content"][0]["text"] = json.dumps(search)
+        c = review["citations"][0]
+        c["text_origin"] = "unknown"
+        with self.assertRaises(ValueError):
+            await self.check(capture, review, retained)
+        capture["events"][-1]["text"] += " unknown"
+        c["origin_span"] = [68, 75]
+        self.assertEqual((await self.check(capture, review, retained))["verified_citations"], 1)
+
 
 class NativeLayoutTests(unittest.IsolatedAsyncioTestCase):
     module = CitationTests.module
@@ -533,6 +558,47 @@ class NativeLayoutTests(unittest.IsolatedAsyncioTestCase):
             capture["events"][-1]["text"] = answer
             with self.assertRaises(ValueError):
                 await self.check(capture, review, retained)
+
+    async def test_distinct_quotes_with_overlapping_windows_are_refused_by_window_guard(self):
+        capture, review, retained = self.native_fixture()
+        original = capture["events"][-1]["text"]
+        offset = len(original) + 2
+        capture["events"][-1]["text"] += "\n\n" + original
+        extra = copy.deepcopy(review["citations"][0])
+        for key in ("quote_span", "filename_span", "page_span", "origin_span", "presentation_span"):
+            extra[key] = [v + offset for v in extra[key]]
+        review["citations"].append(extra)
+        self.assertEqual((await self.check(capture, review, retained))["verified_citations"], 2)
+        extra["presentation_span"][0] = 0
+        with self.assertRaisesRegex(ValueError, "windows overlap"):
+            await self.check(capture, review, retained)
+
+    async def test_label_outside_window_is_refused_by_containment_guard(self):
+        capture, review, retained = self.native_fixture("list")
+        c = review["citations"][0]
+        c["presentation_span"][1] = c["filename_span"][0]
+        with self.assertRaisesRegex(ValueError, "leave their window"):
+            await self.check(capture, review, retained)
+
+    async def test_exact_quote_header_requires_its_closing_parenthesis(self):
+        capture, review, retained = self.native_fixture()
+        answer = capture["events"][-1]["text"]
+        answer = answer.replace("From ", "Exact quote (").replace(
+            " (native text):", ", native text:"
+        )
+        capture["events"][-1]["text"] = answer
+        c = review["citations"][0]
+        for field, text in (
+            ("quote_span", "Provide 60 days notice."),
+            ("filename_span", "agreement.pdf"),
+            ("page_span", "physical page 3"),
+            ("origin_span", "native"),
+        ):
+            start = answer.index(text)
+            c[field] = [start, start + len(text)]
+        c["presentation_span"] = [0, len(answer)]
+        with self.assertRaisesRegex(ValueError, "Unsupported citation presentation"):
+            await self.check(capture, review, retained)
 
 
 class CitationCommandTests(unittest.TestCase):

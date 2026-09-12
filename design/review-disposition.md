@@ -10,15 +10,21 @@ This pass updates [ProductSpec revision 2](../product/specs/local-document-proof
 **Deferred** names a later gate or revision and does not block this documentation pass.
 Delete this disposition record when the corresponding migration finishes and durable facts live beside code.
 
+## Revision 5 supersession
+
+Provider API studies are prohibited; existing Desktop walkthroughs remain allowed.
+Earlier M0/M1/M2, account, pricing and budget decisions below are historical, not active prerequisites.
+The revision 5 ProductSpec and implementation plan supersede them. Packaging does not wait for token measurements.
+
 ## Decisions and contracts
 
 | Finding | Disposition and concrete resolution |
 | --- | --- |
-| D-1 | Accepted. M0 precedes further packaging; null controls and price-weighted diagnostics complement the unchanged primary input measure. Add the C-beats-A-only interpretation. |
+| D-1 | Superseded in revision 5. No API study gates packaging; Desktop usage remains unmeasured. |
 | D-2 | Accepted with a different explicit fallback. Developer ID, hardened runtime, notarization, entitlements, quarantine, and first-launch checks gate distribution. Use a signed app/installer containing the same engines if MCPB layout fails; otherwise block release. |
 | D-3 | Superseded by the recorded owner decision. Exclude PyMuPDF from the new bundle without making a blanket legal determination about all combinations or transitive dependencies. |
 | D-4 | Accepted with existing-code context. Claude Code's explicit installation configuration already connects successfully; Codex already persists a grant through setup. Specify both, add OCR configuration, and retain fail-closed startup. |
-| D-5 | Accepted. Add frozen realistic corpus/query fixtures, a top-five supporting-page gate, offset-preserving search dehyphenation, and retriever identity before paid trials. |
+| D-5 | Accepted. Add frozen realistic corpus/query fixtures, a top-five supporting-page gate, offset-preserving search dehyphenation, and retriever identity before native Desktop evidence checks. |
 | C-1 | Accepted. Retrieval limits belong in tool descriptions; remove the contradictory receipt promise from the spec. |
 | C-2 | Preserved first alternative. Invalid or absent setup exits nonzero before tool registration. No promise of a tool-level error when tools are unavailable. |
 | C-3 | Accepted. Add OS-permission errors and observed host-specific recovery guidance, without claiming every permission denial is a macOS privacy prompt. |
@@ -52,7 +58,7 @@ Delete this disposition record when the corresponding migration finishes and dur
 | T-8 | Accepted. Preregister a separately budgeted cumulative follow-up outcome with its own claim wording; never relabel first-use results. |
 | P-1 | Already implemented. `make sync` installs the pinned Python toolchain and both locks; `make verify` runs Python and Node coverage. `npm run verify` remains the Node-only gate. |
 | P-2 | Accepted. Use a snapshotted clean macOS VM, not a fresh developer-machine user account. Execution remains deferred. |
-| P-3 | Accepted. M0 is an unscored nine-trial developer-harness probe requiring separate account, hash, and budget approval. No paid call runs in this pass. |
+| P-3 | Superseded in revision 5. M0 is retired; preserve its unrun drafts without execution authority. |
 | P-4 | Accepted as H1 evidence. Record actual host log locations after observation; do not invent paths from memory. |
 | P-5 | Accepted. The plan references the engine design for resource decisions and does not duplicate a limits table. |
 | P-6 | Partially implemented. The synthetic generator exists; C3 replaces its PyMuPDF dependency and adds deterministic public hashes and extraction realism. |
@@ -82,7 +88,7 @@ Delete this disposition record when the corresponding migration finishes and dur
 
 | Question | Decision or remaining evidence |
 | --- | --- |
-| Q-1 | A negative token outcome is acceptable, consistent with the existing ProductSpec. M0 precedes further packaging investment. |
+| Q-1 | A negative token outcome is acceptable, consistent with the existing ProductSpec. Revision 5 removes M0 as a packaging prerequisite. |
 | Q-2 | Signing identity is a mandatory later distribution dependency. Availability is not assumed and is not requested during this design pass. |
 | Q-3 | Resolved by the recorded decision: no PyMuPDF in the distributed bundle. |
 | Q-4 | Keep the source snapshot for exact-byte verification, with explicit copy and retention disclosure. |

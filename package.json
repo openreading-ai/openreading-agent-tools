@@ -21,13 +21,12 @@
     "tmp": "0.2.7"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.3.267",
     "@anthropic-ai/mcpb": "2.1.2",
     "@productspec/parser": "0.27.0",
     "ajv": "8.20.0",
     "markdown-it": "15.0.1",
     "markdownlint-cli2": "0.23.2",
-    "yaml": "2.9.0",
-    "prettier": "3.9.6"
+    "prettier": "3.9.6",
+    "yaml": "2.9.0"
   }
 }

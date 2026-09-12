@@ -3,7 +3,6 @@
 import contextlib
 import io
 import json
-import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -67,29 +66,3 @@ class CommandTests(unittest.TestCase):
                 "primary",
             )
             self.assertEqual(output.getvalue().strip(), "manifest.json")
-
-    def test_primary_preparation_records_absent_baseline_without_an_account(self):
-        from measurement.prepare import prepare
-
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary).resolve()
-            plugin = root / "plugin"
-            (plugin / "server").mkdir(parents=True)
-            (plugin / "server/release.json").write_text("{}")
-            (plugin / "skills/read-local-document").mkdir(parents=True)
-            (plugin / "skills/read-local-document/SKILL.md").write_text("Read evidence.")
-            client = root / "client"
-            client.write_text("#!/bin/sh\necho '2.1.266 test'\n")
-            client.chmod(0o755)
-            with (
-                patch("measurement.prepare.verify_release", return_value={"core_commit": "a" * 40}),
-                patch("measurement.prepare.shutil.which", return_value=None),
-                patch.dict("os.environ", {}, clear=True),
-            ):
-                manifest = prepare(root / "evidence", plugin, client, "model", "account", "primary")
-            data = json.loads(manifest.read_text())
-            self.assertEqual((data["max_trials"], len(data["task_ids"])), (108, 12))
-            self.assertEqual(data["allowed_bash_commands"], [])
-            environment = json.loads((manifest.parent / "environment.json").read_text())
-            self.assertIsNone(environment["baseline"])
-            self.assertIsNone(environment["account_key_sha256"])

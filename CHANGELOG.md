@@ -16,6 +16,11 @@
 
 ## Unreleased
 
+- Adopt ProductSpec revision 5: Desktop-only proof, no provider API trials or token-study packaging gate.
+- Remove the provider execution SDK and refuse historical execution, preparation and finalization entry points.
+- Preserve offline accounting and report readers, with superseded unrun drafts kept outside Git.
+- Test citation format boundaries independently, require unknown-origin labels, and balance source-header parentheses.
+
 - Accept explicit review v2 source headers and citation lists without weakening historical v1 placement checks.
 - Clarify returned-ID retrieval, block offsets and generic warnings in the shared assistant workflow.
 - Record partial owner-run Claude Desktop evidence separately from complete native acceptance.

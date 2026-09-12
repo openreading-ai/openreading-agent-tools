@@ -79,7 +79,7 @@ Uninstalling a plugin does not automatically remove this application data.
 ## Acceptance evidence
 
 The table below records historical revision 1 evidence.
-The governing [ProductSpec is revision 4](../product/specs/local-document-proof.product-spec.md); changed criteria and AC-21/AC-22 require new evidence.
+The governing [ProductSpec is revision 5](../product/specs/local-document-proof.product-spec.md); changed criteria and AC-21/AC-22 require new evidence.
 An implemented mechanism does not establish every host-level criterion containing that mechanism.
 
 | Criteria | Evidence and remaining work |
@@ -91,7 +91,7 @@ An implemented mechanism does not establish every host-level criterion containin
 | AC-13 | Runtime inventory, tampering, packaging, notices, and archive round-trip checks pass locally. Public distribution review remains pending. |
 | AC-14 | Unit tests and stdio smoke cover configuration isolation, spaces, Unicode, restart, and integrity. Desktop lifecycle checks remain unverified. |
 | AC-15, AC-18 | Offline driver authorization, restart accounting, repository checks, and enforced coverage gates exist. |
-| AC-16, AC-17, EVAL-2 | Report decision tests exist. No model trials or measured savings are claimed. |
+| AC-16, AC-17, EVAL-2 | API execution is disabled; historical report tests remain. Desktop usage is unmeasured. |
 | AC-19 | Dependency inventory is generated. Distribution license review and signing are not complete. |
 | AC-20 | Current guides describe implemented behavior and these gaps. Reviewed end-user proof evidence remains pending. |
 

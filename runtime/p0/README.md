@@ -70,5 +70,5 @@ A relocated copy with spaces and Unicode in its path verifies native and OCR cit
 Twenty changed or missing source, metadata, lock, model and OCR inputs refuse startup.
 These observations replace no historical result and establish no native assistant support.
 Raw run records remain private. Exact timings and release limits require separate reviewed evidence and base-machine repetitions.
-Native client installation, signing, notarization, helper packaging and paid trials remain gated by the [implementation plan](../../design/implementation-plan.md).
+Native client installation, signing, notarization, and helper packaging remain gated by the [implementation plan](../../design/implementation-plan.md).
 Do not share this build or assemble historical client packages from it.

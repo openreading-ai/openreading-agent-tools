@@ -10,8 +10,8 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 4 configuration and an unsigned Docling runtime are implemented; native client packaging remains pending.**
-The Docling corpus, retrieval/restart checks, citation checker and nine-trial probe are documented in [measurement](measurement/README.md).
+**Status: revision 5 scope; shared configuration and an unsigned Docling runtime are implemented; native client packaging remains pending.**
+The Docling corpus, retrieval/restart checks, citation checker and historical offline accounting are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The [P0 developer build](runtime/p0/README.md) bundles Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
 The [assistant design](design/assistant-clients.md) keeps Claude Desktop and a conditional, named ChatGPT conversation mode behind separate compatibility checks.
@@ -28,8 +28,8 @@ The proposed Claude Desktop, ChatGPT desktop, Claude Code, and Codex integration
 The [client matrix](clients/README.md) distinguishes documented routes from tested behavior.
 See the [runtime evidence table](runtime/README.md) for tested behavior and remaining host checks.
 
-The implemented Claude probe tests selective retrieval before a larger study.
-Additional provider measurements require separate drivers, frozen manifests, and quality review.
+Provider API studies and SDK execution are disabled. Testing uses the owner's existing Desktop apps.
+The next proof checks large-document access and reliable citations; token savings remain unmeasured.
 An API result does not establish a native chat app's token usage or subscription savings.
 Local parsing alone does not establish that claim.
 Excerpts returned to a cloud assistant enter that assistant's context.
@@ -59,7 +59,7 @@ Core never requires this checkout or a private company package.
 | Native mode, setup, timeout, isolation, and frozen-build experiments | [Probe plan](design/native-probes.md) |
 | Revision 3 design review decisions | [Review adjudication](design/revision3-review.md) |
 | Claude review resolutions | [Finding dispositions](design/review-disposition.md) |
-| Fair baselines, usage accounting, and claim limits | [Token evaluation design](design/token-evaluation.md) |
+| Desktop document-access comparisons and token-claim limits | [Token evaluation design](design/token-evaluation.md) |
 | Ordered tasks, exact files, tests, and handoff rules | [Implementation plan](design/implementation-plan.md) |
 | Agent instructions and repository ownership | [AGENTS.md](AGENTS.md) |
 | Contribution workflow and checks | [CONTRIBUTING.md](CONTRIBUTING.md) |
@@ -84,7 +84,7 @@ Markdown, repository policy, local links, JSON/YAML, and ProductSpec checks also
 After dependency installation, verification needs no network, model credentials, backend server, or sibling checkout.
 
 GitHub runs the same gate and a separate dependency advisory lookup.
-Paid model trials and real host installation remain separate from this offline gate.
+Real Desktop installation checks remain separate from this offline gate. Provider API trials are prohibited.
 
 ## Contributing
 
