@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.4",
+  "name": "openreading-docling-local-preview",
+  "display_name": "OpenReading Local Documents (development)",
+  "version": "0.2.0-alpha.1",
+  "description": "Read local document evidence with physical page citations.",
+  "long_description": "Local development preview for macOS on Apple Silicon. Choose a document directory; enable OCR explicitly to read scanned text. The bundled slim Docling runtime performs extraction locally and retains source copies and evidence until you remove its store. Retrieved excerpts enter your assistant's context. The folder grant limits OpenReading tools, not other assistant tools. Resource limits are reported by the import tool. No passwords, hosted fallback, or measured token-savings claim. This candidate is not a signed public release.\n\nOpenReading Managed: Coming soon\nDocument processing on OpenReading's servers, without managing local compute. Planned after the public OSS launch.",
+  "author": { "name": "OpenReading" },
+  "server": {
+    "type": "binary",
+    "entry_point": "server/openreading-worker",
+    "mcp_config": {
+      "command": "${__dirname}/server/openreading-worker",
+      "args": [
+        "--client",
+        "claude-desktop",
+        "--input-root",
+        "${user_config.input_root}",
+        "--ocr",
+        "${user_config.ocr}"
+      ]
+    }
+  },
+  "compatibility": { "platforms": ["darwin"] },
+  "user_config": {
+    "input_root": {
+      "type": "directory",
+      "title": "Document directory",
+      "description": "Allow OpenReading to read documents in this directory. Source copies are retained locally; retrieved excerpts enter your assistant's context.",
+      "required": true
+    },
+    "ocr": {
+      "type": "boolean",
+      "title": "Read scanned text (OCR)",
+      "description": "Enable local Tesseract OCR for text stored in page images. This uses additional time and memory. OCR evidence is labeled in citations.",
+      "default": false
+    }
+  },
+  "tools": [
+    {
+      "name": "openreading_import",
+      "description": "Retain one granted document using local Docling and the configured OCR setting."
+    },
+    {
+      "name": "openreading_search",
+      "description": "Search bounded retained page evidence with literal words."
+    },
+    {
+      "name": "openreading_read",
+      "description": "Read exact returned evidence with physical pages and text origins."
+    }
+  ]
+}

@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+- Add a distinct Docling Desktop development candidate with an explicit directory and default-off OCR form.
+- Refresh the core pin for current evidence instructions and check packed tool/instruction parity against a same-profile core reference.
+- Preserve historical client packages; native installation acceptance and signed distribution remain pending.
+
 - Clarify revision 7 release dependencies, focused profile-aware MCP checks, independent core setup, and separate non-developer pilot evidence.
 
 - Define ProductSpec revision 6: OSS launch v1 before managed v2, full pinned-core MCP catalog parity, and a static Coming soon visual only.

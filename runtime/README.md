@@ -156,3 +156,10 @@ The historical package assembler refuses format-2 candidates until the native se
 
 The configuration and launcher tests cover closed settings, atomic failure, missing grants, exact OCR tokens, concurrent profiles, cleanup and v1/v2 coexistence.
 These checks do not establish native form substitution, helper-app behavior, host timeouts or cancellation controls.
+
+## Docling Desktop development packaging
+
+Use the [Desktop candidate guide](../clients/claude-desktop/README.md#docling-installation-candidate) to assemble a separate format-2 local preview.
+The explicit `--docling-desktop` option preserves the historical client packages and verifies the runtime before and after copying.
+The new package exposes only the directory and OCR settings; its static Coming soon text configures no service.
+Packed protocol checks and manifest substitution do not prove native installation, signing or clean-machine support.

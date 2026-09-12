@@ -10,6 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace as Box
 from unittest.mock import patch
 
+from mcp import types
 from test_proof_scripts import channel
 
 
@@ -21,6 +22,12 @@ class DoclingSmokeTests(unittest.TestCase):
     def test_protocol_smoke_accepts_only_correct_pages_ocr_and_restart(self):
         for fault in (
             None,
+            "no_reference",
+            "reference_core",
+            "reference_instructions",
+            "manifest_missing",
+            "reference_only",
+            "manifest_only",
             "source",
             "network",
             "catalog",
@@ -58,16 +65,20 @@ class DoclingSmokeTests(unittest.TestCase):
                 pass
 
             async def initialize(self):
-                return Box(protocolVersion="2025-11-25")
+                return Box(protocolVersion="2025-11-25", instructions="Use returned IDs.")
 
             async def list_tools(self):
                 return Box(
                     tools=[
-                        Box(name=name)
+                        types.Tool(name=name, inputSchema={"type": "object"})
                         for name in (
                             ["bad"]
                             if fault == "catalog"
-                            else ["openreading_import", "openreading_search", "openreading_read"]
+                            else [
+                                "openreading_import",
+                                "openreading_search",
+                                "openreading_read",
+                            ]
                         )
                     ]
                 )
@@ -118,6 +129,40 @@ class DoclingSmokeTests(unittest.TestCase):
             root = Path(temp)
             fixture = root / "fixture.pdf"
             fixture.write_bytes(b"fixture")
+            contract = {
+                "instructions": "wrong"
+                if fault == "reference_instructions"
+                else "Use returned IDs.",
+                "tools": [
+                    {"name": name, "inputSchema": {"type": "object"}}
+                    for name in [
+                        "openreading_import",
+                        "openreading_read",
+                        "openreading_search",
+                    ]
+                ],
+            }
+            reference = root / "reference.json"
+            reference.write_text(
+                json.dumps(
+                    {
+                        "core_commit": "wrong" if fault == "reference_core" else "pin",
+                        "profiles": {"true": contract, "false": contract},
+                    }
+                )
+            )
+            manifest = root / "manifest.json"
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "tools": []
+                        if fault == "manifest_missing"
+                        else [{"name": item["name"]} for item in contract["tools"]]
+                    }
+                )
+            )
+            reference_arg = None if fault in ("no_reference", "manifest_only") else reference
+            manifest_arg = None if fault in ("no_reference", "reference_only") else manifest
             with (
                 patch.object(
                     module,
@@ -131,7 +176,9 @@ class DoclingSmokeTests(unittest.TestCase):
                 ),
                 patch.object(module, "sandbox_observed", return_value=fault != "network"),
                 patch.object(
-                    module, "sha256", return_value="wrong" if fault == "source" else "fixture"
+                    module,
+                    "sha256",
+                    return_value="wrong" if fault == "source" else "fixture",
                 ),
                 patch.object(
                     module,
@@ -143,11 +190,15 @@ class DoclingSmokeTests(unittest.TestCase):
                 patch.object(module, "loaded_libraries", return_value=["native"]),
                 patch.object(module, "tree_rss", return_value=0 if fault == "memory" else 100),
             ):
-                if fault:
+                if fault not in (None, "no_reference"):
                     with self.assertRaises(ValueError):
-                        asyncio.run(module.smoke(root, fixture))
+                        asyncio.run(module.smoke(root, fixture, reference_arg, manifest_arg))
                 else:
-                    report = asyncio.run(module.smoke(root, fixture))
+                    report = asyncio.run(module.smoke(root, fixture, reference_arg, manifest_arg))
+                    self.assertEqual(
+                        report["catalog_parity"],
+                        "not_checked" if fault == "no_reference" else "passed",
+                    )
                     self.assertTrue(report["passed"])
                     self.assertEqual(len(report["processes"]), 4)
                     self.assertEqual(report["sampled_peak_tree_rss_including_driver"], 100)
@@ -175,11 +226,17 @@ class DoclingSmokeTests(unittest.TestCase):
 
     def test_network_probe_requires_actual_permission_denial(self):
         module = self.module()
-        for status, output, expected in [(0, "1\n", True), (1, "61\n", False), (0, "", False)]:
+        for status, output, expected in [
+            (0, "1\n", True),
+            (1, "61\n", False),
+            (0, "", False),
+        ]:
             with (
                 self.subTest(status=status, output=output),
                 patch.object(
-                    module.subprocess, "run", return_value=Box(returncode=status, stdout=output)
+                    module.subprocess,
+                    "run",
+                    return_value=Box(returncode=status, stdout=output),
                 ) as run,
             ):
                 self.assertEqual(module.sandbox_observed("policy"), expected)
@@ -194,7 +251,7 @@ class DoclingSmokeTests(unittest.TestCase):
 
         module = self.module()
 
-        async def smoke(runtime, fixture):
+        async def smoke(runtime, fixture, reference=None, manifest=None):
             self.assertTrue(runtime.is_absolute())
             self.assertTrue(fixture.is_absolute())
             return {"passed": True}

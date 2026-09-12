@@ -6,7 +6,8 @@ The historical revision 1 bundle and measurement runtime remain separate.
 
 ## Run
 
-The current candidate pins core `7d97b75b6ef9c65349fd044775087997205c72e2` with Docling integration v5 and preserved wrapped-compound evidence.
+The current candidate pins core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1` with Docling integration v5 and updated bounded-evidence instructions.
+Only the core pin changes from the previous candidate; dependency versions and extraction integration remain unchanged.
 
 `make verify` checks this lock against its declared inputs without network access or installing the candidate.
 It also refuses prohibited packages in the lock and requires this guide to name the locked core and engine versions.

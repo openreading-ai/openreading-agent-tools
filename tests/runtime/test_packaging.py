@@ -26,6 +26,7 @@ class PackagingTests(unittest.TestCase):
                         (path / "server/openreading-worker").read_bytes(),
                         b"synthetic runtime",
                     )
+                    self.assertFalse((path / "docling").exists())
                     if client != "claude-desktop":
                         self.assertTrue((path / "skills/read-local-document/SKILL.md").is_file())
                 with self.assertRaises(ValueError):

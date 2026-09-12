@@ -7,6 +7,44 @@ The Docling developer harness is implemented; the [assistant migration](../../de
 See the [client matrix](../README.md) for the limits of existing evidence.
 Existing setup commands and test results below do not establish revision 2 compatibility.
 
+## Docling installation candidate
+
+The distinct `openreading-docling-local-preview` package uses the format-2 frozen runtime.
+It requires a document directory and exposes a boolean **Read scanned text (OCR)** option, defaulting to off.
+The historical manifest below remains a separate PyMuPDF prototype.
+
+After building the runtime using the [P0 guide](../../runtime/p0/README.md), choose fresh output paths:
+
+~~~sh
+uv run --frozen --project runtime --all-groups python -m runtime.package \
+  --runtime /absolute/docling-runtime --output /absolute/desktop-candidate --docling-desktop
+node_modules/.bin/mcpb validate /absolute/desktop-candidate/manifest.json
+node_modules/.bin/mcpb pack /absolute/desktop-candidate /absolute/openreading-docling-desktop.mcpb
+~~~
+
+The official MCPB 2.1.2 resolver preserves the chosen directory as one argument and renders the OCR boolean as `true` or `false`.
+Tests include spaces, Unicode and shell metacharacters. The launcher interprets these as arguments, never a shell command.
+The package records runtime identity plus manifest/workflow hashes and preserves the runtime's complete inventory.
+`WORKFLOW.md` is a review copy; the pinned core supplies the actual MCP initialization instructions.
+No skill-delivery claim follows from copying that file into an archive.
+
+The refreshed candidate pins core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1` for current bounded-evidence instructions.
+Its dependency versions and Docling integration remain unchanged from the preceding candidate.
+The packed/unpacked archive passes native/OCR imports, warm reuse, restart, exact citations and same-profile catalog/instruction comparison against direct core.
+This is development-machine protocol evidence, not a Desktop conversation or clean-machine pass.
+
+On Claude Desktop 1.52386.3, opening the archive displays its development name, three tools, requirements and static Coming soon text.
+The installation preview asks for confirmation of native extension computer access.
+Installation, the actual configuration form, process launch and native conversation checks remain pending.
+The declared document grant restricts OpenReading tools; it is not an operating-system sandbox around the extension.
+
+For the local check, open the archive in Claude Desktop and confirm installation only for your reviewed candidate.
+Choose a synthetic document directory, keep OCR off for the initial native-text case, and enable this connector in a new Chat.
+Keep the older manual OpenReading connector out of that test conversation to avoid ambiguous tool attribution.
+Verify the import description names Docling and the selected OCR setting, then inspect a cited answer and an outside-grant refusal.
+Repeat with OCR enabled and the raster fixture. Preserve existing registrations and their retained data.
+This candidate still requires distribution review and signing before sharing it with another user.
+
 ## Docling developer check
 
 The owner manually registered the P0 Docling worker and supplied partial Chat-mode evidence on 2026-09-11.

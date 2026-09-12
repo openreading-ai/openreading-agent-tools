@@ -72,3 +72,5 @@ These observations replace no historical result and establish no native assistan
 Raw run records remain private. Exact timings and release limits require separate reviewed evidence and base-machine repetitions.
 Native client installation, signing, notarization, and helper packaging remain gated by the [implementation plan](../../design/implementation-plan.md).
 Do not share this build or assemble historical client packages from it.
+The explicit `runtime.package --docling-desktop` path assembles a separate local Desktop installation candidate; see the [Desktop guide](../../clients/claude-desktop/README.md).
+That path does not authorize distribution or establish native installation acceptance.

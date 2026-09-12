@@ -10,7 +10,8 @@ ProductSpec revision 7 targets Claude Desktop and a conditional, named local Cha
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
-The core candidate implements local Docling supervision; client installation and signed distribution remain unbuilt.
+The core candidate implements local Docling supervision; a distinct Desktop development packager is implemented.
+Native installation acceptance and signed distribution remain pending.
 Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
 No public binary or measured token savings are released.
 The remaining native and release gates stay in `design/`.

@@ -6,6 +6,10 @@ only system tools, and their working directory is unrelated to the bundle.
 The explicit synthetic grant uses codex/v2 artifact storage without reading saved settings
 or changing client registration. Retained synthetic artifacts remain there until removed.
 Timings are individual observations, not cold-cache measurements or release limits.
+Optional --reference and --manifest compare captured same-profile core tools/instructions
+and manifest names. The reference is trusted review input, not an authenticated transcript.
+Its core commit must match the bundle; both OCR modes require an independently captured
+reference. A smoke without these inputs reports catalog_parity=not_checked.
 """
 
 from __future__ import annotations
@@ -29,6 +33,28 @@ from measurement.corpus import recipe
 from runtime.verify import sha256, verify_release
 from scripts.docling_feasibility import tree_rss
 from scripts.retrieval_restart import payload
+
+
+def catalog_snapshot(initialized, tools):
+    if not initialized.instructions or len({tool.name for tool in tools}) != len(tools):
+        raise ValueError("MCP instructions are missing or tool names are duplicated.")
+    return {
+        "instructions": initialized.instructions,
+        "tools": [
+            tool.model_dump(mode="json", exclude_none=True)
+            for tool in sorted(tools, key=lambda tool: tool.name)
+        ],
+    }
+
+
+def check_catalog(expected, actual, manifest):
+    names = [tool["name"] for tool in manifest["tools"]]
+    if (
+        expected != actual
+        or len(set(names)) != len(names)
+        or sorted(names) != [tool["name"] for tool in actual["tools"]]
+    ):
+        raise ValueError("The frozen catalog, profile instructions or manifest differs from core.")
 
 
 def loaded_libraries(runtime):
@@ -64,10 +90,21 @@ def sandbox_observed(policy):
     return result.returncode == 0 and result.stdout.strip() == "1"
 
 
-async def smoke(runtime: Path, fixture: Path) -> dict:
+async def smoke(
+    runtime: Path,
+    fixture: Path,
+    reference: Path | None = None,
+    manifest: Path | None = None,
+) -> dict:
     started = time.monotonic()
     metadata = verify_release(runtime)
     verification_seconds = time.monotonic() - started
+    if (reference is None) != (manifest is None):
+        raise ValueError("Provide both the core catalog reference and Desktop manifest.")
+    expected = json.loads(reference.read_text()) if reference else None
+    declared = json.loads(manifest.read_text()) if manifest else None
+    if expected is not None and expected["core_commit"] != metadata["core_commit"]:
+        raise ValueError("The catalog reference names another core commit.")
     if (
         metadata["format_version"] != "2"
         or sha256(fixture) != recipe()["expected_hashes"]["functional.pdf"]
@@ -135,7 +172,10 @@ async def smoke(runtime: Path, fixture: Path) -> dict:
 
                     async def observe(number, total, message, progress=progress, start=start):
                         progress.append(
-                            {"stage": message, "seconds_since_launch": time.monotonic() - start}
+                            {
+                                "stage": message,
+                                "seconds_since_launch": time.monotonic() - start,
+                            }
                         )
 
                     async with (
@@ -146,12 +186,19 @@ async def smoke(runtime: Path, fixture: Path) -> dict:
                     ):
                         initialized = await client.initialize()
                         initialization = time.monotonic() - start
-                        names = [tool.name for tool in (await client.list_tools()).tools]
-                        if sorted(names) != [
+                        tools = (await client.list_tools()).tools
+                        catalog = catalog_snapshot(initialized, tools)
+                        if expected is not None:
+                            check_catalog(
+                                expected["profiles"][str(ocr).lower()],
+                                catalog,
+                                declared,
+                            )
+                        if not {
                             "openreading_import",
                             "openreading_read",
                             "openreading_search",
-                        ]:
+                        }.issubset(tool.name for tool in tools):
                             raise ValueError("The frozen runtime exposes a different tool catalog.")
                         before = time.monotonic()
                         receipt = payload(
@@ -229,6 +276,7 @@ async def smoke(runtime: Path, fixture: Path) -> dict:
                             "ocr": ocr,
                             "generation": generation,
                             "protocol_version": initialized.protocolVersion,
+                            "catalog": catalog,
                             "initialization_seconds": initialization,
                             "import_seconds": import_seconds,
                             "warm_conversion_seconds": warm_seconds,
@@ -244,6 +292,9 @@ async def smoke(runtime: Path, fixture: Path) -> dict:
         raise ValueError("No process memory sample was obtained.")
     return {
         "passed": True,
+        "catalog_parity": "passed" if expected is not None else "not_checked",
+        "catalog_reference_sha256": sha256(reference) if reference else None,
+        "manifest_sha256": sha256(manifest) if manifest else None,
         "scope": "development-machine frozen Docling smoke",
         "core_commit": metadata["core_commit"],
         "worker_sha256": metadata["worker_sha256"],
@@ -261,8 +312,24 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--fixture", type=Path, required=True)
+    parser.add_argument(
+        "--reference", type=Path, help="captured same-profile pinned-core catalog JSON"
+    )
+    parser.add_argument("--manifest", type=Path, help="Desktop manifest to compare with core")
     args = parser.parse_args(argv)
-    print(json.dumps(asyncio.run(smoke(args.runtime.resolve(), args.fixture.resolve())), indent=2))
+    print(
+        json.dumps(
+            asyncio.run(
+                smoke(
+                    args.runtime.resolve(),
+                    args.fixture.resolve(),
+                    args.reference,
+                    args.manifest,
+                )
+            ),
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

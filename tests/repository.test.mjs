@@ -132,3 +132,39 @@ test("coverage thresholds cannot fall below 95 percent", () => {
     /source = \["runtime", "measurement", "scripts"\]/,
   );
 });
+
+test("Docling Desktop setup resolves both OCR states and preserves hostile-looking paths", async () => {
+  const { getMcpConfigForManifest, v0_4 } = await import("@anthropic-ai/mcpb");
+  const manifest = JSON.parse(
+    readFileSync(
+      new URL(
+        "../clients/claude-desktop/docling/manifest.json",
+        import.meta.url,
+      ),
+    ),
+  );
+  assert.equal(v0_4.McpbManifestSchema.safeParse(manifest).success, true);
+  for (const ocr of [false, true]) {
+    const grant = "/documents/界 space ' $(echo forbidden) ; *";
+    const config = await getMcpConfigForManifest({
+      manifest,
+      extensionPath: "/installed/界 bundle",
+      systemDirs: {},
+      userConfig: { input_root: grant, ocr },
+      pathSeparator: "/",
+    });
+    assert.equal(
+      config.command,
+      "/installed/界 bundle/server/openreading-worker",
+    );
+    assert.deepEqual(config.args, [
+      "--client",
+      "claude-desktop",
+      "--input-root",
+      grant,
+      "--ocr",
+      String(ocr),
+    ]);
+    assert.ok(!config.env || Object.keys(config.env).length === 0);
+  }
+});

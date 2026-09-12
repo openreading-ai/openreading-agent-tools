@@ -10,7 +10,7 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 7 scope; shared configuration and an unsigned Docling runtime are implemented; native client packaging remains pending.**
+**Status: revision 7 scope; shared configuration and an unsigned Docling runtime are implemented; a Desktop development package is available; native acceptance and signed distribution remain pending.**
 The Docling corpus, retrieval/restart checks, citation checker and historical offline accounting are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The [P0 developer build](runtime/p0/README.md) bundles Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
