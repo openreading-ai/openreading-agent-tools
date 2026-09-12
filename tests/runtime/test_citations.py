@@ -384,6 +384,157 @@ class CitationTests(unittest.IsolatedAsyncioTestCase):
             await self.check(capture, review, retained)
 
 
+class NativeLayoutTests(unittest.IsolatedAsyncioTestCase):
+    module = CitationTests.module
+    check = CitationTests.check
+
+    def native_fixture(self, style="header"):
+        capture, review, retained = fixture()
+        if style == "header":
+            answer = (
+                f"From agreement.pdf, physical page 3, evidence {EVIDENCE} (native text):\n\n"
+                '"Provide 60 days notice."'
+            )
+        else:
+            answer = (
+                'Quote: "Provide 60 days notice."\n\n'
+                "• Physical page: 3\n• Text origin: native\n"
+                f"• Evidence ID: {EVIDENCE} (returned by search, not built)\n"
+                f"• Document: agreement.pdf, artifact {ARTIFACT}"
+            )
+        capture["events"][-1]["text"] = answer
+        review["format_version"] = 2
+        c = review["citations"][0]
+        for field, value in (
+            ("quote_span", "Provide 60 days notice."),
+            ("filename_span", "agreement.pdf"),
+            ("page_span", "physical page 3" if style == "header" else "Physical page: 3"),
+            ("origin_span", "native"),
+        ):
+            start = answer.index(value)
+            c[field] = [start, start + len(value)]
+        c["presentation_span"] = [0, len(answer)]
+        return capture, review, retained
+
+    async def test_native_source_header_and_list_verify_without_rewriting_answer(self):
+        for style in ("header", "list"):
+            with self.subTest(style=style):
+                capture, review, retained = self.native_fixture(style)
+                before = copy.deepcopy(capture)
+                self.assertEqual(
+                    (await self.check(capture, review, retained))["verified_citations"], 1
+                )
+                self.assertEqual(capture, before)
+
+    async def test_native_layout_refuses_unrelated_prose_or_forged_labels(self):
+        for style in ("header", "list"):
+            for fault in (
+                "aside",
+                "page",
+                "id",
+                "artifact",
+                "bounds",
+                "overlap",
+                "unknown_version",
+            ):
+                with self.subTest(style=style, fault=fault):
+                    capture, review, retained = self.native_fixture(style)
+                    answer = capture["events"][-1]["text"]
+                    c = review["citations"][0]
+                    if fault == "aside":
+                        answer += " Unrelated aside."
+                        c["presentation_span"][1] = len(answer)
+                    elif fault == "page":
+                        answer = answer.replace("page 3", "page 4").replace("page: 3", "page: 4")
+                    elif fault == "id":
+                        answer = answer.replace(EVIDENCE, "p0009-b0001-s0000")
+                    elif fault == "artifact":
+                        retained["artifact_id"] = "other"
+                    elif fault == "bounds":
+                        c["presentation_span"] = [1, len(answer) - 1]
+                    elif fault == "overlap":
+                        c["filename_span"] = c["quote_span"]
+                    else:
+                        review["format_version"] = 3
+                    capture["events"][-1]["text"] = answer
+                    with self.assertRaises(ValueError):
+                        await self.check(capture, review, retained)
+
+    async def test_native_window_cannot_borrow_a_second_citations_labels(self):
+        capture, review, retained = self.native_fixture()
+        extra = copy.deepcopy(review["citations"][0])
+        review["citations"].append(extra)
+        with self.assertRaises(ValueError):
+            await self.check(capture, review, retained)
+
+    async def test_ocr_list_requires_real_origin_and_full_artifact_identity(self):
+        capture, review, retained = self.native_fixture("list")
+        answer = capture["events"][-1]["text"].replace("native", "ocr")
+        capture["events"][-1]["text"] = answer
+        c = review["citations"][0]
+        for key in ("filename_span", "presentation_span"):
+            c[key][1] -= 3
+        c["filename_span"][0] -= 3
+        c["origin_span"][1] -= 3
+        c["text_origin"] = "ocr"
+        retained["passages"][0]["text_origin"] = "ocr"
+        capture["events"][5]["result"]["content"][0]["text"] = json.dumps(retained)
+        search = json.loads(capture["events"][3]["result"]["content"][0]["text"])
+        search["hits"][0]["text_origin"] = "ocr"
+        capture["events"][3]["result"]["content"][0]["text"] = json.dumps(search)
+        self.assertEqual((await self.check(capture, review, retained))["verified_citations"], 1)
+        capture["events"][-1]["text"] = answer.replace(ARTIFACT, "or1_" + "b" * 64)
+        with self.assertRaisesRegex(ValueError, "Unsupported citation presentation"):
+            await self.check(capture, review, retained)
+        capture["events"][-1]["text"] = answer
+        c["origin_span"] = None
+        with self.assertRaises(ValueError):
+            await self.check(capture, review, retained)
+
+    async def test_exact_quote_header_keeps_curly_quotes_and_native_origin(self):
+        capture, review, retained = fixture()
+        answer = (
+            f"Exact quote (agreement.pdf, physical PDF page 3, evidence ID {EVIDENCE}, native text):\n"
+            "“Provide 60 days notice.”"
+        )
+        capture["events"][-1]["text"] = answer
+        review["format_version"] = 2
+        c = review["citations"][0]
+        for field, text in (
+            ("quote_span", "Provide 60 days notice."),
+            ("filename_span", "agreement.pdf"),
+            ("page_span", "physical PDF page 3"),
+            ("origin_span", "native"),
+        ):
+            start = answer.index(text)
+            c[field] = [start, start + len(text)]
+        c["presentation_span"] = [0, len(answer)]
+        self.assertEqual((await self.check(capture, review, retained))["verified_citations"], 1)
+
+    async def test_native_quote_cannot_be_paraphrased_or_use_page_prefix(self):
+        for fault in ("paraphrase", "page_prefix", "filename_suffix", "tiny_quote"):
+            capture, review, retained = self.native_fixture()
+            c = review["citations"][0]
+            answer = capture["events"][-1]["text"]
+            if fault == "paraphrase":
+                answer = answer.replace("Provide", "Deliver")
+            elif fault == "page_prefix":
+                answer = answer.replace("page 3,", "page 30,")
+                c["origin_span"] = [v + 1 for v in c["origin_span"]]
+                c["quote_span"] = [v + 1 for v in c["quote_span"]]
+                c["presentation_span"][1] += 1
+            elif fault == "filename_suffix":
+                answer = answer.replace("agreement.pdf", "agreement.pdfx")
+                for key in ("page_span", "origin_span", "quote_span"):
+                    c[key] = [v + 1 for v in c[key]]
+                c["presentation_span"][1] += 1
+            else:
+                c["quote_span"][1] = c["quote_span"][0] + 1
+            capture["events"][-1]["text"] = answer
+            with self.assertRaises(ValueError):
+                await self.check(capture, review, retained)
+
+
 class CitationCommandTests(unittest.TestCase):
     def test_cli_reads_through_verified_runtime_and_sanitizes_failure(self):
         import contextlib

@@ -4,9 +4,10 @@ Capture v1 contains ordered request, response and one final answer event. Host a
 must preserve complete tool payloads and provenance of that capture outside the grant.
 The review binds the capture bytes and supplies Unicode code-point spans into the answer.
 Quotes require at least two Unicode letters or digits; this floor does not prove relevance.
-Labels follow their quote in filename/page/origin order on the line where the quote ends.
-They precede another annotated quote and cannot skip earlier matching labels.
-Other citation layouts remain unsupported; semantic association still needs human review.
+Review v1 labels follow their quote in filename/page/origin order on its final line.
+Review v2 adds a presentation_span for a closed source-header or source-list layout.
+It consumes the whole block and refuses overlapping windows or intervening prose.
+Unsupported layouts refuse verification; semantic association still needs human review.
 Filename and physical-page labels are exact; OCR/mixed evidence needs a visible origin label.
 A reviewer must attest citation inventory completeness. This cannot detect an omitted
 citation in arbitrary prose or authenticate a fabricated capture. A pass verifies evidence
@@ -23,6 +24,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+import re
 from datetime import timedelta
 from pathlib import Path
 
@@ -92,6 +94,64 @@ def placement(answer, citation, quote_starts):
             "Citation labels must follow their quote in order on the same line without skipping matching labels.",
         )
         end = label_end
+
+
+def native_placement(answer, citation, windows):
+    """Accept two closed rendered layouts without admitting prose between source and quote.
+
+    Review v2 adds an explicit presentation span. Only a source header followed by
+    its quote, or a quote followed by the labeled source list, is recognized.
+    Consuming the entire window prevents selecting matching labels in an aside.
+    Disjoint windows prevent two claims from sharing one source label block.
+    """
+    span(answer, citation["presentation_span"])
+    start, end = citation["presentation_span"]
+    require(
+        all(end <= left or start >= right for left, right in windows),
+        "Citation presentation windows overlap.",
+    )
+    windows.append((start, end))
+    fields = [
+        (citation[key], token)
+        for key, token in (
+            ("quote_span", "Q"),
+            ("filename_span", "F"),
+            ("page_span", "P"),
+            ("origin_span", "O"),
+        )
+        if citation[key] is not None
+    ]
+    pieces = []
+    position = start
+    for bounds, token in sorted(fields):
+        span(answer, bounds)
+        left, right = bounds
+        require(position <= left < right <= end, "Citation fields overlap or leave their window.")
+        pieces.extend((answer[position:left], "@" + token + "@"))
+        position = right
+    pieces.append(answer[position:end])
+    skeleton = " ".join("".join(pieces).split())
+    evidence = re.escape(citation["evidence_id"])
+    artifact = re.escape(citation["artifact_id"])
+    header = (
+        r"(?:From |Exact quote \()@F@, @P@, evidence(?: ID)? "
+        + evidence
+        + r'(?: \(@O@ text\)|, @O@ text)?\)?: ["“]?@Q@["”]?'
+    )
+    source_list = (
+        r'Quote: ["“]?@Q@["”]? [•*-] @P@ [•*-] Text origin: @O@'
+        r" [•*-] Evidence ID: "
+        + evidence
+        + r"(?: \(returned by search, not built\))? [•*-] Document: @F@"
+        + r"(?:, artifact "
+        + artifact
+        + r")?"
+    )
+    require(
+        re.fullmatch(header, skeleton) is not None
+        or re.fullmatch(source_list, skeleton) is not None,
+        "Unsupported citation presentation; source labels must directly annotate the quote.",
+    )
 
 
 def payload(result):
@@ -177,7 +237,7 @@ async def check(capture, review, resolve):
     closed(review, "format_version capture_sha256 citations_complete citations")
     require(
         type(review["format_version"]) is int
-        and review["format_version"] == 1
+        and review["format_version"] in (1, 2)
         and review["citations_complete"] is True,
         "A complete human citation inventory is required.",
     )
@@ -188,12 +248,13 @@ async def check(capture, review, resolve):
         span(answer, citation["quote_span"])
     quote_starts = [citation["quote_span"][0] for citation in citations]
     seen = set()
+    windows = []
     for citation in citations:
         closed(
             citation,
-            "artifact_id evidence_id page text_origin import_call search_call read_call quote_span filename_span page_span origin_span",
+            "artifact_id evidence_id page text_origin import_call search_call read_call quote_span filename_span page_span origin_span"
+            + (" presentation_span" if review["format_version"] == 2 else ""),
         )
-        placement(answer, citation, quote_starts)
         artifact, evidence = citation["artifact_id"], citation["evidence_id"]
         require(
             isinstance(artifact, str)
@@ -206,6 +267,10 @@ async def check(capture, review, resolve):
             citation["text_origin"] in ("native", "ocr", "mixed", "unknown", None),
             "Invalid text origin.",
         )
+        if review["format_version"] == 2:
+            native_placement(answer, citation, windows)
+        else:
+            placement(answer, citation, quote_starts)
         results = {}
         previous = -1
         for verb in ("import", "search", "read"):
@@ -265,8 +330,13 @@ async def check(capture, review, resolve):
             ),
             "Answer filename differs from source.",
         )
+        page_labels = {f"physical PDF page {citation['page']}"}
+        if review["format_version"] == 2:
+            page_labels.update(
+                (f"physical page {citation['page']}", f"Physical page: {citation['page']}")
+            )
         require(
-            label(answer, citation["page_span"]) == f"physical PDF page {citation['page']}",
+            label(answer, citation["page_span"]) in page_labels,
             "Visible physical-page label differs.",
         )
         origin = citation["text_origin"]

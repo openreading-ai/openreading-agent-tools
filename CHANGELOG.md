@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+- Accept explicit review v2 source headers and citation lists without weakening historical v1 placement checks.
+- Clarify returned-ID retrieval, block offsets and generic warnings in the shared assistant workflow.
+- Record partial owner-run Claude Desktop evidence separately from complete native acceptance.
+
 - Reject trivial quote selections and citation labels borrowed from later or unrelated answer text.
 - Distinguish unedited citation CLI output from annotated development records.
 

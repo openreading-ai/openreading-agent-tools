@@ -10,7 +10,7 @@ Checked on 2026-09-11. These are connection candidates, not a supported-client r
 
 | Surface | Documented local route | Current Docling evidence |
 | --- | --- | --- |
-| Claude Desktop | Local MCP desktop extension. | Native Docling installation and invocation pending. |
+| Claude Desktop | Local MCP desktop extension. | Owner-supplied partial Chat-mode calls and OCR/refusal results; exact host version, complete capture and installation acceptance pending. |
 | ChatGPT desktop Chat conversation | Local route must be established by E1. | No mode-specific local invocation evidence. |
 | ChatGPT desktop Work conversation | Conditional on independently established local execution. | No mode-specific local invocation evidence. |
 | Codex local thread in ChatGPT desktop | Candidate STDIO registration on a Codex host. | Native UI, launch, and invocation pending. |
@@ -40,7 +40,7 @@ No host configuration was changed, package installed, or model trial executed du
 
 ## Per-client guides
 
-- [Claude Desktop](claude-desktop/README.md): historical package walkthrough and pending host checks.
+- [Claude Desktop](claude-desktop/README.md): partial owner-run Docling checks, manual developer setup, and historical package walkthrough.
 - [ChatGPT desktop](chatgpt/README.md): documented connection candidate and remaining verification.
 - [Claude Code](claude-code/README.md): historical marketplace and configuration evidence.
 - [Codex](codex/README.md): historical package and configuration evidence.

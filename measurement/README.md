@@ -301,9 +301,35 @@ A valid quote may lie outside the search excerpt when the captured read supplies
 Filename, physical-page and optional origin labels must follow the quote in that order on the line where it ends.
 They must precede the next annotated quote and cannot skip an earlier matching label.
 For example, labels repeated in a later aside cannot replace the labels following the quote.
-Other presentation layouts remain unsupported. Human review still checks semantic association and material support.
+These placement rules remain unchanged for review format 1. Human review still checks semantic association and material support.
 A selected prefix cannot disguise page 30 as page 3 or a different filename as the correct source.
 Wrong pages, paraphrases, cross-artifact IDs, missing calls, changed capture bytes and omitted OCR labels have negative tests.
+
+Review format 2 keeps the same fields and adds `presentation_span` to every citation annotation.
+Capture format stays at 1. Each presentation span covers the entire source header and quote, or the entire quote and source list.
+Spans must be disjoint and contain the quote and every annotated label without overlapping fields.
+The checker consumes the whole span using two closed rendered-text layouts:
+
+~~~text
+From agreement.pdf, physical page 3, evidence p0003-b0001-s0000 (native text):
+
+"Provide 60 days notice."
+
+Quote: "invoices are payable within 45 days."
+• Physical page: 2
+• Text origin: ocr
+• Evidence ID: p0002-b0001-s0000
+• Document: functional.pdf
+~~~
+
+The source-header layout also accepts `Exact quote (filename, physical page N, evidence ID identifier, native text):` before the quote.
+The source list optionally includes `(returned by search, not built)` after the identifier and `, artifact FULL_ID` after the filename.
+Identifiers must match the checked calls; abbreviated artifact identifiers remain unsupported.
+Review 2 also accepts `physical PDF page N`; its list uses `Physical page: N`.
+Unicode whitespace and straight or curly quote delimiters are accepted without changing the captured quote.
+Intervening prose, unrelated asides, conflicting source labels, overlapping citation blocks and unrecognized layouts refuse verification.
+Select spans in the original rendered text. Do not rewrite a host answer to fit the checker or fabricate missing calls.
+A human still attests which complete block belongs to the claim; grammar alone cannot establish semantic support.
 
 A reviewer supplies both completeness attestations after checking the original transcript and every visible citation.
 The checker cannot authenticate fabricated capture files or discover an omitted citation in arbitrary prose.
