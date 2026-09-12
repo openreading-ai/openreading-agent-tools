@@ -16,6 +16,8 @@
 
 ## Unreleased
 
+- Clarify revision 7 release dependencies, focused profile-aware MCP checks, independent core setup, and separate non-developer pilot evidence.
+
 - Define ProductSpec revision 6: OSS launch v1 before managed v2, full pinned-core MCP catalog parity, and a static Coming soon visual only.
 - Keep the slim Docling bundle and independent full-core setup route; build no managed endpoint, stub, auth, upload or billing components.
 - Preserve internal profile/settings versions and runtime pins; new release parity and presentation checks remain proposed.

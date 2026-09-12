@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 6 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
+**Status:** revision 7 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -8,7 +8,7 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 6 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 7 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and setup-enabled Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
@@ -86,7 +86,8 @@ Record executable identity, parent process, and a nonce-bearing local log before
 ### Independent full-core installations
 
 Agent Tools bundles slim Docling only and does not add an alternative local backend or server manager.
-Power users independently install full OpenReading, select its backends, and register its MCP server in their assistant.
+Power users independently install full OpenReading and register a supported MCP profile through [the separate guide](../clients/full-core/README.md).
+Current MCP profiles select PyMuPDF or local Docling; the broader CLI/Python/HTTP backend selection is not yet a general MCP interface.
 That configuration belongs to core and the assistant, not to this package's settings or `.env`.
 The core CLI and server keep their existing configuration contracts.
 Managed product v2 is separate post-launch work; the OSS product v1 includes only the static Coming soon visual defined in [the launch design](oss-launch.md).

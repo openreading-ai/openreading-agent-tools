@@ -122,3 +122,20 @@ CV-2 covers stdio user-configuration arguments, and CV-3 covers independent dete
 CV-4 through CV-8 cover cumulative accounting, claim conditions, live authorization, environment replacement, and inventory integrity.
 CV-9 confirms revision labels and unverified host/measurement claims stay explicit.
 These review observations do not constitute new live-host or paid-trial evidence.
+
+## OSS launch sequencing review, revision 7
+
+This adjudicates the owner's pasted reassessment of revision 6. It changes plans, not runtime behavior.
+
+| Finding | Decision and evidence |
+| --- | --- |
+| Missing critical path and released-core prerequisite | Accepted for public bundles. R0 requires owner merge, core release and immutable release pin before final packaging. N2 and resource work can proceed on candidate pins; release is not a prerequisite for learning host behavior. |
+| Remove C0 from launch | Partly accepted. Reuse E0/P0/N2 and check the manifest rather than build three independent inventory systems. Reject exemption from final release acceptance: direct delegation does not rule out wrong packaged core/profile or stale manifest declarations. |
+| Missing descriptions/instructions comparison | Accepted with correction. Core `mcp_server.tools.create_server` derives Docling import/read descriptions from the profile; `INSTRUCTIONS` is currently shared. Compare both under equivalent profiles, without blanket exclusions. |
+| Missing recruitment and non-developer evidence | Accepted. L1 names Akshay and the release maintainer, existing invitation channels, consent and separate five-person non-developer/developer cohorts. Reconcile the previous ten-person company plan with the five-person ProductSpec and report both cohorts. |
+| Independent core route lacks content/owner | Accepted. R1 and the new client guide specify installation, explicit profiles, Docling JSON/assets/OCR, registration and release verification. The CLI requires `--profile`; PyMuPDF is the historical profile, not a silent CLI default. General backend selection is not currently an MCP feature. |
+| Missing risks/abort conditions | Partly accepted. P1 already specifies a signed-installer fallback, and P0 already freezes. Consolidate measured resource, signing and host-route stop conditions rather than reopening basic feasibility. |
+| Static copy dismissal | Accepted. AC-28 checks rendering only; no dismissal control is planned. |
+| Replace candidate hash with branch name | Rejected. A squash changes the released commit, not the identity of historical evidence. R0 records the new release commit and revalidates; a mutable branch name weakens reproducibility. |
+
+The scope decisions remain unchanged: full implemented MCP coverage, slim Docling, independent full-core use, and static Coming soon presentation only.

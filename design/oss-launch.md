@@ -1,6 +1,6 @@
 # OSS launch v1 and the Coming soon boundary
 
-Status: ProductSpec revision 6 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
+Status: ProductSpec revision 7 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-29.
 Execution order: C0 and N3 in the [implementation plan](implementation-plan.md).
 
@@ -42,21 +42,27 @@ Future upstream changes can require a client/runtime update; no automatic compat
 
 ## Catalog parity evidence
 
-C0 compares three independently obtained inventories: the direct immutable core build, its frozen runtime, and each released host wrapper.
-Compare names, input schemas, declared output schemas where present, annotations and relevant capability declarations.
-Normalize only documented host name qualification. Do not normalize away a missing tool or contract difference.
-Obtain the reference from the actual pinned package, not another wrapper or a hard-coded permanent list of three.
-Record core commit, runtime hash and normalized catalog digest with the results.
+C0 is a small pin-update and final-package check, integrated into E0, the existing P0 smoke and N2. It is not a separate verification framework or a prerequisite for starting native setup work.
+The launcher delegates directly to core; there is no second runtime implementation to reconform.
+Freezing can still select the wrong package or profile, and the Claude Desktop manifest repeats tool names and user-facing summaries.
 
-Every exposed tool needs a valid synthetic call and a representative refusal through the frozen runtime.
-Native host checks must show that the corresponding tools can be discovered and invoked through the claimed mode.
-Tool presence alone is not invocation evidence.
-Add regression tests in the existing coverage gate for omitted tools, altered schemas and wrapper filtering.
-A pin update must fail this gate until its changed catalog and functional cases are reconciled.
-Do not require a sibling checkout or a network lookup in the offline gate.
+For each pin update, obtain the reference catalog and initialization instructions from the pinned core package under the same effective Docling profile as the bundle.
+Use identical page, byte, deadline, memory and OCR settings. Asset paths may differ between installations but must identify the intended assets.
+Reuse the P0 real-stdio smoke for the frozen observation and N2 for host discovery/invocation. Add a focused check of any hand-maintained manifest catalog; wrappers that declare no catalog need no invented inventory.
+Record the core release/commit, effective profile, runtime hash and comparison result.
 
-Existing E0/restart checks remain valid for their recorded pin. They do not automatically complete the broader C0 release gate.
-Core retains ownership of tool behavior and schema evolution; wrapper tests must not fork the engine contract.
+Compare names, input/output schemas where declared, annotations and declared capabilities strictly after documented host name qualification.
+Compare model-facing descriptions and initialization instructions against the pinned core's output for that same profile, including OCR off and on.
+The current core changes import/read descriptions for Docling; its initialization instructions are shared across profiles. Both fields still need capture to detect future regressions.
+Do not compare default PyMuPDF prose against Docling prose, remove these fields from comparison, or blanket-allow all description differences.
+Manifest installation summaries may differ in wording, but must agree on tools, engine, limits, OCR and data disclosure. They are not necessarily the descriptions sent to the model.
+Any host-added prefix or instruction wrapper must be specifically recorded; the core instructions and shared workflow must still be delivered and agree with the selected configuration.
+
+Reuse existing import/search/read success, refusal and citation cases; add only missing coverage or cases for newly implemented core tools.
+Use regression tests for missing manifest tools, changed contracts, wrong profile descriptions and missing initialization instructions within the existing coverage gate.
+Do not require a sibling checkout or network access in the offline gate.
+The final package still needs complete coverage before release. Calling this a pin-update gate does not exempt the first release or permit shipping a filtered catalog.
+A moving branch name cannot replace immutable provenance: keep existing candidate hashes, then record the released tag/version and resolved commit separately when R0 completes.
 
 ## Static Coming soon visual
 

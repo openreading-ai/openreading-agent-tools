@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 6
+spec_revision: 7
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-12T00:00:00Z"
@@ -78,7 +78,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 6 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 7 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Client binaries remain the historical revision 1 PyMuPDF prototype.
@@ -98,7 +98,9 @@ The current internal v2 profile is a local Docling profile, not a managed servic
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
 The reviewed candidate core `7d97b75` exposes `openreading_import`, `openreading_search`, and `openreading_read`.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
-The launch must compare the pinned core catalog with each wrapper's exposed catalog and exercise every tool.
+Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
+The launch must verify the complete tool catalog using existing frozen/native checks and the client manifest declarations.
+Compare core and frozen runtime under equivalent profiles, including model-facing descriptions and initialization instructions.
 A future core pin requires a new comparison and compatibility work for added tools before release.
 Core CLI or HTTP operations that are only proposed as MCP tools are not claimed as implemented.
 Tool completeness does not mean every backend is installed or every operation has every optional capability.
@@ -208,12 +210,13 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 6 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 7 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
 Revision 5 replaces the API study criteria AC-15 through AC-17 and EVAL-2 with Desktop-only evidence requirements.
-Revision 6 adds AC-27 through AC-29 for full pinned-core MCP parity, the static Coming soon visual, and launch independence from managed v2.
+Revision 6 added AC-27 through AC-29 for full pinned-core MCP parity, the static Coming soon visual, and launch independence from managed v2.
+Revision 7 clarifies the released-core prerequisite, profile-aware parity, independent setup route, and segmented pilot without renumbering criteria.
 All earlier identifiers remain stable; unchanged engine criteria still need their separate release evidence.
 The runtime evidence table describes historical revision 1 checks only; changed criteria require new evidence.
 
@@ -243,7 +246,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-12
   criterion: Claude Code and Codex can each install or load their packaged distribution, invoke the complete implemented MCP tool catalog of the pinned core release, and complete the synthetic walkthrough on individually recorded host versions without a user-managed Python environment.
 - id: AC-13
-  criterion: A package identifies its exact core commit, dependency lock, platform, runtime digest, and third-party notices; modified binaries or inconsistent package metadata fail the integrity check before parsing.
+  criterion: A public package pins a core release merged into its default branch, records that release version and exact commit alongside its dependency lock, platform, runtime digest and notices, and refuses modified binaries or inconsistent metadata before parsing; development candidates remain explicitly unreleased.
 - id: AC-14
   criterion: Install, restart, update, removal, spaces in paths, Unicode filenames, read-only source files, and configured-root changes each have a recorded expected result and test evidence for each desktop mode included in a release.
 - id: AC-15
@@ -271,9 +274,9 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-26
   criterion: ChatGPT desktop is supported only after a named application version and conversation mode completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; a Codex local thread is labeled as such and never passes the Chat conversation target.
 - id: AC-27
-  criterion: Every released wrapper exposes all implemented MCP tools from its pinned core version without a commercial filter; tool names, schemas and invocation results match core after documented host qualification, every tool has a functional case, and missing or changed tools fail release verification before a pin update ships.
+  criterion: Every released wrapper exposes all implemented MCP tools from its pinned core version without a commercial filter; tool names, schemas and annotations match core after documented host qualification, descriptions and initialization instructions match the pinned core under equivalent profile settings, every tool has a functional case preserving core result contracts, and missing or changed tools fail pin-update and final package verification; existing checks supply this evidence without a duplicate test framework.
 - id: AC-28
-  criterion: The OSS launch includes a static OpenReading Managed Coming soon visual in the README and release presentation; it promises no date or supported scale, offers no signup or processing action, and rendering or dismissing it causes no network request, credential read, upload, service registration, or change to local tool results.
+  criterion: The OSS launch includes a static OpenReading Managed Coming soon visual in the README and release presentation; it promises no date or supported scale, offers no signup or processing action, and rendering it causes no network request, credential read, upload, service registration, or change to local tool results.
 - id: AC-29
   criterion: OSS launch v1 works with no OpenReading account, service configuration or managed component; its bundle contains no managed endpoint, stub, authentication, upload, billing, polling or dormant managed tools, while a separately installed full core remains usable through the assistant's own MCP configuration and no alternative local backend manager is added.
 ~~~
@@ -312,23 +315,26 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 ## Success Metrics
 
 These are proposed post-proof pilot targets, distinct from the pre-launch acceptance criteria.
-Measurement is an opt-in maintainer study with five participants and no runtime telemetry.
+Measurement is an opt-in maintainer study with ten participants: five non-developers and five developer diagnostics, with no runtime telemetry.
+Report each cohort separately; developer success cannot replace the non-developer threshold.
+Akshay owns recruitment through personal introductions and voluntary community responses. The release maintainer owns the guide and observation rubric.
+No invitations are sent or contacts collected by the product. Confirm the roster, consent and schedule before distributing the signed pilot candidate.
 The owner records observations in the private company repository.
 
 ~~~productspec-success-metrics
 - id: SM-1
   metric: Participants reaching a correctly cited first answer without installation assistance
-  target: At least 4 of the first 5 pilot participants
+  target: At least 4 of 5 non-developers and 8 of 10 participants overall
   target_status: committed
   window: During each participant's first 15 minutes after receiving the bundle
 - id: SM-2
   metric: Pilot participants choosing OpenReading for a second document task
-  target: At least 3 of the first 5 pilot participants
+  target: At least 3 of 5 non-developers within 7 days and 5 of 10 participants overall within 14 days
   target_status: committed
-  window: Within 7 days of the first successful answer
+  window: Within the respective 7-day and 14-day windows after the first successful answer
 - id: SM-3
   metric: Pilot participants correctly identifying what document information reaches the assistant
-  target: All 5 pilot participants distinguish local extraction from shared excerpts
+  target: All 10 pilot participants distinguish local extraction from shared excerpts
   target_status: committed
   window: At the end of the first pilot session
 ~~~

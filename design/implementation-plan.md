@@ -1,14 +1,14 @@
-# Revision 6 implementation plan
+# Revision 7 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 6](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 7](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
 Each implementation commit names the acceptance criteria it addresses and leaves unmet host checks explicit.
 A passing offline gate is necessary but cannot replace native application or signing evidence.
 
-ProductSpec revision 6 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
+ProductSpec revision 7 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
 Revision 5 prohibited provider API trials and removed their release prerequisites.
 Revision 6 defines public OSS product v1, full pinned-core MCP parity, and a static Coming soon visual; managed product v2 follows launch.
 It preserves `local-document-proof-v2`, historical locks, native acceptance, and owner-operated Desktop testing.
@@ -19,6 +19,46 @@ N1, bounded P0 build work, and independently authorized native probes can begin 
 P0 assembles the diagnostic candidate alongside N1 and consumes its frozen-launch changes before N2.
 Then use measured C1 limits for release, perform Claude N2 first, and admit ChatGPT N2 only after E1.
 M0/M1/M2 are retired. P1 precedes clean-host H1 without an API-study dependency.
+
+## Release dependency order
+
+This is a dependency order, not a claim about which unfinished task will take longest.
+Akshay owns core merge and release approval. Maintainers prepare the release and pin change; agents never merge.
+
+~~~text
+Core PR review -> owner merge -> core release -> R0 immutable release pin
+N1 + P0 + E5 -> Claude Desktop N2
+N1 + P0 + E1 -> named ChatGPT N2 (conditional)
+R0 + C1 resource limits + N2 supported route + license/signing readiness -> P1
+P1 + C0 final package check + N3 presentation + R1 guide -> H1 clean-host checks
+H1 + owner approval -> packaged OSS launch
+H1 + L1 recruited/consenting cohort -> observed pilot -> follow-up review
+~~~
+
+Continue N2, C1, licensing preparation, R1 and pilot planning against the immutable development candidate while core review/release proceeds.
+Do not wait for a core release to learn whether the host setup works. Rebuild and repeat affected evidence after the released pin is selected.
+C0 travels with pin updates and packaging; reuse E0/P0/N2 instead of blocking N2 behind a new broad harness.
+Source publication and supported binary distribution have separate readiness decisions; never distribute an unsigned development bundle as the supported release.
+
+## R0. Released core dependency
+
+Owner: core maintainer prepares; Akshay approves merge/release; Agent Tools maintainer updates pins.
+Acceptance: AC-13 and AC-27.
+
+- [ ] Complete review of the core MCP work, then obtain owner merge and a core release containing it.
+- [ ] Record release version/tag, immutable commit, default-branch ancestry and the corresponding published source/distribution identity.
+- [ ] Update the candidate and P0 locks to that released commit; retain earlier branch hashes as development evidence.
+- [ ] Rebuild and rerun affected integrity, profile, extraction, instruction and C0 checks. Do not relabel old artifacts as release evidence.
+
+## Release risks and stop conditions
+
+| Risk | Owner and decision |
+| --- | --- |
+| Frozen size, startup, memory or useful document limits miss C1's measured envelope | Packaging/core maintainers investigate within the approved slim profile. Stop binary release if useful imports cannot fit; an owner-approved scope change is required for another engine or job model. P0 already freezes successfully, so do not restart basic feasibility on speculation. |
+| Signing/notarization or archive extraction fails | Release maintainer uses the already planned signed app/installer fallback and repeats native/clean-host checks. If neither supported route passes, stop binary distribution; do not recommend bypassing OS protections. |
+| A host changes its extension format or cannot deliver local tools/instructions | Client maintainer revalidates a documented route on the named version. Stop support claims for that route if it fails; do not substitute a coding mode for Chat or build an unapproved bridge. Independently passing hosts may ship. |
+
+A delayed core release blocks final release pinning, not development checks. Release timing follows these dependencies rather than an invented date.
 
 ## Existing baseline
 
@@ -56,19 +96,19 @@ Other common implementation work can continue without that unsupported claim.
 Acceptance: AC-27 and AC-29. Owners: core owns tool implementation; Agent Tools owns wrapper parity.
 Contract: [OSS launch design](oss-launch.md). This is proposed release verification, not an already completed gate.
 
-- [ ] Inventory every implemented tool in the release's immutable core pin, including schemas and declared capabilities.
-- [ ] Compare the direct pinned core catalog with the frozen runtime and each wrapper after normalizing only the host's documented name prefix.
-- [ ] Exercise every tool with a valid call and a representative refusal; preserve core result schemas, bounds and warnings.
-- [ ] Add regression cases for a missing tool, changed schema and filtered catalog; prove each fails the new parity gate.
-- [ ] Repeat for every core pin update. Do not infer completeness from two wrappers sharing the same incomplete list.
-- [ ] If a new tool conflicts with the slim local profile, settle its core behavior before releasing that pin; no silent omission or managed entitlement gate.
+- [ ] On every core pin update, obtain the direct-core catalog and initialization instructions under the same effective Docling profile as the frozen runtime.
+- [ ] Extend E0/P0 to compare names, schemas, annotations and profile-expected descriptions/instructions, including OCR off and on.
+- [ ] Check the Claude Desktop manifest's repeated tool names and semantic setup claims; reuse N2 for actual host discovery and invocation.
+- [ ] Reuse existing valid/refusal cases for import/search/read; add cases only for uncovered behavior or new tools.
+- [ ] Add focused regressions for omitted tools, changed schemas, wrong profile prose and missing instructions.
+- [ ] Check the final package after R0/P1. A pin-update check is necessary for the first release too; it is not a separate prerequisite for beginning N2.
 
-The current core catalog is import, search and read. E0's existing three-tool check remains historical evidence, not automatic proof of future catalog completeness.
-No new core MCP tool is implemented by this documentation pass.
+The current core catalog is import, search and read. There is no duplicate engine contract to implement in wrappers.
+The [launch design](oss-launch.md) defines strict fields and permitted profile/presentation differences.
 
 ## N1. Common configuration and launcher migration
 
-Implemented before ProductSpec revision 6. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
+Implemented before ProductSpec revision 7. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
 Tests cover closed settings, exact OCR tokens, atomic replacement, grant refusal, direct-versus-saved precedence and v1/v2 coexistence.
 Independent profile lifetimes, exceptional cleanup and verified resource paths are exercised offline.
 The diagnostic launcher does not complete host-dependent AC-2, AC-13 or AC-23 by itself.
@@ -160,9 +200,35 @@ Keep application/version/mode, source size, physical pages, extracted characters
 A sparse 80-page fixture does not establish performance on a dense 80-page document or a thousand-page input.
 No quota, billing, context-window or total-token claim follows from smaller returned tool payloads.
 
+## R1. Independent full-core connection guide
+
+Owner: Agent Tools maintainer owns [the connection guide](../clients/full-core/README.md); core maintainer reviews its profile contract.
+Acceptance: AC-20 and AC-29. This is a separate power-user installation, not a backend menu in the bundled product.
+
+- [ ] After R0, replace the candidate reference with the released version and verify the documented clean-environment install.
+- [ ] Exercise both explicit profiles, including the Docling profile JSON, local assets, dependency lock and optional Tesseract data.
+- [ ] Register the standalone executable through one verified assistant route without changing unrelated registrations; capture tool discovery and a cited read.
+- [ ] Confirm the guide distinguishes full core's CLI/Python/HTTP backends from its presently limited MCP profiles. Installing all extras does not expand MCP automatically.
+- [ ] Publish the independently verified guide with the install/limits material before the packaged OSS launch.
+
+## L1. Pilot recruitment and observation
+
+Owner: Akshay recruits and obtains consent. The release maintainer prepares the install task, observation sheet and follow-up instructions.
+Do not send invitations or collect participant data without the owner's authorization.
+
+- [ ] Prepare invitation text for existing personal/community relationships and voluntary referrals outside engineering. Use existing communication channels, not a product waitlist or telemetry.
+- [ ] Recruit five non-developers who do not routinely set up Python/development tools, plus five developers for diagnostic comparison. Agree a schedule and record consent privately.
+- [ ] Use H1's clean-machine result to establish runtime independence; record each pilot machine's preexisting tools and assistance separately.
+- [ ] Target 4/5 non-developers and 8/10 overall completing the cited-answer task within 15 minutes without installation help.
+- [ ] Target 3/5 non-developers returning within seven days, and 5/10 overall within fourteen days. Check all ten understand excerpt disclosure.
+- [ ] Report both cohorts, every failure and assistance received. Missing recruits are missing evidence, not successes or developer replacements.
+
+Confirm these proposed targets before recruitment. Failure of the non-developer cohort blocks the non-developer onboarding claim even if the pooled result passes.
+Pilot observations follow signed clean-host readiness; an unfilled roster does not prevent offline implementation.
+
 ## P1. Later signed distribution
 
-Prerequisites: C1 release profile and reviewed native connection routes. No API study or token measurement is required.
+Prerequisites: R0 released-core pin, C1 release profile and reviewed native connection routes. No API study or token measurement is required.
 Acceptance: AC-1, AC-13, AC-19.
 Owners: runtime lock, build/verifier, package metadata, notices, packaging tests, and client guides.
 
@@ -186,7 +252,7 @@ Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC
 - [ ] Verify Claude Code and Codex separately before labeling their Docling distributions supported.
 - [ ] Test setup cancellation, root changes, permissions, process cleanup, update, removal, retained-data cleanup, spaces, and Unicode.
 - [ ] Record actual host logs and recovery steps; do not infer which process needs OS permissions without observing it.
-- [ ] Review evidence and any public claims before the five-participant pilot or distribution.
+- [ ] Review evidence and any public claims before the ten-participant, separately reported pilot cohorts or distribution.
 - [ ] Move implemented facts beside code and delete completed proposal sections without deleting unmet requirements.
 
 No release or merge occurs automatically when tests pass.

@@ -49,3 +49,8 @@ No host configuration was changed, package installed, or model trial executed du
 
 Every future compatibility entry must name the tested runtime, application version, execution mode, and actual result.
 API measurement, protocol smoke, and native installation remain separate evidence.
+
+## Independent core installation
+
+Power users can follow the [standalone core connection guide](full-core/README.md).
+Its release walkthrough remains R1 work; the current MCP profiles do not expose every CLI/HTTP backend.

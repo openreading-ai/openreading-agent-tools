@@ -10,7 +10,7 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 6 scope; shared configuration and an unsigned Docling runtime are implemented; native client packaging remains pending.**
+**Status: revision 7 scope; shared configuration and an unsigned Docling runtime are implemented; native client packaging remains pending.**
 The Docling corpus, retrieval/restart checks, citation checker and historical offline accounting are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The [P0 developer build](runtime/p0/README.md) bundles Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
@@ -42,7 +42,7 @@ Excerpts returned to a cloud assistant enter that assistant's context.
 This is a static preview of future intent. It contains no service connection or signup flow.
 Launch v1 remains free, local, and account-free, with the full implemented MCP catalog of its pinned core.
 The candidate currently exposes import, search, and read. Broader MCP operations are not claimed before core implements them.
-The slim Docling bundle does not configure other local backends; power users can independently connect their assistant to full core.
+The slim Docling bundle does not configure other local backends; the [independent core guide](clients/full-core/README.md) explains the separate installation and current MCP profile limits.
 The [OSS launch design](design/oss-launch.md) separates public v1 from internal v2 profile/settings names and later managed v2.
 
 ## Repository boundaries

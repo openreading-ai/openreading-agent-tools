@@ -1,6 +1,6 @@
 # Native connection and frozen-runtime probes
 
-**Status:** native experiments remain proposed under ProductSpec revision 6. E0 and the P0 developer smoke are implemented; no native-host result is implied.
+**Status:** native experiments remain proposed under ProductSpec revision 7. E0 and the P0 developer smoke are implemented; no native-host result is implied.
 **Owners:** Agent Tools owns host probes and capture; core owns engine, evidence, and worker behavior.
 **Prerequisites:** [assistant contract](assistant-clients.md) and [implementation order](implementation-plan.md).
 
