@@ -278,9 +278,13 @@ class CitationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_multiple_quotes_verify_without_conflating_origins(self):
         capture, review, retained = fixture()
-        capture["events"][-1]["text"] += " Another quote: 60 days"
+        capture["events"][-1]["text"] += (
+            "\nProvide 60 days notice. Source: agreement.pdf, physical PDF page 3."
+        )
         extra = copy.deepcopy(review["citations"][0])
-        extra["quote_span"] = [83, 90]
+        extra["quote_span"] = [68, 91]
+        extra["filename_span"] = [100, 113]
+        extra["page_span"] = [115, 134]
         review["citations"].append(extra)
         self.assertEqual((await self.check(capture, review, retained))["verified_citations"], 2)
 
@@ -315,6 +319,68 @@ class CitationTests(unittest.IsolatedAsyncioTestCase):
         capture, review, retained = fixture()
         retained["passages"][0]["text_start"] = 1
         with self.assertRaises(ValueError):
+            await self.check(capture, review, retained)
+
+    async def test_trivial_quotes_are_refused_but_short_values_remain_valid(self):
+        for bounds in ([0, 1], [7, 8], [22, 23]):
+            with self.subTest(bounds=bounds):
+                capture, review, retained = fixture()
+                review["citations"][0]["quote_span"] = bounds
+                with self.assertRaisesRegex(ValueError, "two letters or digits"):
+                    await self.check(capture, review, retained)
+        capture, review, retained = fixture()
+        review["citations"][0]["quote_span"] = [8, 10]
+        # A valid value can lie outside the short search excerpt but inside the read passage.
+        result = json.loads(capture["events"][3]["result"]["content"][0]["text"])
+        result["hits"][0].update(excerpt="Provide", excerpt_start=0, excerpt_end=7)
+        capture["events"][3]["result"]["content"][0]["text"] = json.dumps(result)
+        self.assertEqual((await self.check(capture, review, retained))["verified_citations"], 1)
+
+    async def test_repeated_labels_cannot_be_taken_from_an_unrelated_aside(self):
+        for separator in ("\n", "\r\n", "\u2028", " "):
+            with self.subTest(separator=separator):
+                capture, review, retained = fixture()
+                answer = (
+                    capture["events"][-1]["text"]
+                    + separator
+                    + "Unrelated aside: agreement.pdf, physical PDF page 3."
+                )
+                capture["events"][-1]["text"] = answer
+                citation = review["citations"][0]
+                start = answer.rindex("agreement.pdf")
+                citation["filename_span"] = [start, start + 13]
+                start = answer.rindex("physical PDF page 3")
+                citation["page_span"] = [start, start + 19]
+                with self.assertRaisesRegex(ValueError, "follow their quote"):
+                    await self.check(capture, review, retained)
+
+    async def test_a_quote_cannot_reuse_labels_before_it(self):
+        capture, review, retained = fixture()
+        capture["events"][-1]["text"] += " Another quote: 60 days"
+        review["citations"][0]["quote_span"] = [83, 90]
+        with self.assertRaisesRegex(ValueError, "follow their quote"):
+            await self.check(capture, review, retained)
+
+    async def test_a_quote_cannot_borrow_the_next_quotes_labels(self):
+        capture, review, retained = fixture()
+        capture["events"][-1]["text"] = (
+            "Provide 60 days notice. Another quote: " + capture["events"][-1]["text"]
+        )
+        first = review["citations"][0]
+        first["filename_span"] = [71, 84]
+        first["page_span"] = [86, 105]
+        second = copy.deepcopy(first)
+        second["quote_span"] = [39, 62]
+        review["citations"].append(second)
+        with self.assertRaisesRegex(ValueError, "follow their quote"):
+            await self.check(capture, review, retained)
+
+    async def test_labels_on_another_line_are_unsupported(self):
+        capture, review, retained = fixture()
+        capture["events"][-1]["text"] = capture["events"][-1]["text"].replace(
+            ". Source:", ".\nSource:"
+        )
+        with self.assertRaisesRegex(ValueError, "follow their quote"):
             await self.check(capture, review, retained)
 
 

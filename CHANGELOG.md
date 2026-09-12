@@ -16,6 +16,9 @@
 
 ## Unreleased
 
+- Reject trivial quote selections and citation labels borrowed from later or unrelated answer text.
+- Distinguish unedited citation CLI output from annotated development records.
+
 - Refresh candidate and P0 locks to core `7d97b75`, preserving historical revision 1 pins.
 - Reimport integration v5 evidence and verify frozen OCR, relocation, restart and identity refusal.
 - Add protocol-based citation review with exact answer spans, capture hashes and negative provenance tests.

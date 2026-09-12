@@ -3,6 +3,10 @@
 Capture v1 contains ordered request, response and one final answer event. Host adapters
 must preserve complete tool payloads and provenance of that capture outside the grant.
 The review binds the capture bytes and supplies Unicode code-point spans into the answer.
+Quotes require at least two Unicode letters or digits; this floor does not prove relevance.
+Labels follow their quote in filename/page/origin order on the line where the quote ends.
+They precede another annotated quote and cannot skip earlier matching labels.
+Other citation layouts remain unsupported; semantic association still needs human review.
 Filename and physical-page labels are exact; OCR/mixed evidence needs a visible origin label.
 A reviewer must attest citation inventory completeness. This cannot detect an omitted
 citation in arbitrary prose or authenticate a fabricated capture. A pass verifies evidence
@@ -66,6 +70,28 @@ def label(answer, bounds):
         "Label continues outside its annotation.",
     )
     return value
+
+
+def placement(answer, citation, quote_starts):
+    start, end = citation["quote_span"]
+    # Labels from a later aside or another quoted claim cannot identify this quote.
+    limits = [len(answer), *(other for other in quote_starts if other > start)]
+    limits.extend(
+        position for token in "\r\n\u0085\u2028\u2029" if (position := answer.find(token, end)) >= 0
+    )
+    limit = min(limits)
+    fields = ["filename_span", "page_span"]
+    if citation["origin_span"] is not None:
+        fields.append("origin_span")
+    for field in fields:
+        value = span(answer, citation[field])
+        label_start, label_end = citation[field]
+        require(
+            end <= label_start < label_end <= limit
+            and answer.find(value, end, limit) == label_start,
+            "Citation labels must follow their quote in order on the same line without skipping matching labels.",
+        )
+        end = label_end
 
 
 def payload(result):
@@ -158,12 +184,16 @@ async def check(capture, review, resolve):
     answer, names, requests, responses = captured(capture)
     citations = review["citations"]
     require(isinstance(citations, list) and citations, "No reviewed citations were supplied.")
+    for citation in citations:
+        span(answer, citation["quote_span"])
+    quote_starts = [citation["quote_span"][0] for citation in citations]
     seen = set()
     for citation in citations:
         closed(
             citation,
             "artifact_id evidence_id page text_origin import_call search_call read_call quote_span filename_span page_span origin_span",
         )
+        placement(answer, citation, quote_starts)
         artifact, evidence = citation["artifact_id"], citation["evidence_id"]
         require(
             isinstance(artifact, str)
@@ -222,6 +252,10 @@ async def check(capture, review, resolve):
             "Search excerpt differs from retained text.",
         )
         quote = span(answer, citation["quote_span"])
+        require(
+            sum(character.isalnum() for character in quote) >= 2,
+            "A quote must contain at least two letters or digits; include surrounding context for a one-character value.",
+        )
         require(quote in actual["text"], "Answer quote is not verbatim evidence.")
         filename = label(answer, citation["filename_span"])
         require(

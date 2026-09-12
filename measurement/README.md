@@ -294,7 +294,14 @@ Unknown keys refuse verification; [synthetic test fixtures](../tests/runtime/tes
 
 Successful import, search and read calls must precede the answer in order and identify the same artifact and evidence.
 The captured passage must equal a fresh verified read, including its offsets, physical page and origin.
-The answer's quote must be an exact substring; its filename and page label must match the source.
+The answer's quote must be an exact substring containing at least two Unicode letters or digits.
+Whitespace, punctuation and one-character selections refuse verification; include surrounding context for a single-character value.
+This is a minimum content check, not proof that a quote supports the answer.
+A valid quote may lie outside the search excerpt when the captured read supplies it.
+Filename, physical-page and optional origin labels must follow the quote in that order on the line where it ends.
+They must precede the next annotated quote and cannot skip an earlier matching label.
+For example, labels repeated in a later aside cannot replace the labels following the quote.
+Other presentation layouts remain unsupported. Human review still checks semantic association and material support.
 A selected prefix cannot disguise page 30 as page 3 or a different filename as the correct source.
 Wrong pages, paraphrases, cross-artifact IDs, missing calls, changed capture bytes and omitted OCR labels have negative tests.
 
@@ -303,3 +310,8 @@ The checker cannot authenticate fabricated capture files or discover an omitted 
 It verifies annotated evidence links and leaves answer correctness, unsupported material claims and instruction adherence for human review.
 No result from this checker establishes host support or token savings.
 A real frozen-runtime check verified native and OCR passages using a generated synthetic answer; no assistant was invoked.
+
+Retain CLI stdout unchanged as the machine result, such as `citation-cli-report.json`.
+Store wrapper annotations and run context separately; added context is not a field emitted by the checker.
+The earlier `citation-report.json` development record includes a `scope` field added by the synthetic wrapper.
+Its corresponding `citation-cli-report.json` is the unedited CLI output; neither is a native assistant result.
