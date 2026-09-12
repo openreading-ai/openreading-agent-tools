@@ -1,5 +1,7 @@
 # Client compatibility
 
+Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+
 OpenReading has one proposed Docling runtime and separately tested client connections.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.

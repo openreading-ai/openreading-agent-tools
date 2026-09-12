@@ -1,14 +1,14 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 5 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
+**Status:** revision 6 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
 ## 1. One runtime, named client support
 
 The first assistant distribution contains one selected local Docling profile.
-“Docling slim” is this project's packaging description, not an upstream package name or a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 5 does not rename it.
+“Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 6 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and setup-enabled Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
@@ -23,7 +23,8 @@ A shared model provider does not make two applications equivalent.
 For example, a successful OpenAI API trial proves nothing about a ChatGPT desktop installation.
 
 The client starts the runtime over local standard input/output, abbreviated STDIO.
-The runtime invokes core's import, search, and read tools using unchanged core schemas.
+The runtime exposes every implemented MCP tool from the pinned core using unchanged core schemas.
+The current catalog is import, search, and read. The [OSS launch design](oss-launch.md) requires parity again for every pin update.
 A host may qualify tool names, but it cannot require a different artifact or citation contract.
 The shared evidence workflow describes tool purpose and uses identifiers returned by the tools.
 Where a host cannot load a skill, its integration supplies the same concise workflow through a supported instruction channel.
@@ -82,12 +83,14 @@ The disclosure says: "This directory limits OpenReading tools. Your assistant ma
 Require local execution and exclude `experimental_environment = "remote"` from the supported registration.
 Record executable identity, parent process, and a nonce-bearing local log before calling a route local.
 
-### Later backends
+### Independent full-core installations
 
-Future backend configuration belongs in OpenReading's versioned settings, with explicit capabilities and data-location disclosure.
-A future `.env` or host secret reference may supply credentials, but it does not select or authorize cloud dispatch by itself.
-Do not implement those fields, a backend menu, ambient routing, or automatic fallback in this revision.
-The core CLI and server already expose broader processing workflows and keep their existing configuration contracts.
+Agent Tools bundles slim Docling only and does not add an alternative local backend or server manager.
+Power users independently install full OpenReading, select its backends, and register its MCP server in their assistant.
+That configuration belongs to core and the assistant, not to this package's settings or `.env`.
+The core CLI and server keep their existing configuration contracts.
+Managed product v2 is separate post-launch work; the OSS product v1 includes only the static Coming soon visual defined in [the launch design](oss-launch.md).
+No dummy service, endpoint configuration, authentication or upload component ships as a future placeholder.
 
 ## 4. Preserve the CLI, Python API, and HTTP server
 
@@ -115,7 +118,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 
 | Case | Required result |
 | --- | --- |
-| Startup and discovery | The native application starts the intended candidate and lists exactly the three selected core tools. |
+| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently three tools). |
 | Factual question | Import, search, and read precede a correct answer with an exact quote and physical page. |
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |
 | Missing fact | The answer states the evidence limitation without turning empty search into proof of absence. |
@@ -146,6 +149,9 @@ Use the delay probe and measured margin specified in the engine design before ad
 A short successful request does not establish the deadline for a 100-page OCR import.
 
 ## 6. Packaging and release order
+
+Public OSS product v1 precedes managed product v2. Complete the catalog parity and static visual scope in [the launch design](oss-launch.md).
+Internal profile/settings version 2 remains local and is not a managed release.
 
 First prove the shared source protocol and native connection route; then implement common setup and host adapters.
 Use bounded P0 frozen-build feasibility to test identity, relocation, one import, and startup.

@@ -6,7 +6,7 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 5 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
+ProductSpec revision 6 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
@@ -14,6 +14,19 @@ The core candidate implements local Docling supervision; client installation and
 Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
 No public binary or measured token savings are released.
 The remaining native and release gates stay in `design/`.
+
+## OSS launch scope
+
+Product v1 is the first public OSS release. Managed product v2 starts after launch.
+Historical prototype revision 1, version 2 settings and `local-document-proof-v2` keep their names and hashes.
+Expose every implemented MCP tool from the pinned core release, with no commercial subset.
+The reviewed candidate has import, search and read; planned core MCP operations are not already implemented.
+Core pin changes require full catalog parity and functional cases before release.
+Keep the bundled slim Docling runtime and no alternative local backend or server manager.
+A power user's independent full-core MCP connection remains outside this package's configuration.
+Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
+Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.
+See [the launch design](design/oss-launch.md) for the contract and verification work.
 
 ## Ownership
 

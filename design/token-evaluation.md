@@ -1,8 +1,10 @@
 # Desktop evidence and token-claim boundaries
 
-**Status:** revision 5 Desktop-only proposal. Provider API studies are retired and prohibited.
-**ProductSpec:** [revision 5](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17 and EVAL-2.
+**Status:** revision 6 Desktop-only proposal. Provider API studies are retired and prohibited.
+**ProductSpec:** [revision 6](../product/specs/local-document-proof.product-spec.md), AC-15 through AC-17 and EVAL-2.
 **Implementation:** [offline accounting, report readers and citation checker](../measurement/README.md).
+
+OSS product v1 launches before managed product v2. The [launch design](oss-launch.md) requires complete pinned-core MCP coverage and a static Coming soon visual only; no managed components are part of this work. Internal v2 profiles and settings keep their existing local meaning.
 
 ## What remains to prove
 

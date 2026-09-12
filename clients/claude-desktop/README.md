@@ -1,5 +1,7 @@
 # Claude Desktop local preview
 
+Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+
 **Revision status:** this guide separates current Docling developer checks from the historical revision 1 PyMuPDF package.
 The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
 See the [client matrix](../README.md) for the limits of existing evidence.

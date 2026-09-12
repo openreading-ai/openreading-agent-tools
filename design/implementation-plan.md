@@ -1,15 +1,16 @@
-# Revision 5 implementation plan
+# Revision 6 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 5](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 6](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
 Each implementation commit names the acceptance criteria it addresses and leaves unmet host checks explicit.
 A passing offline gate is necessary but cannot replace native application or signing evidence.
 
-ProductSpec revision 5 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
-Revision 5 prohibits provider API trials and removes their release prerequisites.
+ProductSpec revision 6 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
+Revision 5 prohibited provider API trials and removed their release prerequisites.
+Revision 6 defines public OSS product v1, full pinned-core MCP parity, and a static Coming soon visual; managed product v2 follows launch.
 It preserves `local-document-proof-v2`, historical locks, native acceptance, and owner-operated Desktop testing.
 Revision 1 binaries and revision 2 probe manifests retain their original meanings.
 This documentation pass adjudicates the review and defines E0 through E6 in the [probe plan](native-probes.md).
@@ -35,7 +36,7 @@ No further parser implementation belongs in a client adapter.
 Acceptance: AC-23 through AC-25. Files: ProductSpec, assistant design, client READMEs, repository index.
 
 - [x] Define Claude Desktop and conditional ChatGPT Chat-mode acceptance, with Work and Codex local threads separately identified.
-- [x] Preserve the selected engine, core surface boundaries, historical execution contracts, and deferred alternate backends.
+- [x] Preserve the selected engine, core surface boundaries, historical execution contracts, and the independent full-core route for other backends.
 - [x] Inspect current official connection guidance and installed CLI registration syntax without changing host configuration.
 - [x] E0: retain the reproducible tool-list/refusal check with stable schema hashes and exact reads across two fresh processes.
 - [x] Record missing native evidence in the client matrix instead of transferring results between clients.
@@ -50,9 +51,24 @@ Do not write shared TOML or substitute Codex-mode evidence for the Chat conversa
 Stop ChatGPT-specific N2 if E1 cannot establish that mode and setup route; Claude Desktop remains independently releasable.
 Other common implementation work can continue without that unsupported claim.
 
+## C0. Complete pinned-core MCP catalog
+
+Acceptance: AC-27 and AC-29. Owners: core owns tool implementation; Agent Tools owns wrapper parity.
+Contract: [OSS launch design](oss-launch.md). This is proposed release verification, not an already completed gate.
+
+- [ ] Inventory every implemented tool in the release's immutable core pin, including schemas and declared capabilities.
+- [ ] Compare the direct pinned core catalog with the frozen runtime and each wrapper after normalizing only the host's documented name prefix.
+- [ ] Exercise every tool with a valid call and a representative refusal; preserve core result schemas, bounds and warnings.
+- [ ] Add regression cases for a missing tool, changed schema and filtered catalog; prove each fails the new parity gate.
+- [ ] Repeat for every core pin update. Do not infer completeness from two wrappers sharing the same incomplete list.
+- [ ] If a new tool conflicts with the slim local profile, settle its core behavior before releasing that pin; no silent omission or managed entitlement gate.
+
+The current core catalog is import, search and read. E0's existing three-tool check remains historical evidence, not automatic proof of future catalog completeness.
+No new core MCP tool is implemented by this documentation pass.
+
 ## N1. Common configuration and launcher migration
 
-Implemented under ProductSpec revision 5. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
+Implemented before ProductSpec revision 6. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
 Tests cover closed settings, exact OCR tokens, atomic replacement, grant refusal, direct-versus-saved precedence and v1/v2 coexistence.
 Independent profile lifetimes, exceptional cleanup and verified resource paths are exercised offline.
 The diagnostic launcher does not complete host-dependent AC-2, AC-13 or AC-23 by itself.
@@ -81,6 +97,19 @@ The existing launcher refuses source execution; N2 uses the P0 frozen candidate 
 Keep signing and clean-machine evidence in P1/H1; an unsigned candidate is not distributed.
 A host without a skill mechanism gets supported instructions, not a fork of the evidence workflow.
 Do not implement a tunnel or HTTP bridge to rescue an unavailable local connection.
+
+## N3. Static Coming soon presentation
+
+Acceptance: AC-28 and AC-29. Owners: README, existing release presentation and their review checks.
+The README contains the proposed static copy; installed-host presentation and negative verification remain pending.
+
+- [ ] Use the exact title and explanatory copy in [the launch design](oss-launch.md), with no signup, processing button or endpoint.
+- [ ] Show it in the existing release description or setup/help surface supported by that host; build no new service or UI subsystem.
+- [ ] Check copy and inventory for no managed URL, server registration, credentials, upload path, billing dependency, polling or dormant tools.
+- [ ] Verify presentation does not initiate network activity or change the local catalog, errors or evidence payloads.
+- [ ] Confirm local use works offline after installation and requires no company account.
+
+Do not put commercial text in model-facing evidence, tool results, or system instructions to force a chat upsell.
 
 ## C1. Remaining engine and host resource evidence
 
@@ -149,7 +178,7 @@ No unsigned fallback or instructions to bypass OS protections are permitted.
 ## H1. Clean-host release and pilot
 
 Prerequisites: signed candidate and owner-authorized host/pilot work.
-Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC-26, and pilot metrics.
+Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC-26, AC-27 through AC-29, and pilot metrics.
 
 - [ ] Use a snapshotted clean Apple Silicon VM with image identity and no user-installed interpreter or developer-tool dependency.
 - [ ] Verify Claude Desktop independently, then only the ChatGPT modes E1 established; record executable resolution, local execution, and checked citations.

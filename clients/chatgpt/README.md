@@ -1,5 +1,7 @@
 # ChatGPT desktop integration
 
+Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+
 **Status:** proposed in ProductSpec revision 4. No Docling package or native ChatGPT walkthrough is verified yet.
 The [client matrix](../README.md) separates documented routes from tested behavior.
 

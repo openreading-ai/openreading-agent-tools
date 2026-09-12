@@ -5,6 +5,7 @@ The [ProductSpec](../product/specs/local-document-proof.product-spec.md) owns th
 
 | Record | Purpose |
 | --- | --- |
+| [OSS launch](oss-launch.md) | Public v1, complete pinned-core MCP catalog, static Coming soon presentation, and post-launch managed v2 boundary. |
 | [Local document proof](local-document-proof.md) | Revision 2 Docling migration, grants, supervision, evidence, timing decisions, and signing fallback. |
 | [Review dispositions](review-disposition.md) | Every Claude design finding, accepted contract change, exception, and unresolved evidence gate. |
 | [Token evaluation](token-evaluation.md) | Desktop document-access comparisons, token-claim boundaries, and retired API-study history. |

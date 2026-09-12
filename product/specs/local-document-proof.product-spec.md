@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 5
+spec_revision: 6
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-11T00:00:00Z"
+updated_at: "2026-09-12T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -78,7 +78,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 5 Desktop-only proof; API studies are retired.**
+**Review status: revision 6 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Client binaries remain the historical revision 1 PyMuPDF prototype.
@@ -89,6 +89,29 @@ The existing CLI, Python API, HTTP server, and other core backends remain indepe
 Approving this specification authorizes its scope only when the owner also requests implementation.
 It does not authorize release or merging. Provider API model calls are prohibited, rather than awaiting approval.
 
+## Release naming and MCP completeness
+
+The first public OSS launch is product v1. Managed-service product v2 starts only after that launch.
+These names do not rename historical prototype revisions, settings directories, release hashes, or `local-document-proof-v2`.
+The current internal v2 profile is a local Docling profile, not a managed service.
+
+Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
+The reviewed candidate core `7d97b75` exposes `openreading_import`, `openreading_search`, and `openreading_read`.
+Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
+The launch must compare the pinned core catalog with each wrapper's exposed catalog and exercise every tool.
+A future core pin requires a new comparison and compatibility work for added tools before release.
+Core CLI or HTTP operations that are only proposed as MCP tools are not claimed as implemented.
+Tool completeness does not mean every backend is installed or every operation has every optional capability.
+The bundled runtime remains slim Docling only; unsupported capabilities must return core's explicit errors or warnings.
+If a new core tool cannot meet its contract under that boundary, resolve the scope before updating the release pin; never silently hide it for managed v2.
+Power users can separately install full core and register its MCP server through their assistant's own configuration.
+Agent Tools does not manage that installation or add a local backend/server selector.
+
+Managed processing has only a static “Coming soon” visual at launch.
+No service endpoint, no-op server, authentication, upload, billing, capability polling, or inactive managed tool is included.
+No future no-reinstall or automatic-compatibility promise is made.
+The [OSS launch design](../../design/oss-launch.md) owns the catalog proof and presentation boundary.
+
 ## Scope
 
 ~~~productspec-scope
@@ -97,7 +120,8 @@ in:
   - Disclose the bundled local vision model and allow OCR at setup, disabled by default, with OCR-derived evidence labeled.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Let the user select one input directory during setup and parse one explicitly named PDF per tool call.
-  - Keep a local artifact and return bounded evidence through import, search, and read tools owned by core.
+  - Expose the complete implemented MCP tool catalog of the pinned core release; currently import, search, and read, with bounded retained evidence.
+  - Include only a static OpenReading Managed Coming soon visual for the future product; build no managed components.
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
   - Refuse unreadable, oversized, unsupported, or disallowed inputs with explicit errors and no hosted fallback.
   - Package the same runtime for Claude Code and Codex, with separate installation evidence for each supported host version.
@@ -106,7 +130,7 @@ in:
   - Publish only supported native functional results; label token savings unmeasured unless the actual Desktop app exposes complete verified counters.
 out:
   - Do not invoke provider model APIs, use an agent SDK as a substitute for Desktop, buy API credits, or run separately metered trials.
-  - Do not build an account, hosted service, tenant model, billing system, or company document index.
+  - Do not build a managed endpoint, dummy or no-op service, remote connection, authentication client, upload bridge, signup flow, billing system, polling, dormant managed tools, or company document index.
   - Do not include a local language model, Docker, Cuttlefish, PyMuPDF, torch, torchvision, or docling-ibm-models in the distributed proof.
   - Do not implement ChatGPT web, mobile, remote execution, tunneling, Windows, Linux, or Intel Mac support in this proof.
   - Do not provide an operating-system sandbox or claim that a cloud assistant sees no document information.
@@ -184,11 +208,12 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 5 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 6 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
 Revision 5 replaces the API study criteria AC-15 through AC-17 and EVAL-2 with Desktop-only evidence requirements.
+Revision 6 adds AC-27 through AC-29 for full pinned-core MCP parity, the static Coming soon visual, and launch independence from managed v2.
 All earlier identifiers remain stable; unchanged engine criteria still need their separate release evidence.
 The runtime evidence table describes historical revision 1 checks only; changed criteria require new evidence.
 
@@ -216,7 +241,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-11
   criterion: The assistant workflow retrieves evidence before answering, treats document instructions as untrusted data, and refuses to present unsupported facts as sourced answers.
 - id: AC-12
-  criterion: Claude Code and Codex can each install or load their packaged distribution, invoke the same three tool contracts, and complete the synthetic walkthrough on individually recorded host versions without a user-managed Python environment.
+  criterion: Claude Code and Codex can each install or load their packaged distribution, invoke the complete implemented MCP tool catalog of the pinned core release, and complete the synthetic walkthrough on individually recorded host versions without a user-managed Python environment.
 - id: AC-13
   criterion: A package identifies its exact core commit, dependency lock, platform, runtime digest, and third-party notices; modified binaries or inconsistent package metadata fail the integrity check before parsing.
 - id: AC-14
@@ -245,6 +270,12 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: Shared setup semantics require one explicit document grant and setup-only OCR, refuse unknown backend or credential fields, and never infer access from the working directory or another client's settings; any host-shared registration is disclosed, the grant limits only OpenReading tools, and native evidence establishes local execution rather than a remote executor.
 - id: AC-26
   criterion: ChatGPT desktop is supported only after a named application version and conversation mode completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; a Codex local thread is labeled as such and never passes the Chat conversation target.
+- id: AC-27
+  criterion: Every released wrapper exposes all implemented MCP tools from its pinned core version without a commercial filter; tool names, schemas and invocation results match core after documented host qualification, every tool has a functional case, and missing or changed tools fail release verification before a pin update ships.
+- id: AC-28
+  criterion: The OSS launch includes a static OpenReading Managed Coming soon visual in the README and release presentation; it promises no date or supported scale, offers no signup or processing action, and rendering or dismissing it causes no network request, credential read, upload, service registration, or change to local tool results.
+- id: AC-29
+  criterion: OSS launch v1 works with no OpenReading account, service configuration or managed component; its bundle contains no managed endpoint, stub, authentication, upload, billing, polling or dormant managed tools, while a separately installed full core remains usable through the assistant's own MCP configuration and no alternative local backend manager is added.
 ~~~
 
 ~~~productspec-ai-evals
@@ -345,6 +376,11 @@ Publication requires a reviewed, sanitized evidence summary and dependency licen
 
 ## Rollout
 
+Ship the free OSS product v1 before any managed-service product v2 implementation.
+The static Coming soon visual is the entire commercial seed; a dummy endpoint was discussed and explicitly rejected.
+MCP catalog parity and native functional/distribution gates belong to v1, independently of managed readiness.
+Preserve internal runtime and settings version names; they are not marketing release numbers.
+
 The [implementation plan](../../design/implementation-plan.md) orders shared configuration, frozen-build feasibility, native Desktop proof, measured resource limits, signing, and clean-host installation.
 Existing engine feasibility and retrieval checks remain prerequisites.
 M0, M1 and M2 provider API studies are retired and cannot block P1 packaging or H1 installation.
@@ -373,6 +409,8 @@ These dependencies do not block writing or reviewing this proposal.
 They block the corresponding implementation, native walkthrough, or distribution step.
 
 ## Related Artifacts
+
+The [OSS launch design](../../design/oss-launch.md) specifies AC-27 through AC-29 and the static visual.
 
 ~~~productspec-related-artifacts
 - type: engineering_spec

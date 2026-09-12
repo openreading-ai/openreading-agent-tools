@@ -1,6 +1,6 @@
 # Native connection and frozen-runtime probes
 
-**Status:** native experiments remain proposed under ProductSpec revision 5. E0 and the P0 developer smoke are implemented; no native-host result is implied.
+**Status:** native experiments remain proposed under ProductSpec revision 6. E0 and the P0 developer smoke are implemented; no native-host result is implied.
 **Owners:** Agent Tools owns host probes and capture; core owns engine, evidence, and worker behavior.
 **Prerequisites:** [assistant contract](assistant-clients.md) and [implementation order](implementation-plan.md).
 
@@ -25,6 +25,9 @@ Implemented in the [retrieval/restart checker](../measurement/README.md).
 Two fresh local processes passed with identical tool-schema digests and 51 exact citation reads per process.
 The report records protocol/server identity and binds to the original retrieval evidence.
 This is protocol evidence only; it cannot satisfy a native launch or ChatGPT mode criterion.
+
+Revision 6 adds a separate C0 release gate comparing against the full implemented catalog from the pinned core, as described in [the launch design](oss-launch.md).
+The existing three-tool snapshot must not silently exclude a future implemented core tool.
 
 ## E1. ChatGPT mode, local route, and setup
 
