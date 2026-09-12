@@ -16,6 +16,8 @@
 
 ## Unreleased
 
+- Record partial Claude Desktop installation, native-text and OCR observations, with fresh-chat guidance after settings changes.
+
 - Add a distinct Docling Desktop development candidate with an explicit directory and default-off OCR form.
 - Refresh the core pin for current evidence instructions and check packed tool/instruction parity against a same-profile core reference.
 - Preserve historical client packages; native installation acceptance and signed distribution remain pending.

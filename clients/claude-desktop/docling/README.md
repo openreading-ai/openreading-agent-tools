@@ -4,7 +4,7 @@ Choose a document directory during installation. Enable **Read scanned text (OCR
 The candidate uses bundled slim Docling and Tesseract; it does not require a user-managed Python installation.
 That packaging property does not establish a clean-machine installation pass.
 
-This is a local development candidate, not a signed public release. Native setup acceptance is still being tested.
+This is a local development candidate, not a signed public release. Native installation and basic extraction have been observed; complete acceptance is still being tested.
 The installer form must supply the selected directory and OCR value to the bundled executable as separate arguments.
 The manifest's distinct name preserves the historical extension and the separate manually registered connector.
 Avoid enabling both OpenReading connectors in the same test conversation, since that makes runtime attribution ambiguous.
@@ -14,7 +14,7 @@ Ask for an exact quote with its physical page, evidence ID and text origin, then
 The MCP server supplies the current pinned core instructions during initialization.
 WORKFLOW.md is an included review copy; its presence in the archive does not prove the model received a skill.
 
-Changing the directory or OCR setting requires the host to restart the server. Confirm the resulting import description before testing.
+Changing the directory or OCR setting requires the host to restart the server. Start a new Chat and confirm the resulting import description before testing.
 Source copies remain under the separate Claude Desktop v2 artifact directory until removed.
 For an existing manual v2 connector using the same grant, this candidate uses that client's same artifact namespace; it does not delete or migrate those records.
 The selected directory limits only OpenReading tools. Retrieved excerpts enter your assistant's context.

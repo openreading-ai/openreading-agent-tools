@@ -33,16 +33,21 @@ Its dependency versions and Docling integration remain unchanged from the preced
 The packed/unpacked archive passes native/OCR imports, warm reuse, restart, exact citations and same-profile catalog/instruction comparison against direct core.
 This is development-machine protocol evidence, not a Desktop conversation or clean-machine pass.
 
-On Claude Desktop 1.52386.3, opening the archive displays its development name, three tools, requirements and static Coming soon text.
-The installation preview asks for confirmation of native extension computer access.
-Installation, the actual configuration form, process launch and native conversation checks remain pending.
+On Claude Desktop 1.52386.3, the owner installed and enabled the archive through the native installer.
+The actual form saves a directory and boolean OCR setting. Claude launches the installed bundled executable and completes MCP initialization and tool discovery.
+Native Chat checks retrieved the synthetic renewal quote on physical page 3 and the scanned payment quote on physical page 2 with an OCR label.
+With OCR off, the payment search returned no evidence; enabling OCR produced a distinct artifact and readable payment evidence.
+These are partial native observations. Complete transcript capture, the document-instruction read, native access refusal, cancellation and clean-machine acceptance remain unfinished.
+The native tool viewer virtualizes long payloads; an incomplete UI capture cannot satisfy the deterministic citation check.
 The declared document grant restricts OpenReading tools; it is not an operating-system sandbox around the extension.
+This directory configuration belongs to the development candidate. It does not establish the public file-selection experience.
 
 For the local check, open the archive in Claude Desktop and confirm installation only for your reviewed candidate.
 Choose a synthetic document directory, keep OCR off for the initial native-text case, and enable this connector in a new Chat.
 Keep the older manual OpenReading connector out of that test conversation to avoid ambiguous tool attribution.
 Verify the import description names Docling and the selected OCR setting, then inspect a cited answer and an outside-grant refusal.
-Repeat with OCR enabled and the raster fixture. Preserve existing registrations and their retained data.
+Repeat with OCR enabled and the raster fixture. Start a new Chat after configuration changes so previously loaded descriptions do not carry stale settings.
+Preserve existing registrations and their retained data.
 This candidate still requires distribution review and signing before sharing it with another user.
 
 ## Docling developer check
