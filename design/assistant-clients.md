@@ -133,17 +133,11 @@ If host logs omit payloads, use an explicit diagnostic STDIO capture relay with 
 The relay records requests, responses, tool errors, and ordering outside the document grant and is excluded from performance measurements.
 If complete capture is unavailable, citation evidence is incomplete and the native criterion remains pending.
 
-Add an offline checker in `measurement/` with pinned capture inputs and human-selected quote spans from the recorded final answer.
-The checker verifies answer offsets for quote, filename, and visible physical-page label, then ties each citation to its actual captured tool call.
-Annotations that disagree with the rendered answer fail; unsupported citation formats remain unverified instead of guessed.
-Resolve the artifact and evidence identifier through core's public read operation or MCP tool, never by parsing its private store format.
-Check the physical page, text origin, exact quote substring, and artifact identity against both the captured response and verified retained evidence.
-Require successful import/search/read calls before the answer and coverage of every presented citation; missing or ambiguous mappings fail.
-An invented ID, correct quote on the wrong page, quote from a different artifact, paraphrase, or uncaptured call must fail offline regression fixtures.
-Human review then judges answer correctness, semantic support, and material claims lacking citations.
-A model's statement that it used OpenReading is not evidence of a tool call.
-Review citation presentation per host: visible filename, physical page, quote, and OCR label are required where applicable.
-The transcript must retain resolvable evidence identifiers even if the displayed answer omits them.
+The implemented [citation checker](../measurement/README.md#citation-evidence-checker) owns the captured-call and annotation contract.
+Native adapters must supply its complete capture from the observed host log or an explicit diagnostic relay.
+Reviewers must attest capture and citation-inventory completeness against the original transcript; normalized files cannot authenticate themselves.
+Native acceptance still requires checked presentation, answer correctness, semantic support and instruction adherence.
+A generated synthetic answer can test the protocol boundary but cannot satisfy those native criteria.
 
 A host without a stop action records cancellation as `not_exposed`; it does not pass a cancel-notification check by quitting the app.
 Test its available deadline and process-stop cleanup paths, disclose the limitation, and retain core cancellation tests independently.
@@ -199,9 +193,6 @@ Native widget behavior remains an additional manual host check rather than a sub
 P1 owns signing and notarization of `OpenReading Setup.app` and the argument-free launcher alongside the engine.
 The helper's inventory, executable path resolution, cancelled Save, failed writes, and pending host registration all require explicit N2 tasks.
 
-The N2 citation checker runs under the ordinary `runtime/` test environment as a protocol client.
-It resolves retained evidence through the selected frozen candidate's `openreading_read` MCP tool, not the revision 1 Python read API.
-Use captured synthetic MCP responses for offline checker tests under `tests/runtime/`; include `measurement/` in existing coverage.
-A real-candidate integration check then validates the protocol boundary through the P0 binary.
-A development-only run may launch the pinned feasibility interpreter explicitly, recording that different execution environment.
-Never import v2 core through `runtime/` or through an ambient sibling checkout.
+The citation checker now runs under the ordinary test environment and resolves evidence through frozen v2 MCP reads.
+Its reproduction and implemented contract live in the [measurement guide](../measurement/README.md#citation-evidence-checker).
+Native capture adapters and reviewed host answers remain N2 tasks; the current real-runtime check uses a generated synthetic answer.

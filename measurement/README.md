@@ -153,7 +153,8 @@ A separate six-page PDF exercises scans, mixed origins, blank pages, columns, li
 Printed labels differ from physical pages, and the report table has a qualifier on the following physical page.
 The cross-page questions need separate items from multiple pages; they do not prove native multi-page item provenance.
 
-On 2026-09-11, core `6f7c9451f139cc3485fbd0c6779b0b886b21b81e` passed all nine answerable tasks and both functional modes.
+On 2026-09-11, core `7d97b75b6ef9c65349fd044775087997205c72e2` passed all nine answerable tasks and both functional modes after a fresh import.
+This run uses Docling integration v5; earlier retained artifacts are not relabeled as current evidence.
 Two fresh MCP processes each verified 51 exact reads and refused the outside-grant request.
 The three missing-fact tasks and document-instruction behavior still require model and human review.
 This is local engine evidence, not an installation result or a token-saving claim.
@@ -256,3 +257,49 @@ The larger calibration, primary, and follow-up studies remain in the evaluation 
 The separate [functional case registry](functional-cases.json) fixes the exact document-instruction prompt and pass rubric for future native checks.
 It does not modify the corpus, source hashes or token-study task schedule.
 A complete tool trace is required to pass; missing capture is incomplete even when the final answer looks correct.
+
+## Citation evidence checker
+
+`citations.py` verifies annotated quotations against captured calls and the frozen runtime's public MCP read tool.
+Run it from the ordinary test environment, with the same client store and input grant used for the capture:
+
+~~~sh
+runtime/.venv/bin/python -m measurement.citations \
+  --capture /absolute/capture.json --review /absolute/citation-review.json \
+  --runtime /absolute/frozen-runtime --client codex \
+  --input-root /absolute/document-grant --ocr on
+~~~
+
+The command verifies the bundle before launch and calls only `openreading_read` during checking.
+It never imports the historical revision 1 core API or inspects private artifact files.
+The explicit client selects the existing artifact namespace; it does not establish native client compatibility.
+No settings file is changed. The launcher may create its normal private profile and artifact directories.
+Exit zero means the annotated citation evidence passed. Invalid input, missing evidence, or transport failure returns one with a sanitized reason type.
+The report binds both input files by SHA-256 and records the selected core and worker identities.
+
+Capture format 1 contains `host` (`application`, `version`, `mode`), a `complete` flag, a `tools` map and ordered `events`.
+The map gives the exact captured names for `import`, `search` and `read`, including host qualification when present.
+A request event has `kind="request"`, a nonempty string `id`, `name` and `arguments`.
+Its response has `kind="response"`, the same `id` and the complete MCP `result` object.
+The final event has `kind="answer"` and the exact rendered answer `text`.
+Missing responses, duplicate IDs, ambiguous payloads and events after the answer refuse verification.
+Native adapters still need to establish and preserve their actual capture source; this format is not a native log exporter.
+
+Review format 1 contains `capture_sha256`, `citations_complete=true` and a nonempty `citations` list.
+Each annotation names `artifact_id`, `evidence_id`, `page`, `text_origin` and the corresponding `import_call`, `search_call` and `read_call` IDs.
+`quote_span`, `filename_span` and `page_span` are half-open Unicode code-point offsets into the captured answer, not byte or UTF-16 offsets.
+The page label must read `physical PDF page N`; unsupported presentation formats remain unverified.
+`origin_span` is null unless a visible origin label is annotated. OCR and mixed evidence require that label, matched without case sensitivity.
+Unknown keys refuse verification; [synthetic test fixtures](../tests/runtime/test_citations.py) demonstrate the complete shape.
+
+Successful import, search and read calls must precede the answer in order and identify the same artifact and evidence.
+The captured passage must equal a fresh verified read, including its offsets, physical page and origin.
+The answer's quote must be an exact substring; its filename and page label must match the source.
+A selected prefix cannot disguise page 30 as page 3 or a different filename as the correct source.
+Wrong pages, paraphrases, cross-artifact IDs, missing calls, changed capture bytes and omitted OCR labels have negative tests.
+
+A reviewer supplies both completeness attestations after checking the original transcript and every visible citation.
+The checker cannot authenticate fabricated capture files or discover an omitted citation in arbitrary prose.
+It verifies annotated evidence links and leaves answer correctness, unsupported material claims and instruction adherence for human review.
+No result from this checker establishes host support or token savings.
+A real frozen-runtime check verified native and OCR passages using a generated synthetic answer; no assistant was invoked.

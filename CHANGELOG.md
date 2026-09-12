@@ -16,6 +16,10 @@
 
 ## Unreleased
 
+- Refresh candidate and P0 locks to core `7d97b75`, preserving historical revision 1 pins.
+- Reimport integration v5 evidence and verify frozen OCR, relocation, restart and identity refusal.
+- Add protocol-based citation review with exact answer spans, capture hashes and negative provenance tests.
+
 - Implement version 2 grants, closed OCR settings and private Docling launch profiles with v1 coexistence.
 - Add an isolated, unsigned P0 freezer preserving candidate pins, complete identity inputs and relocated Tesseract libraries.
 - Discover Docling plugin entry points during freezing; refuse diagnostic bundles in historical client packages.

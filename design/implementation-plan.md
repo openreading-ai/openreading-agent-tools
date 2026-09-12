@@ -70,7 +70,7 @@ Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tes
 5. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
 6. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.
 7. Use frozen corpus task IDs and the page-2 instruction fixture; never regenerate the corpus to match a stale spec example.
-8. Add the offline citation checker and per-host transcript/tool capture; reject wrong pages, paraphrases, cross-artifact IDs, missing calls, and incomplete capture with regression fixtures.
+8. Use the implemented [citation checker](../measurement/README.md#citation-evidence-checker) and add verified per-host transcript/tool capture. Native capture provenance and human completeness review remain required.
 9. Verify restart, refusals, OCR, and the observed E3 interruption paths; unsupported cancellation stays explicit.
 10. Record application/version/mode, local process ancestry, runtime identity, setup path, instruction channel, approval prompts, and required host permissions.
 
