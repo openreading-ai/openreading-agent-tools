@@ -12,11 +12,12 @@ Approve the selection tool if your host asks. Choose one PDF in "OpenReading: Ch
 The assistant imports the returned reference, searches evidence and reads passages with physical page citations.
 Ordinary chat attachments still follow the host's upload path; this tool does not intercept them.
 
-Use **Cancel** in the OS dialog to dismiss it. Selection and copying have a 120-second deadline.
+Use **Cancel** in the OS dialog for the cancellation check. Selection and copying have a 120-second deadline.
 Another selection while that dialog is pending returns busy, without adopting another conversation's dialog.
 Claude Desktop's observed Stop action did not send MCP cancellation; it cannot be promised to dismiss this chooser.
 Source tests verify child reaping on delivered cancellation.
-In Claude Desktop 1.52386.3, one owner-dismissed chooser returned `selection_cancelled` and its recorded child exited.
+In Claude Desktop 1.52386.3, one chooser returned `selection_cancelled` and its recorded child exited.
+The dismissing action was not recorded, so this does not verify the Cancel button.
 The intake stayed unchanged, but the owner reported an incorrectly positioned, immovable dialog.
 The chooser now omits the hidden parent that makes Tk attach a macOS sheet.
 Positioning, focus and successful file selection still require a native check of the rebuilt candidate.
