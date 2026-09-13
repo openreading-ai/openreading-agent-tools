@@ -15,6 +15,8 @@ but the next publisher-lock holder removes abandoned staging before quota accoun
 Failed chat handoffs atomically move their owned entry from ready to discarded without
 waiting for the publisher lock. Discarded copies remain outside the grant and count toward
 quota until deletion succeeds. The next publisher retries their deletion under its lock.
+Quota and clearing tolerate entries revoked during their scan. A moved file is counted once,
+and corruption or access failures on entries that remain present still refuse the operation.
 Server startup validates directories without that lock and never removes unfinished data.
 Explicit clearing removes all completed intake copies, including earlier picker sessions.
 The shared CLIENT/v2/artifacts store remains untouched. No environment variable selects
@@ -163,34 +165,63 @@ class SelectionStore:
     def clear(self) -> int:
         with self.locked() as (ready, _):
             names = os.listdir(ready)
-            # Validate the whole set before deletion; never turn unknown data into quota recovery.
+            validated = []
+            # Validate before deletion. Rollback may independently revoke a listed immutable entry.
             for name in names:
                 if not re.fullmatch(r"[0-9a-f]{32}", name):
                     raise SelectionError("The private intake contains an unexpected entry.")
-                with directory(self.grant / name) as opened:
-                    files = os.listdir(opened)
-                    if (
-                        len(files) != 1
-                        or not filename(files[0])
-                        or not stat.S_ISREG(
-                            os.stat(files[0], dir_fd=opened, follow_symlinks=False).st_mode
-                        )
-                    ):
-                        raise SelectionError("The private intake contains an unexpected entry.")
-            for name in names:
-                shutil.rmtree(name, dir_fd=ready)
-            return len(names)
+                path = self.grant / name
+                try:
+                    with directory(path) as opened:
+                        files = os.listdir(opened)
+                        if (
+                            len(files) != 1
+                            or not filename(files[0])
+                            or not stat.S_ISREG(
+                                os.stat(files[0], dir_fd=opened, follow_symlinks=False).st_mode
+                            )
+                        ):
+                            if not os.path.lexists(path):
+                                continue
+                            raise SelectionError("The private intake contains an unexpected entry.")
+                    validated.append(name)
+                except ArtifactError:
+                    if os.path.lexists(path):
+                        raise
+            removed = 0
+            for name in validated:
+                try:
+                    shutil.rmtree(name, dir_fd=ready)
+                    removed += 1
+                except FileNotFoundError:
+                    # Revocation can finish after validation or during recursive deletion.
+                    continue
+            return removed
 
     def used_bytes(self) -> int:
         total = 0
+        seen = set()
         for parent in (self.grant, self.staging, self.discarded):
             for entry in parent.iterdir():
-                with directory(entry) as opened:
-                    for name in os.listdir(opened):
-                        info = os.stat(name, dir_fd=opened, follow_symlinks=False)
-                        if not stat.S_ISREG(info.st_mode):
-                            raise SelectionError("The private intake contains an unexpected entry.")
-                        total += info.st_size
+                try:
+                    with directory(entry) as opened:
+                        for name in os.listdir(opened):
+                            try:
+                                info = os.stat(name, dir_fd=opened, follow_symlinks=False)
+                            except FileNotFoundError:
+                                continue
+                            if not stat.S_ISREG(info.st_mode):
+                                raise SelectionError(
+                                    "The private intake contains an unexpected entry."
+                                )
+                            identity = (info.st_dev, info.st_ino)
+                            # A rollback can move the same file between two directory snapshots.
+                            if identity not in seen:
+                                seen.add(identity)
+                                total += info.st_size
+                except ArtifactError:
+                    if os.path.lexists(entry):
+                        raise
         return total
 
     def select(self, path: Path, *, cancelled: Callable[[], bool] = lambda: False) -> Selection:

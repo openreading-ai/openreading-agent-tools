@@ -330,7 +330,7 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
             output = io.StringIO()
             with (
                 patch.object(m, "choose", choose),
-                patch.object(self.store, "rollback", side_effect=OSError("private-secret")),
+                patch("runtime.selection.shutil.rmtree", side_effect=OSError("private-secret")),
                 contextlib.redirect_stderr(output),
             ):
                 try:
@@ -342,3 +342,5 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
                     self.fail("the original exception was suppressed")
             self.assertNotIn("private-secret", output.getvalue())
             self.assertIn("cleanup", output.getvalue().lower())
+            self.assertEqual(len(list(self.store.discarded.iterdir())), 1)
+            self.store.clear()

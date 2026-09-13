@@ -230,7 +230,17 @@ class DoclingLaunchTests(unittest.TestCase):
             self.assertEqual(main(["--client", "claude-desktop", "--chat-documents"]), 0)
 
     def test_frozen_worker_suppresses_ort_before_internal_core_dispatch(self):
+        import builtins
         import os
+
+        original_import = builtins.__import__
+        observed = []
+
+        def importing(name, *args, **kwargs):
+            if name == "openreading.artifacts.worker":
+                observed.append(name)
+                self.assertEqual(os.environ.get("ORT_DISABLE_TELEMETRY"), "1")
+            return original_import(name, *args, **kwargs)
 
         def worker(args):
             self.assertEqual(os.environ.get("ORT_DISABLE_TELEMETRY"), "1")
@@ -239,5 +249,7 @@ class DoclingLaunchTests(unittest.TestCase):
         with (
             patch.dict(os.environ, {"ORT_DISABLE_TELEMETRY": "0"}),
             patch("openreading.artifacts.worker.main", side_effect=worker),
+            patch("builtins.__import__", side_effect=importing),
         ):
             self.assertEqual(main(["--internal-artifact-worker"]), 0)
+        self.assertEqual(observed, ["openreading.artifacts.worker"])

@@ -368,3 +368,169 @@ with store.locked():
         with store.directories() as (_, _, staging):
             with patch.object(m.os, "listdir", return_value=["a" * 32]):
                 store.sweep(staging)
+
+    def test_rollback_between_listing_and_open_does_not_break_select_or_clear(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        for operation in ("select", "clear"):
+            with self.subTest(operation=operation):
+                store = m.SelectionStore("claude-desktop", home=self.root / operation)
+                rollback = store.select(self.source)
+                keep = store.select(self.source)
+                target = rollback.reference.split("/")[0]
+                original = m.os.open
+                injected = False
+
+                def opening(
+                    path,
+                    flags,
+                    *args,
+                    target=target,
+                    store=store,
+                    rollback=rollback,
+                    original=original,
+                    **kwargs,
+                ):
+                    nonlocal injected
+                    if path == target and flags & os.O_DIRECTORY and not injected:
+                        injected = True
+                        store.rollback(rollback.reference)
+                    return original(path, flags, *args, **kwargs)
+
+                with patch.object(m.os, "open", side_effect=opening):
+                    if operation == "select":
+                        fresh = store.select(self.source)
+                        self.assertTrue((store.grant / fresh.reference).exists())
+                        self.assertTrue((store.grant / keep.reference).exists())
+                    else:
+                        self.assertEqual(store.clear(), 1)
+                        self.assertEqual(list(store.grant.iterdir()), [])
+                self.assertTrue(injected)
+                self.assertFalse((store.grant / rollback.reference).exists())
+
+    def test_clear_tolerates_rollback_after_validation_before_delete(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        rollback = store.select(self.source)
+        keep = store.select(self.source)
+        target = rollback.reference.split("/")[0]
+        original = m.shutil.rmtree
+        injected = False
+
+        def deleting(path, *args, **kwargs):
+            nonlocal injected
+            if path == target and not injected:
+                injected = True
+                store.rollback(rollback.reference)
+            return original(path, *args, **kwargs)
+
+        with patch.object(m.shutil, "rmtree", side_effect=deleting):
+            self.assertEqual(store.clear(), 1)
+        self.assertTrue(injected)
+        self.assertFalse((store.grant / keep.reference).exists())
+
+    def test_quota_scan_skips_removed_file_and_never_counts_a_moved_copy_twice(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        for timing in ("before_stat", "after_stat"):
+            with self.subTest(timing=timing):
+                store = m.SelectionStore("claude-desktop", home=self.root / timing)
+                rollback = store.select(self.source)
+                keep = store.select(self.source)
+                inode = (store.grant / rollback.reference).parent.stat().st_ino
+                original = m.os.stat
+                injected = False
+
+                def statting(
+                    path,
+                    *args,
+                    inode=inode,
+                    timing=timing,
+                    store=store,
+                    rollback=rollback,
+                    original=original,
+                    **kwargs,
+                ):
+                    nonlocal injected
+                    fd = kwargs.get("dir_fd")
+                    if (
+                        fd is not None
+                        and path == self.source.name
+                        and os.fstat(fd).st_ino == inode
+                        and not injected
+                    ):
+                        injected = True
+                        if timing == "after_stat":
+                            info = original(path, *args, **kwargs)
+                            with patch.object(
+                                m.shutil, "rmtree", side_effect=OSError("disk failure")
+                            ):
+                                with self.assertRaises(m.SelectionError):
+                                    store.rollback(rollback.reference)
+                            return info
+                        store.rollback(rollback.reference)
+                    return original(path, *args, **kwargs)
+
+                with patch.object(m.os, "stat", side_effect=statting):
+                    self.assertEqual(
+                        store.used_bytes(),
+                        self.source.stat().st_size * (2 if timing == "after_stat" else 1),
+                    )
+                self.assertTrue(injected)
+                self.assertTrue((store.grant / keep.reference).exists())
+
+    def test_rollback_fails_closed_when_the_entry_directory_is_replaced_by_a_link(self):
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        selected = store.select(self.source)
+        entry = (store.grant / selected.reference).parent
+        moved = self.root / "original-copy"
+        entry.rename(moved)
+        entry.symlink_to(moved, target_is_directory=True)
+        with self.assertRaisesRegex(m.SelectionError, "Cannot revoke"):
+            store.rollback(selected.reference)
+        for operation in (store.clear, lambda: store.select(self.source)):
+            with self.assertRaises(m.SelectionError):
+                operation()
+        self.assertTrue((moved / self.source.name).exists())
+
+    def test_clear_tolerates_revocation_after_open_before_listing_or_stat(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        for timing in ("before_list", "after_list"):
+            with self.subTest(timing=timing):
+                store = m.SelectionStore("claude-desktop", home=self.root / timing)
+                rollback = store.select(self.source)
+                keep = store.select(self.source)
+                inode = (store.grant / rollback.reference).parent.stat().st_ino
+                original = m.os.listdir
+                injected = False
+
+                def listing(
+                    path,
+                    *,
+                    inode=inode,
+                    timing=timing,
+                    store=store,
+                    rollback=rollback,
+                    original=original,
+                ):
+                    nonlocal injected
+                    if isinstance(path, int) and os.fstat(path).st_ino == inode and not injected:
+                        injected = True
+                        if timing == "after_list":
+                            names = original(path)
+                            store.rollback(rollback.reference)
+                            return names
+                        store.rollback(rollback.reference)
+                    return original(path)
+
+                with patch.object(m.os, "listdir", side_effect=listing):
+                    self.assertEqual(store.clear(), 1)
+                self.assertTrue(injected)
+                self.assertFalse((store.grant / keep.reference).exists())

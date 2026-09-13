@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Keep selection and clearing usable when rollback revokes entries during directory scans.
+  Quota accounting counts moved files once and still refuses corruption on remaining entries.
+
 - Revoke failed selections without waiting for the publisher lock; preserve original errors when cleanup fails.
 - Suppress ONNX Runtime telemetry at process startup and check fresh-home persistence in the frozen smoke.
 - Exercise provider forwarding, nonzero chooser exits and real versioned configuration files in regression tests.
