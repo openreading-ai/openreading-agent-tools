@@ -2,6 +2,8 @@
 
 ## Native evidence review
 
+- Present the chat chooser without attaching a macOS sheet to its hidden Tk owner.
+
 - Keep selection and clearing usable when rollback revokes entries during directory scans.
   Quota accounting counts moved files once and still refuses corruption on remaining entries.
 

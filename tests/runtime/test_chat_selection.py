@@ -170,13 +170,32 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             dialog.call_args.kwargs,
             {
-                "parent": root,
                 "title": "OpenReading: Choose one PDF",
                 "filetypes": [("PDF documents", "*.pdf")],
             },
         )
         root.destroy.assert_called_once()
         root.clipboard_append.assert_not_called()
+
+    def test_dialog_does_not_attach_a_native_sheet_to_the_hidden_owner(self):
+        import tkinter as tk
+
+        # Exercise tkinter's real option encoding without opening a native window.
+        root = tk.Tcl()
+        calls = []
+        root.tk.createcommand("wm", lambda *args: "")
+        root.tk.createcommand("destroy", lambda *args: "")
+        root.tk.createcommand(
+            "tk_getOpenFile", lambda *args: calls.append(args) or str(self.source)
+        )
+        with patch("tkinter.Tk", return_value=root), patch("tkinter._default_root", root):
+            self.assertEqual(self.module().dialog(), self.source)
+        self.assertEqual(len(calls), 1)
+        options = dict(zip(calls[0][::2], calls[0][1::2], strict=True))
+        self.assertNotIn("-parent", options, "A hidden parent anchors an immovable macOS sheet.")
+        self.assertEqual(set(options), {"-title", "-filetypes"})
+        self.assertEqual(options["-title"], "OpenReading: Choose one PDF")
+        self.assertEqual(root.tk.splitlist(options["-filetypes"]), ("{PDF documents} *.pdf",))
 
     def test_dialog_cancel_and_failure_destroy_native_owner(self):
         m = self.module()

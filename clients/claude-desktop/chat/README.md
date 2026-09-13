@@ -15,7 +15,11 @@ Ordinary chat attachments still follow the host's upload path; this tool does no
 Use **Cancel** in the OS dialog to dismiss it. Selection and copying have a 120-second deadline.
 Another selection while that dialog is pending returns busy, without adopting another conversation's dialog.
 Claude Desktop's observed Stop action did not send MCP cancellation; it cannot be promised to dismiss this chooser.
-Source tests verify child reaping on delivered cancellation; native dialog disappearance remains unverified.
+Source tests verify child reaping on delivered cancellation.
+In Claude Desktop 1.52386.3, one owner-dismissed chooser returned `selection_cancelled` and its recorded child exited.
+The intake stayed unchanged, but the owner reported an incorrectly positioned, immovable dialog.
+The chooser now omits the hidden parent that makes Tk attach a macOS sheet.
+Positioning, focus and successful file selection still require a native check of the rebuilt candidate.
 Failed handoffs revoke their published copy without waiting for another publisher.
 Deletion failures leave a private discarded copy for the next publisher sweep and preserve the original tool error.
 Filesystem failures can prevent revocation; a fixed cleanup diagnostic reports that exception.

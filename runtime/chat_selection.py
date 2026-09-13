@@ -131,8 +131,9 @@ def dialog() -> Path | None:
         root.withdraw()
         root.attributes("-topmost", True)
         root.update()
+        # macOS turns an explicit parent into an attached sheet. The owner is hidden,
+        # so let the OS position a standalone dialog instead of anchoring it off-screen.
         selected = filedialog.askopenfilename(
-            parent=root,
             title="OpenReading: Choose one PDF",
             filetypes=[("PDF documents", "*.pdf")],
         )
