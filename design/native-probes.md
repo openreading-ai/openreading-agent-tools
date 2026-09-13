@@ -1,6 +1,6 @@
 # Native connection and frozen-runtime probes
 
-**Status:** native experiments remain proposed under ProductSpec revision 9. E0 and the P0 developer smoke are implemented; no native-host result is implied.
+**Status:** native experiments are partially observed under ProductSpec revision 9. E0 and the P0 developer smoke are implemented. The Claude Desktop guide records the bounded synthetic E2/E3 results; unfinished cases remain proposed.
 **Owners:** Agent Tools owns host probes and capture; core owns engine, evidence, and worker behavior.
 **Prerequisites:** [assistant contract](assistant-clients.md) and [implementation order](implementation-plan.md).
 
@@ -89,6 +89,11 @@ Confirm the operation was still running before interruption, owned children exit
 A race where extraction completed before the stop is inconclusive, not a cleanup pass.
 Core's independent stage-cancellation tests remain required even when the host exposes fewer controls.
 
+The [Claude Desktop observations](../clients/claude-desktop/README.md#synthetic-native-timing-and-interruption) distinguish timeout cancellation from Stop response.
+On the recorded version, timeout sent cancellation but Stop did not stop the local synthetic operation.
+Do not mark native Stop cleanup passed or transfer synthetic cancellation evidence to a real Docling import.
+Progress extension, initialization-delay boundaries and other host modes remain unverified.
+
 ## E4. P0 frozen Docling feasibility
 
 The [P0 builder and smoke](../runtime/p0/README.md) implement this development-machine check.
@@ -102,7 +107,7 @@ A P0 pass permits owner-authorized native setup checks but supplies no permissio
 
 Blocks: Claude setup translation and corresponding AC-2/AC-21 evidence.
 Use a minimal local probe wrapper with a directory field and optional boolean OCR field after host-install authorization.
-This E5 form is a developer substitution probe only. Public file selection requires A0 and cannot inherit a pass from directory setup.
+This E5 form is a developer substitution probe only. Public file selection requires A1 and cannot inherit a pass from directory setup.
 Record exact argument values for enabled, disabled, omitted, and cancelled setup.
 Verify the launcher's closed token mapping, including refusal of unresolved placeholders or unexpected representations.
 Record save/cancel behavior, executable permissions, extraction location, and actual host error/log paths.

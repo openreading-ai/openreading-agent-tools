@@ -126,3 +126,20 @@ Use the [Desktop timing diagnostic](../../measurement/README.md#desktop-timing-d
 It distinguishes logged tool-call intervals from gaps between calls without exporting document payloads.
 An interval is not pure parsing time, and a gap is not proof that the model was thinking.
 Do not combine logs from the manual connector and the packaged extension.
+
+### Synthetic native timing and interruption
+
+A separate temporary probe ran in Claude Desktop 1.52386.3 Chat on 2026-09-13.
+The installed MCPB used probe source from commit `d2e939d`; it loaded no document engine.
+These single-machine observations do not establish another host's behavior or the public picker experience.
+
+- A deliberately delayed **Allow once** click preceded both the compact-log tool request and the local server receipt. The two-second call interval excluded that approval pause.
+- A 65-second call completed without progress. A requested 330-second call received MCP cancellation at approximately 240 seconds, and the UI reported a four-minute timeout.
+- **Stop response** interrupted the chat but sent no MCP cancellation in a separate 120-second call. The local operation completed at 120 seconds, roughly 84 seconds after Stop.
+- That interrupted call requested progress every five seconds, but the probe emitted no progress events. Extension of the host deadline by progress remains unverified.
+- A subsequent echo returned correctly. Uninstalling the temporary probe removed both observed probe processes and restored the original configuration and extension registry bytes.
+
+The host timeout and the Stop button are distinct interruption paths.
+A public picker still needs its own bounded lifetime and local cancellation action.
+Do not claim that stopping a chat dismisses its picker or stops parsing without corresponding protocol evidence.
+The Docling import cancellation, native picker focus and complete citation-capture checks remain separate.

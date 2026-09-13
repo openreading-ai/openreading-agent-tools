@@ -91,6 +91,15 @@ If the measured budget cannot accommodate a useful human selection interval, sto
 Do not compensate with an unmeasured progress heartbeat or an implicit background job.
 A source/controller probe can be prepared before E2; it does not accept the production interaction.
 
+The [recorded Claude Desktop probe](../clients/claude-desktop/README.md#synthetic-native-timing-and-interruption) observed timeout cancellation at 240 seconds.
+A 65-second call succeeded, while Stop response did not cancel a separate local call.
+These observations support a bounded selection experiment, not public handoff acceptance or a universal host timeout.
+Keep the picker deadline below the observed host budget with the required safety margin and copy/cleanup reserve.
+Treat the OS chooser's Cancel action and delivered MCP cancellation as testable paths.
+The Chat Stop button cannot be promised to dismiss the chooser on this evidence.
+If public acceptance requires that button to stop selection immediately, that requirement remains unmet until a supported mechanism is demonstrated.
+Progress-based extension remains unverified and cannot rescue the deadline.
+
 ## Automatic OCR migration
 
 The current pinned core already distinguishes selective OCR from forced whole-page OCR.
