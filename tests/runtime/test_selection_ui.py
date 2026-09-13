@@ -70,7 +70,9 @@ class SelectionControllerTests(unittest.TestCase):
         files = Mock()
         executor = Mock()
         with patch.object(module, "ThreadPoolExecutor", return_value=executor):
-            picker = module.Picker(root, Mock(), SimpleNamespace(StringVar=Widget), widgets, files)
+            picker = module.Picker(
+                root, Mock(), SimpleNamespace(StringVar=Widget), widgets, files, Mock()
+            )
         files.askopenfilename.return_value = ""
         picker.choose()
         executor.submit.assert_not_called()
@@ -117,3 +119,51 @@ class SelectionControllerTests(unittest.TestCase):
             self.assertEqual(module.run(store), 0)
             self.assertIs(picker.call_args.args[1], store)
             root.return_value.mainloop.assert_called_once()
+
+    def test_clear_confirmation_recovers_older_copies_and_keeps_artifacts(self):
+        from runtime.selection import SelectionError, SelectionStore
+        from runtime.selection_ui import Controller, Picker
+
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary).resolve()
+            pdf = home / "source.pdf"
+            pdf.write_bytes(b"selected bytes")
+            store = SelectionStore("claude-desktop", home=home)
+            first, second = store.select(pdf), store.select(pdf)
+            picker = object.__new__(Picker)
+            picker.root = Mock()
+            picker.messagebox = Mock()
+            picker.controller = Controller(SelectionStore("claude-desktop", home=home))
+            picker.status, picker.reference, picker.state = Mock(), Mock(), Mock()
+            picker.messagebox.askyesno.return_value = False
+            picker.clear()
+            self.assertTrue((store.grant / first.reference).exists())
+            picker.messagebox.askyesno.return_value = True
+            picker.clear()
+            self.assertFalse((store.grant / second.reference).exists())
+            self.assertEqual(list(store.grant.iterdir()), [])
+            self.assertTrue(pdf.exists())
+            self.assertIn("2", picker.status.set.call_args.args[0])
+            picker.controller.store.clear = Mock(side_effect=SelectionError("Cannot clear."))
+            picker.clear()
+            picker.status.set.assert_called_with("Cannot clear.")
+
+    def test_real_background_copy_updates_controller_before_poll(self):
+        from concurrent.futures import ThreadPoolExecutor
+
+        from runtime.selection import SelectionStore
+        from runtime.selection_ui import Controller, Picker
+
+        with tempfile.TemporaryDirectory() as temporary, ThreadPoolExecutor(1) as executor:
+            home = Path(temporary).resolve()
+            pdf = home / "source.pdf"
+            pdf.write_bytes(b"selected bytes")
+            picker = object.__new__(Picker)
+            picker.controller = Controller(SelectionStore("claude-desktop", home=home))
+            picker.reference, picker.status, picker.state = Mock(), Mock(), Mock()
+            picker.closing = False
+            picker.future = executor.submit(picker.controller.choose, str(pdf))
+            result = picker.future.result(timeout=2)
+            picker.poll()
+            self.assertIs(picker.controller.selection, result)
+            picker.reference.set.assert_called_once_with(result.reference)

@@ -127,7 +127,8 @@ This is required before public setup implementation and acceptance, while existi
 - [x] Freeze the reference format, private intake publication, byte limits, source identity handoff, retention and removal rules before implementation.
 - [ ] Confirm no installation step requests a directory, broad filesystem grant or path configuration; never infer local attachment access from a chat upload button.
 - [x] Implement the selected thin helper/handoff under the existing coverage gate, preserving core parsing and evidence ownership.
-- [x] Test cancelled/invalid selection, unselected paths, traversal, symlinks, duplicate names, source mutation, disk failure, size caps, restart and cleanup.
+- [x] Test cancelled/invalid selection, unselected paths, traversal, symlinks, duplicate names, source mutation, disk failure, size caps, restart and catchable-failure cleanup.
+- [x] Test startup during copying, quota recovery across sessions, and staging recovery after killing a publisher process.
 - [x] Inventory helper sources and GUI resources; bind the wrapper and plist in package metadata.
 - [ ] Resolve native accessibility and pointer interaction before accepting the non-developer walkthrough.
 - [ ] Integrate and sign the helper alongside the runtime, then repeat native and clean-machine walkthroughs using the public selection route.

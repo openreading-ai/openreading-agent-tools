@@ -4,6 +4,8 @@ The native picker supplies the sole source path. No chat attachment or provider 
 used. Copying runs off the UI thread; Cancel and Close request cancellation and wait for
 cleanup before closing. A failed replacement preserves the previous completed selection.
 The GUI does not change OCR or host settings. The connector controls its own OCR setting.
+Clear selected copies requires confirmation and also removes copies from earlier sessions.
+Original documents and the shared artifact store are never deleted by this action.
 This development interface does not establish signed or clean-machine installation.
 """
 
@@ -38,19 +40,25 @@ class Controller:
             self.store.remove(self.selection.reference)
             self.selection = None
 
+    def clear(self):
+        removed = self.store.clear()
+        self.selection = None
+        return removed
+
 
 class Picker:
-    def __init__(self, root, store, tk, ttk, filedialog):
+    def __init__(self, root, store, tk, ttk, filedialog, messagebox):
         self.root = root
         self.controller = Controller(store)
         self.filedialog = filedialog
+        self.messagebox = messagebox
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.future = None
         self.cancelled = Event()
         self.closing = False
         root.title("OpenReading | Choose a document")
-        root.geometry("700x390")
-        root.minsize(620, 360)
+        root.geometry("700x430")
+        root.minsize(620, 400)
         frame = ttk.Frame(root, padding=24)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Read a local document", font=("Helvetica", 21, "bold")).pack(
@@ -84,6 +92,8 @@ class Picker:
             row, text="Cancel copy", command=self.cancel, state="disabled"
         )
         self.cancel_button.pack(side="left")
+        self.clear_button = ttk.Button(frame, text="Clear selected copies…", command=self.clear)
+        self.clear_button.pack(anchor="w", pady=(0, 10))
         ttk.Label(
             frame,
             text="Removing a selected copy does not delete previously retained evidence. Development preview.",
@@ -93,6 +103,7 @@ class Picker:
 
     def state(self, busy):
         self.choose_button.configure(state="disabled" if busy else "normal")
+        self.clear_button.configure(state="disabled" if busy else "normal")
         self.cancel_button.configure(state="normal" if busy else "disabled")
         enabled = not busy and self.controller.selection is not None
         for button in (self.copy_button, self.remove_button):
@@ -152,6 +163,23 @@ class Picker:
             self.status.set(str(error))
         self.state(False)
 
+    def clear(self):
+        if not self.messagebox.askyesno(
+            "Clear selected copies?",
+            "Remove all selected copies for this client, including previous sessions? "
+            "Original files, retained artifacts and delivered excerpts remain. Existing references stop working.",
+            parent=self.root,
+            default="no",
+        ):
+            return
+        try:
+            removed = self.controller.clear()
+            self.reference.set("")
+            self.status.set(f"Removed {removed} selected copies. Retained evidence is unchanged.")
+        except SelectionError as error:
+            self.status.set(str(error))
+        self.state(False)
+
     def cancel(self):
         self.cancelled.set()
         self.status.set("Cancelling the local copy…")
@@ -167,9 +195,9 @@ class Picker:
 
 def run(store: SelectionStore) -> int:
     import tkinter as tk
-    from tkinter import filedialog, ttk
+    from tkinter import filedialog, messagebox, ttk
 
     root = tk.Tk()
-    Picker(root, store, tk, ttk, filedialog)
+    Picker(root, store, tk, ttk, filedialog, messagebox)
     root.mainloop()
     return 0

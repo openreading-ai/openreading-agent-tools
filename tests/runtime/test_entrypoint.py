@@ -155,3 +155,38 @@ class EntrypointTests(unittest.TestCase):
                 self.assertEqual(
                     main(["--client", "claude-desktop", "--select-document", "--ocr", "true"]), 2
                 )
+
+    def test_selection_startup_does_not_wait_for_publisher(self):
+        from threading import Event, Thread
+
+        from runtime.selection import SelectionStore
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            store = SelectionStore("claude-desktop", home=root)
+            held, release = Event(), Event()
+
+            def copy_in_progress():
+                with store.locked():
+                    held.set()
+                    release.wait(5)
+
+            worker = Thread(target=copy_in_progress)
+            worker.start()
+            try:
+                self.assertTrue(held.wait(2))
+                with (
+                    patch(
+                        "runtime.entrypoint.verify_release", return_value={"format_version": "2"}
+                    ),
+                    patch("pathlib.Path.home", return_value=root),
+                    patch("runtime.docling_profile.launch", return_value=0) as launch,
+                    contextlib.redirect_stderr(io.StringIO()),
+                ):
+                    self.assertEqual(
+                        main(["--client", "claude-desktop", "--selected-documents"]), 0
+                    )
+                    launch.assert_called_once()
+            finally:
+                release.set()
+                worker.join(2)

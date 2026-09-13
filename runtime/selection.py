@@ -10,9 +10,12 @@ The helper refuses observed source edits rather than publishing a possibly mixed
 Each selection allows 25 MiB, with 512 MiB total ready and unfinished copies. This quota
 is separate from core's artifact quota. Copies persist until explicitly removed; removing
 intake does not erase already retained artifacts or excerpts delivered to the assistant.
-Catchable copy failures clean current staging. SIGKILL can leave private unfinished data
-counted against quota, but cannot expose it in the MCP input grant. No environment variable
-selects a source grant. HOME locates application data through runtime.configuration only.
+Catchable copy failures clean current staging. SIGKILL can leave private unfinished data,
+but the next publisher-lock holder removes abandoned staging before quota accounting.
+Server startup validates directories without that lock and never removes staging.
+Explicit clearing removes all completed intake copies, including earlier picker sessions.
+The shared CLIENT/v2/artifacts store remains untouched. No environment variable selects
+a source grant. HOME locates application data through runtime.configuration only.
 """
 
 from __future__ import annotations
@@ -75,36 +78,72 @@ class SelectionStore:
         self.staging = self.root / "staging"
 
     @contextmanager
-    def locked(self):
+    def directories(self):
         try:
-            with directory(self.root, create=True) as root:
-                os.fchmod(root, 0o700)
-                lock = os.open("lock", os.O_CREAT | os.O_NOFOLLOW | os.O_RDWR, 0o600, dir_fd=root)
-                try:
-                    try:
-                        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    except BlockingIOError:
-                        # Convert inside directory(), which otherwise sanitizes OSError first.
-                        raise SelectionError(
-                            "Another selection is in progress. Try again shortly."
-                        ) from None
-                    with (
-                        directory(self.grant, create=True) as ready,
-                        directory(self.staging, create=True) as staging,
-                    ):
-                        os.fchmod(ready, 0o700)
-                        os.fchmod(staging, 0o700)
-                        yield ready, staging
-                finally:
-                    os.close(lock)
+            with (
+                directory(self.root, create=True) as root,
+                directory(self.grant, create=True) as ready,
+                directory(self.staging, create=True) as staging,
+            ):
+                for opened in (root, ready, staging):
+                    os.fchmod(opened, 0o700)
+                yield root, ready, staging
         except (ArtifactError, OSError):
             raise SelectionError(
-                "Cannot access the selected file or private intake. Check permissions and free space."
+                "Cannot access the selected file or private intake. Symlinks are unsupported; "
+                "choose a regular file through real folders, and check permissions and free space."
             ) from None
 
+    @contextmanager
+    def locked(self):
+        with self.directories() as (root, ready, staging):
+            lock = os.open("lock", os.O_CREAT | os.O_NOFOLLOW | os.O_RDWR, 0o600, dir_fd=root)
+            try:
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    # Convert inside directory(), which otherwise sanitizes OSError first.
+                    raise SelectionError(
+                        "Another selection is in progress. Try again shortly."
+                    ) from None
+                # A live publisher holds this lock for its whole copy. Existing staging is abandoned.
+                for name in os.listdir(staging):
+                    if not re.fullmatch(r"[0-9a-f]{32}", name) or not stat.S_ISDIR(
+                        os.stat(name, dir_fd=staging, follow_symlinks=False).st_mode
+                    ):
+                        raise SelectionError(
+                            "The private staging area contains an unexpected entry."
+                        )
+                    shutil.rmtree(name, dir_fd=staging)
+                yield ready, staging
+            finally:
+                os.close(lock)
+
     def prepare(self) -> Path:
-        with self.locked():
+        # Readers need only the published directory, never ownership of the publisher lock.
+        with self.directories():
             return self.grant
+
+    def clear(self) -> int:
+        with self.locked() as (ready, _):
+            names = os.listdir(ready)
+            # Validate the whole set before deletion; never turn unknown data into quota recovery.
+            for name in names:
+                if not re.fullmatch(r"[0-9a-f]{32}", name):
+                    raise SelectionError("The private intake contains an unexpected entry.")
+                with directory(self.grant / name) as opened:
+                    files = os.listdir(opened)
+                    if (
+                        len(files) != 1
+                        or not filename(files[0])
+                        or not stat.S_ISREG(
+                            os.stat(files[0], dir_fd=opened, follow_symlinks=False).st_mode
+                        )
+                    ):
+                        raise SelectionError("The private intake contains an unexpected entry.")
+            for name in names:
+                shutil.rmtree(name, dir_fd=ready)
+            return len(names)
 
     def used_bytes(self) -> int:
         total = 0
@@ -145,7 +184,7 @@ class SelectionStore:
                         )
                     if before.st_size > available:
                         raise SelectionError(
-                            "Selection storage is full. Remove selected copies before adding another."
+                            "Selection storage is full. Use Clear selected copies before adding another."
                         )
                     digest = hashlib.sha256()
                     length = 0

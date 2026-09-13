@@ -80,7 +80,7 @@ No host-local attachment route has been established. The helper uses an explicit
 The development prototype needs a reliable, accessible native walkthrough before this becomes the public route.
 Fix or replace the inaccessible Tk controls before claiming non-developer setup acceptance.
 Integrate the helper with a signed install location so users never manage its relative path to the runtime.
-Retain explicit removal and storage disclosures; the current session-only removal control needs usability review for older copies.
+Retain explicit removal and shared-storage disclosures. The confirmed clear-all action recovers older intake copies; review its usability in the eventual public experience.
 Repeat native setup, OCR selection, cancellation and full conversation capture with the packaged route on a clean machine.
 Do not change core intake schemas implicitly or infer local attachment access from an ordinary chat upload button.
 If the selected host cannot support this local route, stop its public release rather than returning to directory configuration.

@@ -21,6 +21,10 @@
 
 ## Unreleased
 
+- Keep the selected-file connector available while the picker copies a document.
+- Reclaim abandoned intake staging under the publisher lock and add confirmed cleanup of copies from earlier sessions.
+- Explain symlink refusals and shared artifact retention without changing the pinned core catalog.
+
 - Add a separate local file-picker candidate with a private, bounded intake and copyable chat references.
 - Bundle picker resources and remove directory configuration from that candidate while preserving existing developer and historical launchers.
 - Test selection failure, cancellation, source changes, publication, retention and official MCPB argument resolution.

@@ -123,8 +123,11 @@ A reference contains a random entry name and the original filename, never the so
 Copies use mode 0600 inside mode-0700 directories and publish by an atomic directory rename.
 The ready directory is the only input grant; staging and the publisher lock remain outside it.
 The 25 MiB file limit and 512 MiB copy quota are separate from the artifact quota.
-Catchable failures remove current staging. Forced termination can leave private unfinished data counted against quota.
-Copies persist across launches. Removing a selected copy does not erase retained artifacts or excerpts.
+Catchable failures remove current staging. After forced termination, the next publisher-lock holder reclaims abandoned staging before checking quota.
+Server startup only validates directories, so it succeeds while a picker holds that lock.
+Copies persist across launches. Confirmed **Clear selected copies…** removes previous sessions’ intake copies as well as the current one.
+Removing intake does not erase retained artifacts or excerpts.
+The selection connector shares `claude-desktop/v2/artifacts/` with other format-2 connectors using the same client label, including directory-based candidates.
 The selection guide records the remaining accessibility and public installation checks.
 
 ## Version 2 developer directory configuration and launcher

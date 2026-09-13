@@ -15,8 +15,15 @@ The picker allows 25 MiB per file and 512 MiB of selected copies. Those diagnost
 Source copies remain in the client's private `v2/selection/ready` directory; incomplete copies stay outside the input grant.
 Cancelling the file dialog leaves the prior selection unchanged; cancelling an unfinished copy publishes nothing. A failed selection preserves any previously completed selection.
 **Remove selected copy** removes only the current intake copy; already retained artifacts and delivered excerpts remain.
-Copies from previous picker sessions persist. Their removal and artifact retention are separate from extension uninstall.
-Force-killing the picker may leave private staging data that counts against the selection quota.
+Copies from previous picker sessions persist. **Clear selected copies…** removes all intake copies after confirmation, including those from older sessions.
+This invalidates their import references; original files and already retained evidence remain.
+Force-killing the picker can leave private staging data. The next selection or cleanup operation reclaims it under the publisher lock.
+Connector startup does not acquire that lock, so an ongoing copy cannot prevent tools from starting.
+Artifact retention is separate from extension uninstall and selection cleanup.
+
+Artifacts live in `~/Library/Application Support/OpenReading/agent-tools/claude-desktop/v2/artifacts/`.
+That store is shared with other format-2 connectors using the `claude-desktop` client label, including the developer directory connector.
+Import can therefore reuse an existing artifact; a reuse result does not establish a fresh conversion.
 
 Retrieved excerpts enter the assistant context. OCR can misread letters and digits, so exact identifier search can miss evidence.
 Citations identify extracted text and physical pages; they do not certify OCR transcription accuracy.
@@ -50,6 +57,8 @@ This is helper and protocol evidence, not a complete native assistant conversati
 The Tk prototype responds to keyboard navigation, but its controls were absent from the macOS accessibility tree during inspection.
 Reliable pointer interaction, accessibility and the non-developer walkthrough remain public-release checks.
 The co-located helper layout still needs installer integration, signing, dependency license review and a clean-machine run.
+The pinned core import description still says “configured directory”; here that means the internal intake, not a folder the user must configure.
+Neutral wording remains a core-owned follow-up. This package does not rewrite model-facing core descriptions.
 ChatGPT mode support, host deadlines and supported document limits remain separate gates.
 
 > **OpenReading Managed: Coming soon**

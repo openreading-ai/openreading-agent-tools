@@ -167,6 +167,8 @@ class SelectionTests(unittest.TestCase):
         extra.write_bytes(b"extra")
         with self.assertRaises(m.SelectionError):
             store.remove(result.reference)
+        with self.assertRaises(m.SelectionError):
+            store.clear()
         extra.unlink()
         target = store.grant / result.reference
         target.unlink()
@@ -175,6 +177,8 @@ class SelectionTests(unittest.TestCase):
             store.remove(result.reference)
         with self.assertRaises(m.SelectionError):
             store.select(self.source)
+        with self.assertRaises(m.SelectionError):
+            store.clear()
         self.assertTrue(self.source.exists())
 
     def test_growing_source_hits_streaming_limit_before_publication(self):
@@ -202,3 +206,115 @@ class SelectionTests(unittest.TestCase):
             store.select(self.source)
         self.assertEqual(list(store.grant.iterdir()), [])
         self.assertEqual(list(store.staging.iterdir()), [])
+
+    def test_full_store_can_be_cleared_from_a_new_session(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        with patch.object(m, "MAX_SELECTION_BYTES", self.source.stat().st_size * 2):
+            store.select(self.source)
+            store.select(self.source)
+            reopened = m.SelectionStore("claude-desktop", home=self.root / "home")
+            with self.assertRaisesRegex(m.SelectionError, "storage is full"):
+                reopened.select(self.source)
+            artifact = store.root.parent / "artifacts/keep"
+            artifact.parent.mkdir()
+            artifact.write_bytes(b"retained evidence")
+            self.assertEqual(reopened.clear(), 2)
+            self.assertEqual(artifact.read_bytes(), b"retained evidence")
+            self.assertEqual(self.source.read_bytes(), b"%PDF-1.4\nsynthetic\n")
+            self.assertTrue((store.grant / reopened.select(self.source).reference).exists())
+
+    def test_abandoned_staging_is_reclaimed_only_by_a_publisher(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        with store.locked():
+            abandoned = store.staging / ("a" * 32)
+            abandoned.mkdir()
+            (abandoned / "unfinished.pdf").write_bytes(b"x" * 100)
+            with self.assertRaisesRegex(m.SelectionError, "in progress"):
+                store.select(self.source)
+            self.assertTrue(abandoned.exists())
+        with patch.object(m, "MAX_SELECTION_BYTES", self.source.stat().st_size):
+            result = store.select(self.source)
+        self.assertFalse(abandoned.exists())
+        self.assertTrue((store.grant / result.reference).exists())
+
+    def test_recovery_does_not_follow_links_or_delete_unexpected_ready_data(self):
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        store.prepare()
+        abandoned = store.staging / ("a" * 32)
+        abandoned.mkdir()
+        (abandoned / "link").symlink_to(self.source)
+        store.clear()
+        self.assertTrue(self.source.exists())
+        alien = store.grant / "unexpected"
+        alien.mkdir()
+        (alien / "leave.pdf").write_bytes(b"unrecognized")
+        with self.assertRaises(m.SelectionError):
+            store.clear()
+        self.assertTrue((alien / "leave.pdf").exists())
+
+    def test_symlink_refusal_explains_that_links_are_unsupported(self):
+        m = self.module()
+        folder = self.root / "linked-folder"
+        folder.symlink_to(self.root, target_is_directory=True)
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        with self.assertRaisesRegex(m.SelectionError, "[Ss]ymlink"):
+            store.select(folder / self.source.name)
+
+    def test_force_killed_publisher_leaves_recoverable_staging(self):
+        import queue
+        import subprocess
+        import sys
+        from threading import Thread
+        from unittest.mock import patch
+
+        m = self.module()
+        home = self.root / "home"
+        script = """
+import signal,sys
+from pathlib import Path
+from runtime.selection import SelectionStore
+store=SelectionStore('claude-desktop',home=Path(sys.argv[1]))
+with store.locked():
+ entry=store.staging/('a'*32)
+ entry.mkdir()
+ (entry/'unfinished.pdf').write_bytes(b'x'*100)
+ print('copying',flush=True)
+ signal.pause()
+"""
+        with subprocess.Popen(
+            [sys.executable, "-c", script, str(home)], stdout=subprocess.PIPE, text=True
+        ) as child:
+            output = queue.Queue()
+            reader = Thread(target=lambda: output.put(child.stdout.readline()), daemon=True)
+            reader.start()
+            try:
+                self.assertEqual(output.get(timeout=5).strip(), "copying")
+            finally:
+                child.kill()
+                child.wait(timeout=5)
+                reader.join(1)
+        store = m.SelectionStore("claude-desktop", home=home)
+        self.assertTrue(list(store.staging.iterdir()))
+        with patch.object(m, "MAX_SELECTION_BYTES", self.source.stat().st_size):
+            result = store.select(self.source)
+        self.assertEqual(list(store.staging.iterdir()), [])
+        self.assertTrue((store.grant / result.reference).exists())
+
+    def test_staging_recovery_refuses_unknown_names_and_linked_entries(self):
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        store.prepare()
+        for name in ("unknown", "a" * 32):
+            entry = store.staging / name
+            entry.symlink_to(self.root, target_is_directory=True)
+            with self.assertRaises(m.SelectionError):
+                store.clear()
+            self.assertTrue(self.source.exists())
+            entry.unlink()
