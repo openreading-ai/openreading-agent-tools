@@ -15,7 +15,10 @@ Ordinary chat attachments still follow the host's upload path; this tool does no
 Use **Cancel** in the OS dialog to dismiss it. Selection and copying have a 120-second deadline.
 Another selection while that dialog is pending returns busy, without adopting another conversation's dialog.
 Claude Desktop's observed Stop action did not send MCP cancellation; it cannot be promised to dismiss this chooser.
-Delivered cancellation closes the chooser and removes this operation's incomplete intake copy.
+Source tests verify child reaping on delivered cancellation; native dialog disappearance remains unverified.
+Failed handoffs revoke their published copy without waiting for another publisher.
+Deletion failures leave a private discarded copy for the next publisher sweep and preserve the original tool error.
+Filesystem failures can prevent revocation; a fixed cleanup diagnostic reports that exception.
 
 Copies stay under `claude-desktop/v2/selection/ready`, within OpenReading's application data.
 Imported evidence stays in `claude-desktop/v2/artifacts`, shared with other v2 Claude Desktop connectors.
@@ -30,3 +33,12 @@ No setup decision changes historical directory grants, OCR switches or saved set
 This candidate is not signed, notarized or accepted on a clean machine. Token savings remain unmeasured.
 
 OpenReading Managed: Coming soon.
+
+## Dependency privacy
+
+The candidate disables ONNX Runtime telemetry before the document engine initializes.
+Earlier development builds could create a device identifier and telemetry database under
+`~/Library/Application Support/Microsoft/DeveloperTools/.onnxruntime`, outside OpenReading's artifact store.
+The launcher now sets the pinned runtime's startup opt-out; it does not delete existing shared Microsoft data.
+The frozen smoke checks a fresh home for unexpected persistence, with network access denied.
+This check does not establish whether earlier builds transmitted events or prove installed-host network behavior.

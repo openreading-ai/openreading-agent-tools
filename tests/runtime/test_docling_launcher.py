@@ -213,3 +213,31 @@ class DoclingLaunchTests(unittest.TestCase):
             self.assertTrue(first.exists())
             self.assertFalse(second.parent.exists())
         self.assertFalse(first.parent.exists())
+
+    def test_chat_launcher_forwards_provider_through_real_profile_launch(self):
+        from runtime.chat_selection import LocalSelectionProvider
+
+        def core_boundary(args, *, selection_provider=None):
+            self.assertIsInstance(selection_provider, LocalSelectionProvider)
+            self.assertEqual(
+                Path(args[args.index("--input-root") + 1]), selection_provider.store.grant
+            )
+            profile = json.loads(Path(args[args.index("--profile-config") + 1]).read_text())
+            self.assertTrue(profile["docling"]["ocr"])
+            return 0
+
+        with patch("openreading.mcp_server.main.main", side_effect=core_boundary):
+            self.assertEqual(main(["--client", "claude-desktop", "--chat-documents"]), 0)
+
+    def test_frozen_worker_suppresses_ort_before_internal_core_dispatch(self):
+        import os
+
+        def worker(args):
+            self.assertEqual(os.environ.get("ORT_DISABLE_TELEMETRY"), "1")
+            return 0
+
+        with (
+            patch.dict(os.environ, {"ORT_DISABLE_TELEMETRY": "0"}),
+            patch("openreading.artifacts.worker.main", side_effect=worker),
+        ):
+            self.assertEqual(main(["--internal-artifact-worker"]), 0)

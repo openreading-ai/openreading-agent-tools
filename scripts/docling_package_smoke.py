@@ -149,6 +149,9 @@ async def smoke(
         await asyncio.sleep(0)
         with tempfile.TemporaryDirectory(prefix="openreading-p0-smoke-") as temporary:
             work = Path(temporary).resolve()
+            home = work / "home"
+            home.mkdir()
+            telemetry = home / "Library/Application Support/Microsoft/DeveloperTools/.onnxruntime"
             grant = work / "Document grant ü spaces"
             grant.mkdir()
             (grant / "functional.pdf").write_bytes(fixture.read_bytes())
@@ -173,6 +176,9 @@ async def smoke(
                         ],
                         env={
                             "PATH": "/usr/bin:/bin",
+                            "HOME": str(home),
+                            # Prove the launcher overrides an inherited opt-in before ORT import.
+                            "ORT_DISABLE_TELEMETRY": "0",
                             "HF_HUB_OFFLINE": "1",
                             "TRANSFORMERS_OFFLINE": "1",
                         },
@@ -282,6 +288,8 @@ async def smoke(
                         )
                         if not denied.isError:
                             raise ValueError("The document grant allowed an outside path.")
+                    if telemetry.exists():
+                        raise ValueError("The frozen worker persisted unexpected telemetry state.")
                     records.append(
                         {
                             "ocr": ocr,
@@ -314,6 +322,7 @@ async def smoke(
         "loaded_libraries": libraries,
         "sampled_peak_tree_rss_including_driver": peak,
         "processes": records,
+        "ort_telemetry_state_created": False,
         "native_host_support": "unverified",
         "model_calls": "not_run",
     }

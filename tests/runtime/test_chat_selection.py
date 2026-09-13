@@ -135,6 +135,7 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
             "print('42')",
             "print('\"relative.pdf\"')",
             "raise SystemExit(2)",
+            "print('null'); raise SystemExit(2)",
         ):
             with (
                 patch.object(m, "command", return_value=[sys.executable, "-c", code]),
@@ -231,7 +232,7 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
         from runtime.entrypoint import main
 
         base = client_root("claude-desktop", home=self.root / "home")
-        for suffix in ("settings.json", "v2/settings.json"):
+        for suffix in ("config.json", "v2/config.json"):
             path = base / suffix
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("historical settings unchanged")
@@ -250,7 +251,7 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(
             launch.call_args.kwargs["selection_provider"], self.module().LocalSelectionProvider
         )
-        for suffix in ("settings.json", "v2/settings.json"):
+        for suffix in ("config.json", "v2/config.json"):
             self.assertEqual((base / suffix).read_text(), "historical settings unchanged")
 
     def test_chat_launcher_refuses_model_style_overrides_and_legacy_internal_dispatch(self):
@@ -282,3 +283,62 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
             self.assertRaises(SystemExit),
         ):
             main(["--internal-select-file"])
+
+    async def test_rollback_finishes_while_another_publisher_holds_lock(self):
+        m = self.module()
+        previous = self.store.select(self.source)
+        held, release = threading.Event(), threading.Event()
+
+        def holder():
+            with self.store.locked():
+                held.set()
+                release.wait(2)
+
+        async def choose():
+            return self.source
+
+        worker = None
+        started = 0
+        try:
+            with patch.object(m, "choose", choose), self.assertRaisesRegex(ValueError, "original"):
+                async with m.LocalSelectionProvider(self.store).select() as reference:
+                    worker = threading.Thread(target=holder)
+                    worker.start()
+                    while not held.is_set():
+                        await anyio.sleep(0.001)
+                    started = asyncio.get_running_loop().time()
+                    raise ValueError("original")
+            self.assertLess(asyncio.get_running_loop().time() - started, 0.5)
+            self.assertFalse((self.store.grant / reference).exists())
+            self.assertTrue((self.store.grant / previous.reference).exists())
+        finally:
+            release.set()
+            if worker:
+                worker.join(3)
+
+    async def test_rollback_failure_preserves_original_exception_and_redacts_log(self):
+        import contextlib
+        import io
+
+        m = self.module()
+
+        async def choose():
+            return self.source
+
+        # This exercises the real cleanup wrapper, with only the filesystem operation faulted.
+        for error in (TimeoutError("deadline"), asyncio.CancelledError()):
+            output = io.StringIO()
+            with (
+                patch.object(m, "choose", choose),
+                patch.object(self.store, "rollback", side_effect=OSError("private-secret")),
+                contextlib.redirect_stderr(output),
+            ):
+                try:
+                    async with m.LocalSelectionProvider(self.store).select():
+                        raise error
+                except BaseException as caught:
+                    self.assertIs(caught, error)
+                else:
+                    self.fail("the original exception was suppressed")
+            self.assertNotIn("private-secret", output.getvalue())
+            self.assertIn("cleanup", output.getvalue().lower())

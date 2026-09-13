@@ -50,8 +50,9 @@ The checker inspects Tesseract's actual loaded-library trace and rejects depende
 It checks native evidence on physical page one, OCR-only evidence on physical page two, a distinct warm conversion and reuse after restart.
 Wrong pages, text, origins, receipts, outside-grant access and missing memory samples fail the check.
 
-The checker creates a temporary synthetic input grant and uses the `codex/v2` artifact namespace without reading saved setup or changing client registration.
-Retained synthetic source copies remain in that store until you remove them through the [retention procedure](../README.md).
+The checker creates a temporary synthetic input grant and isolated home using the `codex/v2` namespace.
+It reads no saved setup and changes no client registration. Temporary evidence is removed when the check ends.
+It passes an inherited telemetry opt-in and fails if the worker creates ONNX telemetry state in that home.
 The report records inventory bytes, verification and initialization time, import/warm/restart observations, progress events and sampled process-tree RSS.
 RSS includes the measurement driver and is not the worker's own memory limit.
 Progress timestamps do not separate every internal phase; closely spaced stages may be coalesced by core.
@@ -76,8 +77,16 @@ Do not share this build or assemble historical client packages from it.
 The explicit `runtime.package --docling-desktop` path assembles a separate local Desktop installation candidate; see the [Desktop guide](../../clients/claude-desktop/README.md).
 That path does not authorize distribution or establish native installation acceptance.
 
-The current candidate pins core `9af2606f6a53da632ab0a8f11a3cf8478099f941`, adding the optional local chooser contract.
+The September 13 candidate at core `9af2606f6a53da632ab0a8f11a3cf8478099f941` added the optional local chooser contract.
 Its unpacked frozen smoke passes extraction, OCR, restart and same-profile catalog parity.
 The separate chat package also matches the provider-enabled core catalog without any setup fields.
-Its native chooser timeout returns a sanitized refusal and reaps the child. Successful user selection remains unverified.
+Its direct stdio chooser call returned a sanitized timeout, not a native-host result.
+The process-exit observation lacked a retained PID capture and cannot establish native dialog disappearance.
+Successful user selection remains unverified.
 These results do not replace named-host interaction or clean-machine acceptance.
+
+The current candidate pins core `b03a6606ae8a8afd1d16d867e42ffbbf97bee774`, with explicit provider cleanup responsibilities.
+The format 2 launcher sets `ORT_DISABLE_TELEMETRY=1` before core or native parser imports, including worker dispatch.
+ONNX Runtime's later Python API opt-out alone does not prevent its device identifier and telemetry database initialization.
+See the pinned [upstream privacy contract](https://github.com/microsoft/onnxruntime/blob/v1.30.0/docs/Privacy.md).
+Fresh-home frozen checks remain distinct from installed-host traffic observation; old shared telemetry files are not deleted.

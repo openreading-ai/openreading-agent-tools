@@ -197,3 +197,11 @@ It uses private completed intake and refuses directory configuration or OCR over
 `runtime.chat_selection` owns the fixed OS chooser child and transactional copy cleanup; core owns tools and selection deadlines.
 Package this route with `runtime.package --docling-desktop --chat-documents`.
 Its [walkthrough](../clients/claude-desktop/chat/README.md) describes cancellation, retention and the remaining native acceptance boundary.
+
+### Docling telemetry startup
+
+Format 2 forces `ORT_DISABLE_TELEMETRY=1` before importing the document engine, including child-worker dispatch.
+The setting applies to the dedicated process lifetime and cannot be overridden by host configuration.
+Earlier development builds could initialize ONNX Runtime's device identifier and queue outside the artifact store.
+The startup opt-out prevents that initialization in the pinned runtime; it does not erase existing shared Microsoft data.
+The [Docling build checks](p0/README.md) distinguish persistence suppression from unverified installed-host network behavior.

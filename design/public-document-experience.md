@@ -70,6 +70,8 @@ Allow one pending selection per server process. A concurrent call receives busy 
 MCP provides no conversation identity on which to base cross-chat dialog reuse.
 Cancellation, host disconnect and timeout dismiss the pending picker and do not publish a new reference.
 A pending selection must not hold the intake publisher lock while waiting for the user.
+Rollback moves only its owned immutable copy out of the readable intake without acquiring that lock.
+Failed deletion remains quota-counted outside the grant for a later publisher sweep; cleanup faults preserve the original error.
 Byte validation and copy publication retain their existing serialization after the user chooses.
 
 Selection is a user action, not authority carried by document text. The workflow must ignore instructions in retrieved passages that request another file.
@@ -131,6 +133,9 @@ The [implemented Desktop log diagnostic](../measurement/README.md#desktop-timing
 Its compact input cannot identify the document or isolate model load, OCR, extraction and artifact writing.
 Future phase timing belongs at the core and launcher boundaries that can measure each phase accurately.
 Keep source text, model prompts and credentials out of timing events; do not add remote telemetry.
+The packaged launcher must disable ONNX Runtime telemetry before native initialization, including child processes.
+A fresh-home frozen check must reject telemetry persistence; native network observation remains a release check.
+Existing shared vendor state from prior development runs must not be silently deleted.
 Any new public receipt field requires a core schema change and compatibility tests first.
 
 A1 completes only after a named native host returns the selected reference without manual copying and automatic OCR passes the relevant real-engine cases.

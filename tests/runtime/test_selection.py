@@ -318,3 +318,53 @@ with store.locked():
                 store.clear()
             self.assertTrue(self.source.exists())
             entry.unlink()
+
+    def test_rollback_revokes_before_failed_deletion_and_next_publisher_sweeps(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        selected = store.select(self.source)
+        size = self.source.stat().st_size
+        with patch.object(m.shutil, "rmtree", side_effect=OSError("disk failure")):
+            with self.assertRaises(m.SelectionError):
+                store.rollback(selected.reference)
+        self.assertFalse((store.grant / selected.reference).exists())
+        self.assertEqual(store.used_bytes(), size)
+        with patch.object(m, "MAX_SELECTION_BYTES", size):
+            fresh = store.select(self.source)
+        self.assertEqual(list(store.discarded.iterdir()), [])
+        self.assertTrue((store.grant / fresh.reference).exists())
+        store.rollback(fresh.reference)
+        store.rollback(fresh.reference)
+        self.assertEqual(store.used_bytes(), 0)
+
+    def test_rollback_refuses_corruption_and_preserves_unrelated_copies(self):
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        selected = store.select(self.source)
+        for reference in ("../outside.pdf", "invalid"):
+            with self.assertRaises(m.SelectionError):
+                store.rollback(reference)
+        selected_path = store.grant / selected.reference
+        extra = selected_path.parent / "other.pdf"
+        extra.write_bytes(b"keep")
+        with self.assertRaises(m.SelectionError):
+            store.rollback(selected.reference)
+        self.assertTrue(extra.exists())
+        extra.unlink()
+        selected_path.unlink()
+        selected_path.symlink_to(self.source)
+        with self.assertRaises(m.SelectionError):
+            store.rollback(selected.reference)
+        self.assertTrue(self.source.exists())
+
+    def test_concurrent_revoked_sweep_tolerates_already_removed_entries(self):
+        from unittest.mock import patch
+
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        store.prepare()
+        with store.directories() as (_, _, staging):
+            with patch.object(m.os, "listdir", return_value=["a" * 32]):
+                store.sweep(staging)

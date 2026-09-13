@@ -12,7 +12,10 @@ is separate from core's artifact quota. Copies persist until explicitly removed;
 intake does not erase already retained artifacts or excerpts delivered to the assistant.
 Catchable copy failures clean current staging. SIGKILL can leave private unfinished data,
 but the next publisher-lock holder removes abandoned staging before quota accounting.
-Server startup validates directories without that lock and never removes staging.
+Failed chat handoffs atomically move their owned entry from ready to discarded without
+waiting for the publisher lock. Discarded copies remain outside the grant and count toward
+quota until deletion succeeds. The next publisher retries their deletion under its lock.
+Server startup validates directories without that lock and never removes unfinished data.
 Explicit clearing removes all completed intake copies, including earlier picker sessions.
 The shared CLIENT/v2/artifacts store remains untouched. No environment variable selects
 a source grant. HOME locates application data through runtime.configuration only.
@@ -76,6 +79,7 @@ class SelectionStore:
         self.root = client_root(client, home=home) / "v2/selection"
         self.grant = self.root / "ready"
         self.staging = self.root / "staging"
+        self.discarded = self.root / "discarded"
 
     @contextmanager
     def directories(self):
@@ -84,8 +88,9 @@ class SelectionStore:
                 directory(self.root, create=True) as root,
                 directory(self.grant, create=True) as ready,
                 directory(self.staging, create=True) as staging,
+                directory(self.discarded, create=True) as discarded,
             ):
-                for opened in (root, ready, staging):
+                for opened in (root, ready, staging, discarded):
                     os.fchmod(opened, 0o700)
                 yield root, ready, staging
         except (ArtifactError, OSError):
@@ -106,18 +111,49 @@ class SelectionStore:
                     raise SelectionError(
                         "Another selection is in progress. Try again shortly."
                     ) from None
-                # A live publisher holds this lock for its whole copy. Existing staging is abandoned.
-                for name in os.listdir(staging):
-                    if not re.fullmatch(r"[0-9a-f]{32}", name) or not stat.S_ISDIR(
-                        os.stat(name, dir_fd=staging, follow_symlinks=False).st_mode
-                    ):
-                        raise SelectionError(
-                            "The private staging area contains an unexpected entry."
-                        )
-                    shutil.rmtree(name, dir_fd=staging)
+                # A live publisher owns staging. Rollback independently revokes only published entries.
+                self.sweep(staging)
+                with directory(self.discarded) as discarded:
+                    self.sweep(discarded)
                 yield ready, staging
             finally:
                 os.close(lock)
+
+    @staticmethod
+    def sweep(opened: int) -> None:
+        for name in os.listdir(opened):
+            try:
+                if not re.fullmatch(r"[0-9a-f]{32}", name) or not stat.S_ISDIR(
+                    os.stat(name, dir_fd=opened, follow_symlinks=False).st_mode
+                ):
+                    raise SelectionError("The private staging area contains an unexpected entry.")
+                shutil.rmtree(name, dir_fd=opened)
+            except FileNotFoundError:
+                # A concurrent rollback may have already deleted its revoked entry.
+                continue
+
+    def rollback(self, reference: str) -> None:
+        """Revoke only this transaction's immutable copy without waiting for a publisher.
+
+        A failed deletion leaves a non-readable discarded entry for the next sweep.
+        Other local callers may clear the same entry; missing entries are already revoked.
+        """
+        parts = reference.split("/")
+        if len(parts) != 2 or not re.fullmatch(r"[0-9a-f]{32}", parts[0]) or not filename(parts[1]):
+            raise SelectionError("Choose a reference created by this picker.")
+        with self.directories() as (_, ready, _), directory(self.discarded) as discarded:
+            try:
+                with directory(self.grant / parts[0]) as entry:
+                    if os.listdir(entry) != [parts[1]] or not stat.S_ISREG(
+                        os.stat(parts[1], dir_fd=entry, follow_symlinks=False).st_mode
+                    ):
+                        raise SelectionError("The selected copy no longer matches this reference.")
+                    os.rename(parts[0], parts[0], src_dir_fd=ready, dst_dir_fd=discarded)
+                shutil.rmtree(parts[0], dir_fd=discarded)
+            except (ArtifactError, FileNotFoundError):
+                # directory() sanitizes missing directories. Check absence without following links.
+                if os.path.lexists(self.grant / parts[0]):
+                    raise SelectionError("Cannot revoke the selected copy.") from None
 
     def prepare(self) -> Path:
         # Readers need only the published directory, never ownership of the publisher lock.
@@ -147,7 +183,7 @@ class SelectionStore:
 
     def used_bytes(self) -> int:
         total = 0
-        for parent in (self.grant, self.staging):
+        for parent in (self.grant, self.staging, self.discarded):
             for entry in parent.iterdir():
                 with directory(entry) as opened:
                     for name in os.listdir(opened):

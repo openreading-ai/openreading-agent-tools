@@ -7,14 +7,22 @@ The internal child dispatch uses the same frozen executable and verified invento
 Format 2 supports --select-document for the GUI and --selected-documents for MCP.
 The separate --chat-documents candidate installs a trusted local chooser and automatic OCR.
 It ignores saved settings and refuses directory or OCR overrides.
-Both reject directory configuration. The latter supplies only private completed intake
-copies and ignores saved grants; OCR remains an explicit connector argument, default off.
+The older selection modes reject directory configuration. MCP supplies private completed intake
+copies and ignores saved grants; developer OCR remains an explicit argument, default off.
+
+Environment variables this module reads
+--------------------------------------
+Format 2 sets ORT_DISABLE_TELEMETRY=1 before importing any core worker or parser module.
+This process-wide startup opt-out overrides absent or inherited values and reaches children.
+It suppresses ONNX Runtime's uploader and persistent device identifier at initialization.
+The flag remains set for this dedicated executable's lifetime; it does not erase older data.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import sys
 from pathlib import Path
@@ -40,6 +48,9 @@ def main(argv: list[str] | None = None) -> int:
     except ReleaseIntegrityError as error:
         print(str(error), file=sys.stderr)
         return 2
+    if metadata.get("format_version") == "2":
+        # The API opt-out is too late: ORT initializes telemetry while its native module loads.
+        os.environ["ORT_DISABLE_TELEMETRY"] = "1"
     if argv == ["--version"]:
         print(
             json.dumps(

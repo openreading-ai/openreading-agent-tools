@@ -7,7 +7,9 @@ No publisher lock is held while the user chooses. No arguments alter dialog text
 The child is killed and reaped on cancellation. Copy cancellation waits for its thread,
 then removes a copy published in the cancellation race before returning control to core.
 An exceptional context exit removes only this call's intake copy, not retained artifacts.
-Cleanup waits for another publisher if necessary; it never abandons a removal silently.
+Rollback revokes its immutable published entry without the publisher lock. Failed deletion
+leaves an unreadable discarded copy for the next publisher sweep. Cleanup failures emit a
+fixed stderr diagnostic without replacing the original cancellation, deadline, or error.
 
 The OS chooser's Cancel works independently of a host's Stop button. Host Stop without
 MCP cancellation leaves the chooser active until local Cancel or core's finite deadline.
@@ -23,7 +25,6 @@ import subprocess
 import sys
 import threading
 from contextlib import asynccontextmanager
-from functools import partial
 from pathlib import Path
 
 import anyio
@@ -71,7 +72,10 @@ async def choose() -> Path | None:
 
 async def remove_copy(store: SelectionStore, reference: str) -> None:
     with anyio.CancelScope(shield=True):
-        await anyio.to_thread.run_sync(partial(store.remove, reference, wait=True))
+        try:
+            await anyio.to_thread.run_sync(store.rollback, reference)
+        except Exception:
+            print("Selection cleanup failed; private intake may require clearing.", file=sys.stderr)
 
 
 async def copy_selected(store: SelectionStore, path: Path) -> Selection:

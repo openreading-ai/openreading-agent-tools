@@ -2,6 +2,10 @@
 
 ## Native evidence review
 
+- Revoke failed selections without waiting for the publisher lock; preserve original errors when cleanup fails.
+- Suppress ONNX Runtime telemetry at process startup and check fresh-home persistence in the frozen smoke.
+- Exercise provider forwarding, nonzero chooser exits and real versioned configuration files in regression tests.
+
 - Add a separate chat chooser candidate with automatic local OCR and no directory or OCR configuration.
 - Add transactional chooser cancellation and a four-tool catalog at the refreshed core pin.
 

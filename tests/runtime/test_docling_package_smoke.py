@@ -35,6 +35,7 @@ class DoclingSmokeTests(unittest.TestCase):
             "manifest_only",
             "source",
             "network",
+            "telemetry",
             "catalog",
             "receipt",
             "restart",
@@ -59,6 +60,14 @@ class DoclingSmokeTests(unittest.TestCase):
             self.assertEqual(params.command, "/usr/bin/sandbox-exec")
             self.assertIn("(deny network*)", params.args[1])
             self.assertEqual(params.env["PATH"], "/usr/bin:/bin")
+            self.assertEqual(params.env.get("ORT_DISABLE_TELEMETRY"), "0")
+            if fault == "telemetry":
+                target = (
+                    Path(params.env["HOME"])
+                    / "Library/Application Support/Microsoft/DeveloperTools/.onnxruntime"
+                )
+                target.mkdir(parents=True, exist_ok=True)
+                (target / "deviceid").write_text("synthetic")
             states.append(params.args[-1] == "on")
             return channel()
 

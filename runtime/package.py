@@ -125,6 +125,7 @@ def package_docling_desktop(
         manifest["name"] = "openreading-file-selection-preview"
         manifest["display_name"] = "OpenReading Selected Documents (development)"
         manifest["long_description"] = (
+            "The launcher disables ONNX Runtime telemetry before the document engine starts. "
             "Local file-selection development preview. Use the included OpenReading Choose Document app "
             "to select a PDF, then copy its reference into chat. No directory configuration is required. "
             "Selected source copies and evidence stay locally until removed. Retrieved evidence enters "
@@ -173,6 +174,7 @@ def package_docling_desktop(
         manifest["name"] = "openreading-chat-selection-preview"
         manifest["display_name"] = "OpenReading Chat Documents (development)"
         manifest["long_description"] = (
+            "The launcher disables ONNX Runtime telemetry before the document engine starts. "
             "Ask OpenReading to choose a local PDF. Choose your document in its OS file dialog, "
             "then ask a question in chat. OpenReading processes it locally with automatic OCR. "
             "Selected copies and evidence remain locally until removed; retrieved excerpts enter "

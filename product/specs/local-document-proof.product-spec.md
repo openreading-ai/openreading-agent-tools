@@ -99,7 +99,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The reviewed candidate core `9af2606f` exposes `openreading_import`, `openreading_search`, `openreading_read`, and `openreading_select_document`.
+The reviewed candidate core `b03a6606` exposes `openreading_import`, `openreading_search`, `openreading_read`, and `openreading_select_document`.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
 The launch must verify the complete tool catalog using existing frozen/native checks and the client manifest declarations.
