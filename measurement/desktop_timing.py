@@ -14,7 +14,9 @@ logs from separate connectors or concurrent server processes.
 
 Run python -m measurement.desktop_timing --log PATH. No server or model is invoked.
 The CLI emits JSON to stdout: exit 0 for paired calls, 1 for incomplete pairing, or
-2 for invalid input. Segment numbers are not process or conversation identities.
+2 for invalid input. Format 3 records result/error transport markers without payloads.
+Unknown response markers stay unknown; missing or ambiguous responses stay null.
+A result can contain a tool-level failure, so this is not application success. Segment numbers are not process or conversation identities.
 Server requests use a separate ID namespace. Interrupted requests taint their IDs
 for the rest of the log, so late responses cannot supply plausible new durations. Exception messages and the selected input path are never printed.
 """
@@ -87,6 +89,7 @@ def summarize(stream):
                     "request_id": int(identifier),
                     "started_at": timestamp,
                     "seconds": None,
+                    "outcome": None,
                 }
                 if method == "tools/call":
                     row.update(initialization_observed=initialized, gap_before_seconds=None)
@@ -110,6 +113,8 @@ def summarize(stream):
             if row is not None:
                 row["seconds"] = (stamp - start).total_seconds()
                 row["responded_at"] = timestamp
+                marker = re.match(r"(result|error)(?=[\s(]|$)", message[outgoing.end() :].lstrip())
+                row["outcome"] = marker[1] if marker else "unknown"
         elif re.match(
             r'^Message from (?:client|server): method="notifications/[a-zA-Z/_]+"(?:\s|$)', message
         ):
@@ -139,7 +144,7 @@ def summarize(stream):
         and all(row["seconds"] is not None for row in calls + initializations)
     )
     return {
-        "format_version": "2",
+        "format_version": "3",
         "scope": "Claude Desktop compact MCP log intervals; no document or model attribution",
         "log_sha256": digest.hexdigest(),
         "pairing": "observed_pairs_complete" if complete else "incomplete",

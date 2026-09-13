@@ -130,16 +130,23 @@ Do not combine logs from the manual connector and the packaged extension.
 ### Synthetic native timing and interruption
 
 A separate temporary probe ran in Claude Desktop 1.52386.3 Chat on 2026-09-13.
-The installed MCPB used probe source from commit `d2e939d`; it loaded no document engine.
+The installed MCPB used probe source from commit `d2e939d` and the developer virtual environment’s Python, not the frozen worker.
+It loaded no document engine; its startup timing does not measure frozen runtime startup.
 These single-machine observations do not establish another host's behavior or the public picker experience.
 
 - A deliberately delayed **Allow once** click preceded both the compact-log tool request and the local server receipt. The two-second call interval excluded that approval pause.
 - A 65-second call completed without progress. A requested 330-second call received MCP cancellation at approximately 240 seconds, and the UI reported a four-minute timeout.
 - **Stop response** interrupted the chat but sent no MCP cancellation in a separate 120-second call. The local operation completed at 120 seconds, roughly 84 seconds after Stop.
-- That interrupted call requested progress every five seconds, but the probe emitted no progress events. Extension of the host deadline by progress remains unverified.
+- The prompt requested progress every five seconds, but the retained probe log omitted the received interval and token presence. No progress events were recorded. Deadline extension and absolute versus inactivity timeout remain unverified.
 - A subsequent echo returned correctly. Uninstalling the temporary probe removed both observed probe processes and restored the original configuration and extension registry bytes.
 
 The host timeout and the Stop button are distinct interruption paths.
 A public picker still needs its own bounded lifetime and local cancellation action.
 Do not claim that stopping a chat dismisses its picker or stops parsing without corresponding protocol evidence.
 The Docling import cancellation, native picker focus and complete citation-capture checks remain separate.
+
+A separate twelve-second native rerun used temporary probe package 0.0.2 with explicit interval and token-presence logging.
+The server received seconds 12 and progress_every 2, with progress_token_present false, and completed without progress events.
+This verifies absent token delivery for that call, not for every host invocation.
+The probe was removed again, both processes exited, and the original configuration and extension registry bytes were restored.
+The four-minute observation remains a no-progress limit; absolute versus inactivity timeout is unresolved.

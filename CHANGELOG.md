@@ -1,5 +1,11 @@
 # Changelog
 
+## Native evidence review
+
+- Distinguish compact transport results from errors in timing format 3, without inspecting tool payloads.
+- Record validated probe intervals and progress-token presence for reproducible native progress checks.
+- Document continuing imports after an undelivered host Stop and separate observed Claude budgets from other host hypotheses.
+
 ## Probe correlation
 
 - Add UTC timestamps and transport receipt events to the synthetic host probe for native delayed-approval checks.

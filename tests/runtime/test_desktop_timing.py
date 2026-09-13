@@ -23,6 +23,41 @@ def response(seconds, identifier):
 
 
 class DesktopTimingTests(unittest.TestCase):
+    def test_transport_outcome_distinguishes_error_result_and_unknown(self):
+        report = self.report(
+            request(0, 0, "initialize"),
+            event(0.5, "Message from server: id=0 result PRIVATE"),
+            request(1, 2),
+            event(2, "Message from server: id=2 error(code=0) PRIVATE"),
+            request(3, 3),
+            event(4, "Message from server: id=3 result(1 blocks) PRIVATE"),
+            request(5, 4),
+            response(6, 4),
+        )
+        self.assertEqual(
+            [r.get("outcome") for r in report["calls"]], ["error", "result", "unknown"]
+        )
+        self.assertEqual(report["initializations"][0].get("outcome"), "result")
+        self.assertEqual(report["pairing"], "observed_pairs_complete")
+        self.assertEqual(report["format_version"], "3")
+        self.assertNotIn("PRIVATE", json.dumps(report))
+
+    def test_outcome_never_comes_from_payload_or_an_ambiguous_response(self):
+        for suffix in ("resulting error", "errorish result", 'PRIVATE {"error": "secret"}', ""):
+            with self.subTest(suffix=suffix):
+                report = self.report(request(1, 2), event(2, f"Message from server: id=2 {suffix}"))
+                self.assertEqual(report["calls"][0].get("outcome"), "unknown")
+        report = self.report(
+            request(0, 2),
+            request(1, 0, "initialize"),
+            response(2, 0),
+            request(3, 2),
+            event(4, "Message from server: id=2 result PRIVATE"),
+        )
+        self.assertIn("outcome", report["calls"][0])
+        self.assertIsNone(report["calls"][0]["outcome"])
+        self.assertIsNone(report["calls"][1]["outcome"])
+
     def test_unanswered_initialization_alone_makes_pairing_incomplete(self):
         report = self.report(request(0, 0, "initialize"), request(1, 2), response(2, 2))
         self.assertEqual(report["pairing"], "incomplete")

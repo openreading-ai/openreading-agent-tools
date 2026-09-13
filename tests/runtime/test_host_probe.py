@@ -49,7 +49,8 @@ class HostProbeTests(unittest.TestCase):
                         self.assertFalse(result.isError)
                         self.assertGreater(len(progress), 0)
                         result = await session.call_tool(
-                            "probe_delay", {"nonce": "no_progress", "seconds": 0.01}
+                            "probe_delay",
+                            {"nonce": "no_progress", "seconds": 0.02, "progress_every": 0.01},
                         )
                         self.assertFalse(result.isError)
                         for args in [
@@ -89,6 +90,14 @@ class HostProbeTests(unittest.TestCase):
             received = [e for e in events if e["event"] == "tool_request_received"]
             called = [e for e in events if e["event"] == "called"]
             self.assertTrue(received)
+            by_nonce = {e["nonce"]: e for e in called}
+            self.assertEqual(by_nonce["delay"].get("seconds"), 0.03)
+            self.assertEqual(by_nonce["delay"].get("progress_every"), 0.01)
+            self.assertIs(by_nonce["delay"].get("progress_token_present"), True)
+            self.assertEqual(by_nonce["no_progress"].get("progress_every"), 0.01)
+            self.assertIs(by_nonce["no_progress"].get("progress_token_present"), False)
+            self.assertIsNone(by_nonce["literal_nonce"].get("progress_every"))
+            self.assertIs(by_nonce["literal_nonce"].get("progress_token_present"), False)
             for call in called:
                 observed = next(e for e in received if e["request_id"] == call["request_id"])
                 self.assertLessEqual(observed["monotonic_seconds"], call["monotonic_seconds"])

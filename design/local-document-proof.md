@@ -62,7 +62,12 @@ Do not guess the responsible macOS permission process before observing the insta
 The supervised worker contract is implemented in core's `openreading.artifacts.supervisor`, `worker`, and MCP modules.
 Use the [candidate harness](../runtime/feasibility/README.md) and its immutable dependency pin to reproduce engine checks.
 The launcher must pass explicit resource limits and close the service during shutdown.
-Record host cancellation notifications, deadlines, and process termination as distinct interruption paths; absence of a host cancel button stays explicit.
+Record host cancellation notifications, deadlines, and process termination as distinct interruption paths.
+Classify host controls separately as cancellation delivered, control absent, or control exposed without delivered cancellation.
+The [Claude Desktop observation](../clients/claude-desktop/README.md#synthetic-native-timing-and-interruption) falls in the third category for Stop response.
+Inference from core's lifecycle: an import receiving no cancellation can keep the worker busy and commit an artifact if it succeeds before other limits.
+A second import can return busy while that operation runs; Stop is not evidence of rollback or freed capacity.
+This consequence is not a real-Docling native Stop reproduction, and AC-9 cleanup remains unproven for that host action.
 Packaging must preserve private control descriptors and owned process-group cleanup.
 These integration obligations still need installed-host validation.
 Regression tests must cover cancellation before startup, during model loading, during OCR, and just before commit.
@@ -74,7 +79,9 @@ Cancellation during an OCR child has developer observation only; treat each miss
 It also documents a 1000-ms optional-server catalog grace and configurable overrides.
 These are starting hypotheses for the installed mode, not measured deadlines or fixed platform ceilings.
 E2 must record startup, initial tool visibility, eventual discovery, and per-call timeout separately under the actual setup route.
-Claude Desktop limits remain unverified; do not assume its SDK supplies the same defaults.
+Claude Desktop 1.52386.3 Chat completed a 65-second synthetic call and cancelled a no-progress call at approximately 240 seconds.
+That observation rules out a 60-second tool deadline for this tested route, without establishing an absolute versus inactivity deadline.
+Its initialization used a developer interpreter, so frozen startup limits remain unverified.
 
 Keep full inventory verification before core import, worker dispatch, and MCP registration; do not move it to the first parse.
 The Python/freezer bootstrap and verifier necessarily execute to perform that check; do not claim verification precedes all executable code.
@@ -84,7 +91,9 @@ If later discovery fails, that registration remains unsupported; do not weaken i
 Measure frozen cold startup from process creation through inventory verification and MCP initialization.
 Worker startup repeats verification in the current launcher, so include that cost in cold import timing too.
 Require cold/warm startup p95 within 80% of the observed startup allowance and imports within 80% of the observed tool allowance.
-Unmodified 10/60-second limits imply 8-second startup and 48-second import budgets.
+For a mode actually using the OpenAI-documented 10/60-second limits, the corresponding budgets are 8 and 48 seconds.
+Do not transfer those hypotheses to Claude Desktop. Its observed 240-second no-progress limit implies a provisional 192-second total tool budget with 20% margin.
+That includes staging, cold worker startup, conversion and commit; it is not a chosen release profile or measured throughput guarantee.
 A verified alternative registration may change them; unsupported manual TOML edits cannot rescue the nondeveloper path.
 Do not assume progress extends an absolute deadline or that a server absent from the initial catalog becomes discoverable later.
 

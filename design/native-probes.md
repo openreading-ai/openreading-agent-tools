@@ -81,6 +81,8 @@ A higher configurable limit is usable only through the setup route being claimed
 Blocks: the corresponding portion of AC-9 and AC-24.
 During an acknowledged running 120-second delay, use the host stop action if it exists.
 Record `notifications/cancelled`, process signals, elapsed cleanup time, and the process tree afterward.
+Classify each host action as `delivered`, `not_exposed`, or `exposed_without_delivery`.
+The last category must record continuing work and any eventual result; it is not successful cancellation.
 If there is no stop action, record `not_exposed` and test deadline and host-process termination separately.
 Never label host quit as successful protocol cancellation.
 

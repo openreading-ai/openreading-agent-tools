@@ -4,6 +4,7 @@ Run with the locked runtime interpreter: python -m scripts.host_probe --log ABSO
 The log records synthetic nonces, timing, process identity, cancellation, and setup arguments.
 UTC timestamps correlate host approval observations with monotonic receipt/start/completion events.
 Receipt alone cannot establish when a native host showed or approved a tool request.
+It records validated delay/progress intervals and token presence, never the token value.
 It never records environment values. Existing log files are refused instead of overwritten.
 No host configuration is modified. Native registration and model requests are separate steps.
 """
@@ -99,12 +100,22 @@ class Probe:
         async def call_tool(name, arguments):
             context = self.server.request_context
             nonce = arguments["nonce"]
-            self.record("called", tool=name, nonce=nonce, request_id=context.request_id)
+            token = context.meta.progressToken if context.meta else None
+            self.record(
+                "called",
+                tool=name,
+                nonce=nonce,
+                request_id=context.request_id,
+                seconds=arguments.get("seconds") if name == "probe_delay" else None,
+                progress_every=arguments.get("progress_every", 0)
+                if name == "probe_delay"
+                else None,
+                progress_token_present=token is not None,
+            )
             try:
                 if name == "probe_delay":
                     seconds = bounded_seconds(arguments["seconds"], 330)
                     every = bounded_seconds(arguments.get("progress_every", 0), 60)
-                    token = context.meta.progressToken if context.meta else None
                     deadline = time.monotonic() + seconds
                     count = 0
                     while (remaining := deadline - time.monotonic()) > 0:

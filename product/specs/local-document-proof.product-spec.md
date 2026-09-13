@@ -248,7 +248,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-8
   criterion: A successful artifact remains readable after process restart, while incomplete or corrupted artifacts are refused and a source change produces a different document identity.
 - id: AC-9
-  criterion: File, page, extraction-size, response-size, concurrency, wall-time, and sampled worker-memory limits are recorded in the measured profile; cold startup and cold/warm imports fit the observed registration timeouts with documented margin, each exposed interruption path terminates owned work, and failures publish no successful partial artifact.
+  criterion: File, page, extraction-size, response-size, concurrency, wall-time, and sampled worker-memory limits are recorded in the measured profile; cold startup and cold/warm imports fit the observed registration timeouts with documented margin, each exposed interruption path terminates owned work, and failures publish no successful partial artifact. An exposed host Stop action that sends no cancellation remains an unmet cleanup path, and documentation warns that imports can continue, retain worker capacity and commit on success.
 - id: AC-10
   criterion: Unsupported formats, encrypted files, empty text, parser failures, cancellation, full disks, and unavailable artifacts produce sanitized errors with no planted document secrets or credentials.
 - id: AC-11

@@ -173,7 +173,9 @@ The report excludes connector names, document payloads and input paths, and bind
 runtime/.venv/bin/python -m measurement.desktop_timing --log /absolute/connector.log
 ~~~
 
-Format 2 uses log-boundary segment numbers, not process or conversation identities.
+Format 3 uses log-boundary segment numbers, not process or conversation identities.
+Each paired row reports the compact transport marker as outcome result, error, or unknown; missing or ambiguous responses keep a null outcome.
+The marker does not inspect payloads or distinguish a successful tool from an application-level failure inside a result.
 Exit 0 reports observed_pairs_complete for all recognized requests, not tool success or complete session capture.
 Exit 1 reports incomplete pairing; missing durations stay null. Exit 2 refuses invalid input or incompatible message syntax.
 The supported format contains `Message from client: method="tools/call" id=N params` and `Message from server: id=N`.
