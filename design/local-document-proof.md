@@ -1,7 +1,7 @@
 # Docling local proof migration design
 
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
-**Intent:** [ProductSpec revision 8](../product/specs/local-document-proof.product-spec.md).
+**Intent:** [ProductSpec revision 9](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
 OSS product v1 launches before managed product v2. The [launch design](oss-launch.md) requires complete pinned-core MCP coverage and a static Coming soon visual only; no managed components are part of this work. Internal v2 profiles and settings keep their existing local meaning.
@@ -20,7 +20,7 @@ It never copies parser, provenance, or retrieval logic into a launcher.
 | Preflight/rendering | pypdfium2 with its pinned PDFium library. |
 | Layout | Layout Heron ONNX weights, ONNX Runtime CPU provider, explicit local artifacts path. |
 | Reading order | Docling's emitted item order and supported provenance. |
-| OCR | Bundled Tesseract CLI, Leptonica, image libraries, and selected tessdata; setup-controlled and disabled by default. |
+| OCR | Bundled Tesseract CLI, Leptonica, image libraries, and selected tessdata; automatically selected for eligible image text in the proposed public profile. |
 | Table structure | Disabled. Preserve independently available table-region text or disclose its absence. |
 | Prohibited payload | PyMuPDF, torch, torchvision, and docling-ibm-models. |
 
@@ -39,7 +39,9 @@ One Docling profile is the current decision; a fast PDFium-only profile requires
 
 The [runtime guide](../runtime/README.md) owns the implemented shared configuration contract.
 The [assistant integration design](assistant-clients.md) owns the remaining native setup work.
-It preserves explicit grants, setup-only OCR disabled by default, and settings outside replaceable plugin caches.
+It preserves explicit file selection and settings outside replaceable plugin caches.
+The public profile uses automatic local OCR; existing developer profiles retain their explicit off/on controls.
+The [public document experience](public-document-experience.md) owns the migration and mixed-page checks.
 Core receives a closed profile configuration; model-facing tools accept neither backend selectors nor OCR switches.
 Public file selection is proposed in A0 of the implementation plan and the assistant design.
 The current filename-within-grant workflow remains a developer mechanism, not a public directory-setting requirement.

@@ -1,7 +1,7 @@
-# Revision 8 implementation plan
+# Revision 9 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 8](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 9](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
@@ -10,6 +10,7 @@ A passing offline gate is necessary but cannot replace native application or sig
 
 ProductSpec revision 7 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
 Revision 8 adds A0 for public file selection without directory configuration. The current form remains developer evidence.
+Revision 9 requires chat-driven selection without reference copying and automatic local OCR. A1 below owns these unbuilt production changes.
 Revision 5 prohibited provider API trials and removed their release prerequisites.
 Revision 6 defines public OSS product v1, full pinned-core MCP parity, and a static Coming soon visual; managed product v2 follows launch.
 It preserves `local-document-proof-v2`, historical locks, native acceptance, and owner-operated Desktop testing.
@@ -29,8 +30,8 @@ Akshay owns core merge and release approval. Maintainers prepare the release and
 ~~~text
 Core PR review -> owner merge -> core release -> R0 immutable release pin
 N1 + P0 + E5 -> developer Claude Desktop N2
-A0 implemented file handoff + developer N2 -> public Claude Desktop N2
-N1 + P0 + E1 + A0 implemented file handoff -> named ChatGPT N2 (conditional)
+A1 production handoff + automatic OCR + developer N2 -> public Claude Desktop N2
+N1 + P0 + E1 + A1 production handoff -> named ChatGPT N2 (conditional)
 R0 + C1 resource limits + N2 supported route + license/signing readiness -> P1
 P1 + C0 final package check + N3 presentation + R1 guide -> H1 clean-host checks
 H1 + owner approval -> packaged OSS launch
@@ -139,10 +140,28 @@ Native picker plus direct MCP evidence does not mark the public setup or assista
 If neither local route works in the named host, stop that host's public launch. Directory setup does not satisfy AC-2.
 The existing developer form is retained for diagnostics; no candidate or historical native record is retroactively marked compliant.
 
+## A1. Production handoff and automatic OCR
+
+Acceptance: AC-2, AC-3, AC-4, AC-21 and AC-25. Contract: [public document experience](public-document-experience.md).
+Owner: Agent Tools maintainer owns the picker and package; core maintainer owns any new MCP selection contract.
+
+- [ ] Use the documented local tool route to prepare a selection probe. Prove native dialog focus, cancel, timeout and automatic reference return on the named host before choosing final UI.
+- [ ] Prefer an OpenReading action within chat. Ordinary host drag/drop requires separate evidence that bytes reach local OpenReading before host upload; never infer interception from a file picker or plugin file API.
+- [ ] Review and implement any selection tool/provider interface in core first, preserving headless CLI/HTTP behavior and default dependencies. Agent Tools supplies only the trusted local selection provider.
+- [ ] Keep the existing private intake, byte cap, publication, removal and source-retention contracts. Return selected references through the tool response without clipboard or model-supplied source paths.
+- [ ] Build a distinct public launcher/profile using selective local OCR automatically. Preserve existing developer settings and artifacts, and retain diagnostic off/on controls outside public setup.
+- [ ] Verify native-only, image-only, mixed-page, blank, damaged-text-layer and rotated text cases. Retained text, origin labels, missing-text warnings and converter reuse must match observed output.
+- [ ] Repeat C1 resource measurements with automatic OCR before selecting public limits. If the existing selective pipeline misses needed text, fix core or disclose the limitation; do not add an undocumented retry engine.
+- [ ] Rebuild after the supported core pin change and repeat catalog, integrity, retrieval/restart and native citation checks. A0's POC or a source probe cannot satisfy A1.
+
+The local timing diagnostic is implemented in [measurement](../measurement/README.md#desktop-timing-diagnostic).
+It helps inspect existing logs but cannot isolate engine stages or establish native deadlines.
+Exact startup/model-load/extraction/write timing remains C1 work at the responsible core/launcher boundary.
+
 ## N2. Thin host adapters and native functional checks
 
 Developer prerequisites: N1, passing P0, and the corresponding E1/E5 native setup observation.
-Public setup additionally requires A0. Start Claude Desktop first; ChatGPT waits on E1 and A0.
+Public setup additionally requires A1. Start Claude Desktop first; ChatGPT waits on E1 and A0.
 Acceptance: AC-1, AC-11, AC-12, AC-14, AC-24, EVAL-1.
 Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tests, and client READMEs.
 

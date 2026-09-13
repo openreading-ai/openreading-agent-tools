@@ -1,5 +1,10 @@
 # Changelog
 
+## Proposed public document experience
+
+- Revise the production contract to chat-driven local selection without reference copying and automatic local OCR.
+- Preserve development picker controls and runtime identities; native handoff and automatic-profile acceptance remain open.
+
 ## Local timing diagnostics
 
 - Add a read-only Claude Desktop log diagnostic that separates tool-call intervals from gaps without exporting document payloads.

@@ -1,6 +1,6 @@
 # OSS launch v1 and the Coming soon boundary
 
-Status: ProductSpec revision 8 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
+Status: ProductSpec revision 9 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-29.
 Execution order: A0, C0 and N3 in the [implementation plan](implementation-plan.md).
 

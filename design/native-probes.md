@@ -1,6 +1,6 @@
 # Native connection and frozen-runtime probes
 
-**Status:** native experiments remain proposed under ProductSpec revision 8. E0 and the P0 developer smoke are implemented; no native-host result is implied.
+**Status:** native experiments remain proposed under ProductSpec revision 9. E0 and the P0 developer smoke are implemented; no native-host result is implied.
 **Owners:** Agent Tools owns host probes and capture; core owns engine, evidence, and worker behavior.
 **Prerequisites:** [assistant contract](assistant-clients.md) and [implementation order](implementation-plan.md).
 
@@ -79,7 +79,7 @@ Record `notifications/cancelled`, process signals, elapsed cleanup time, and the
 If there is no stop action, record `not_exposed` and test deadline and host-process termination separately.
 Never label host quit as successful protocol cancellation.
 
-Repeat available paths against an active P0 Docling import, including setup-enabled OCR, after synthetic behavior is understood.
+Repeat available paths against an active P0 Docling import, including explicitly enabled developer OCR, after synthetic behavior is understood.
 Confirm the operation was still running before interruption, owned children exited, and no successful artifact was published.
 A race where extraction completed before the stop is inconclusive, not a cleanup pass.
 Core's independent stage-cancellation tests remain required even when the host exposes fewer controls.

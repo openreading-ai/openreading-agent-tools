@@ -6,7 +6,7 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 8 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
+ProductSpec revision 9 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
@@ -25,6 +25,8 @@ Expose every implemented MCP tool from the pinned core release, with no commerci
 The reviewed candidate has import, search and read; planned core MCP operations are not already implemented.
 Core pin changes require full catalog parity and functional cases before release.
 Public installation requires no directory-path configuration. A per-file picker and private intake are implemented as a development candidate.
+Production selection must return its reference to chat without manual copying, and local OCR must work automatically.
+The current picker and OCR toggle remain developer-only mechanisms.
 Native accessibility, installation and clean-machine acceptance still gate that public route.
 Existing directory forms and explicit grants remain developer-only mechanisms.
 Keep the bundled slim Docling runtime and no alternative local backend or server manager.

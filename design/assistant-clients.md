@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 8 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
+**Status:** revision 9 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -8,8 +8,8 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 8 does not rename it.
-Docling, PDFium, CPU ONNX layout inference, and setup-enabled Tesseract perform the document work.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 9 does not rename it.
+Docling, PDFium, CPU ONNX layout inference, and automatically selected local Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
 
@@ -77,11 +77,12 @@ The reference format, atomic publication, quotas, permissions and removal behavi
 The directory candidate stays developer-only; its historical records do not satisfy the public setup criteria.
 
 No host-local attachment route has been established. The helper uses an explicit per-file picker and copyable reference instead.
-The development prototype needs a reliable, accessible native walkthrough before this becomes the public route.
+The copyable reference is a developer mechanism, not the public interaction contract.
+The [public document experience](public-document-experience.md) requires chat-driven selection and automatic reference return before native acceptance.
 Fix or replace the inaccessible Tk controls before claiming non-developer setup acceptance.
 Integrate the helper with a signed install location so users never manage its relative path to the runtime.
 Retain explicit removal and shared-storage disclosures. The confirmed clear-all action recovers older intake copies; review its usability in the eventual public experience.
-Repeat native setup, OCR selection, cancellation and full conversation capture with the packaged route on a clean machine.
+Repeat native setup, automatic OCR, cancellation and full conversation capture with the packaged route on a clean machine.
 Do not change core intake schemas implicitly or infer local attachment access from an ordinary chat upload button.
 If the selected host cannot support this local route, stop its public release rather than returning to directory configuration.
 
@@ -141,7 +142,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 | Missing fact | The answer states the evidence limitation without turning empty search into proof of absence. |
 | Document instructions | Retrieved instructions cause no unrelated file access or external upload. |
 | Unselected source path or intake traversal | Selection/import refuses access and the assistant reports the actual refusal without a fallback upload. |
-| OCR off and on | An image-only input is refused with OCR off; explicit setup enables labeled OCR evidence. |
+| Automatic OCR | Native text remains usable; image text is read locally, including mixed pages, without a mode choice. Existing off/on profiles remain developer controls. |
 | Restart | The new MCP process reads the intact artifact with identical identifiers and exact passages. |
 | Interruption | Record host cancel notification, deadline, and process-stop paths separately; each tested path leaves no owned extraction or OCR work and no successful artifact. |
 | Invalid setup | Tools never register, and the guide's recovery steps correspond to the observed host error. |
@@ -182,7 +183,7 @@ It must include verified `tessdata/configs/tsv`, language data, native libraries
 A modified or incomplete inventory refuses startup; do not relax identity for frozen builds.
 
 Claude Desktop may use an MCPB wrapper; a generic signed app or installer can supply the common runtime for other hosts.
-The proposed ChatGPT candidate route uses the A0 local file-selection helper and an OCR toggle.
+The proposed ChatGPT candidate route uses the A0 local file-selection handoff with automatic local OCR.
 A folder picker is not an acceptable public substitute; E1 and A0 both precede its implementation.
 It writes only OpenReading settings, then shows the executable path to paste into the host's local MCP Settings form.
 Use an argument-free, verified host launcher so users need not quote paths or supply environment variables, working directories, or timeout overrides.
@@ -208,7 +209,7 @@ The host entrypoint selects only the `chatgpt` settings namespace; internal work
 It accepts no user-supplied grant or backend arguments and never infers the client from a parent process name.
 Implement it only after E1, with verified dispatch and subprocess regression tests under `tests/runtime/`.
 
-The helper candidate uses the pinned Python 3.11.15/PyInstaller toolchain with tkinter for its file-picker and OCR interface.
+The helper candidate uses the pinned Python 3.11.15/PyInstaller toolchain with the existing picker/controller separation as a prototype. The public handoff and accessible native UI require the A0 successor check before selecting final widgets.
 A0 must establish its native selection and handoff contract before this implementation starts.
 Pin and inventory the actual Tcl/Tk assets in the helper build before claiming a usable GUI; they are not required by P0.
 Put configuration and controller logic in `runtime/setup.py` and its thin UI binding in `runtime/setup_ui.py`.
