@@ -1,7 +1,7 @@
-# Revision 7 implementation plan
+# Revision 8 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 7](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 8](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
@@ -9,6 +9,7 @@ Each implementation commit names the acceptance criteria it addresses and leaves
 A passing offline gate is necessary but cannot replace native application or signing evidence.
 
 ProductSpec revision 7 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
+Revision 8 adds A0 for public file selection without directory configuration. The current form remains developer evidence.
 Revision 5 prohibited provider API trials and removed their release prerequisites.
 Revision 6 defines public OSS product v1, full pinned-core MCP parity, and a static Coming soon visual; managed product v2 follows launch.
 It preserves `local-document-proof-v2`, historical locks, native acceptance, and owner-operated Desktop testing.
@@ -27,8 +28,9 @@ Akshay owns core merge and release approval. Maintainers prepare the release and
 
 ~~~text
 Core PR review -> owner merge -> core release -> R0 immutable release pin
-N1 + P0 + E5 -> Claude Desktop N2
-N1 + P0 + E1 -> named ChatGPT N2 (conditional)
+N1 + P0 + E5 -> developer Claude Desktop N2
+A0 implemented file handoff + developer N2 -> public Claude Desktop N2
+N1 + P0 + E1 + A0 implemented file handoff -> named ChatGPT N2 (conditional)
 R0 + C1 resource limits + N2 supported route + license/signing readiness -> P1
 P1 + C0 final package check + N3 presentation + R1 guide -> H1 clean-host checks
 H1 + owner approval -> packaged OSS launch
@@ -110,19 +112,37 @@ The [launch design](oss-launch.md) defines strict fields and permitted profile/p
 
 Implemented before ProductSpec revision 7. Its durable behavior and remaining native checks live in the [runtime guide](../runtime/README.md).
 Tests cover closed settings, exact OCR tokens, atomic replacement, grant refusal, direct-versus-saved precedence and v1/v2 coexistence.
-Independent profile lifetimes, exceptional cleanup and verified resource paths are exercised offline.
+Independent profile lifetimes, catchable-exit cleanup and verified resource paths are exercised offline.
+SIGKILL cannot run process cleanup; stale-directory recovery remains separate work, not a proven lifecycle guarantee.
 The diagnostic launcher does not complete host-dependent AC-2, AC-13 or AC-23 by itself.
 C1 still owns supported limits, and N2 still owns actual form substitution and client installation.
 
+## A0. Public local file selection
+
+Acceptance: AC-1, AC-2, AC-3, AC-14 and AC-25. Owner: Agent Tools maintainer; Akshay reviews the selected experience.
+Contract: public file selection in [the assistant design](assistant-clients.md#public-file-selection-proposed-a0-contract).
+This is required before public setup implementation and acceptance, while existing developer protocol checks may continue.
+
+- [ ] Observe a host-local file handoff or prototype the helper picker and copyable reference using synthetic files, without provider API calls.
+- [ ] Freeze the reference format, private intake publication, byte limits, source identity handoff, retention and removal rules before implementation.
+- [ ] Confirm no installation step requests a directory, broad filesystem grant or path configuration; never infer local attachment access from a chat upload button.
+- [ ] Implement the selected thin helper/handoff under the existing coverage gate, preserving core parsing and evidence ownership.
+- [ ] Test cancelled/invalid selection, unselected paths, traversal, symlinks, duplicate names, source mutation, disk failure, size caps, restart and cleanup.
+- [ ] Inventory and sign any helper alongside the runtime, then repeat native and clean-machine walkthroughs using the public selection route.
+
+If neither local route works in the named host, stop that host's public launch. Directory setup does not satisfy AC-2.
+The existing developer form is retained for diagnostics; no candidate or historical native record is retroactively marked compliant.
+
 ## N2. Thin host adapters and native functional checks
 
-Prerequisites: N1, passing P0, and the corresponding E1/E5 native setup observation. Start Claude Desktop first; ChatGPT waits on E1.
+Developer prerequisites: N1, passing P0, and the corresponding E1/E5 native setup observation.
+Public setup additionally requires A0. Start Claude Desktop first; ChatGPT waits on E1 and A0.
 Acceptance: AC-1, AC-11, AC-12, AC-14, AC-24, EVAL-1.
 Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tests, and client READMEs.
 
 1. Inspect the existing packaging implementation and keep the common runtime independent of any one host manifest format.
 2. Add host-specific setup translation and workflow delivery using the shared configuration semantics.
-3. After E1, implement the named argument-free ChatGPT entrypoint and Python/tkinter helper in assistant design section 7, including inventory, coverage, and native GUI checks.
+3. After E1 and A0, implement the named argument-free ChatGPT entrypoint and Python/tkinter helper in assistant design section 7, including inventory, coverage, and native GUI checks.
 4. Test argument arrays with shell metacharacters, spaces, Unicode, absent configuration, and host-qualified tool names.
 5. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
 6. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.

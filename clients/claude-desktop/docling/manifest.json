@@ -4,8 +4,10 @@
   "display_name": "OpenReading Local Documents (development)",
   "version": "0.2.0-alpha.1",
   "description": "Read local document evidence with physical page citations.",
-  "long_description": "Local development preview for macOS on Apple Silicon. Choose a document directory; enable OCR explicitly to read scanned text. The bundled slim Docling runtime performs extraction locally and retains source copies and evidence until you remove its store. Retrieved excerpts enter your assistant's context. The folder grant limits OpenReading tools, not other assistant tools. Resource limits are reported by the import tool. No passwords, hosted fallback, or measured token-savings claim. This candidate is not a signed public release.\n\nOpenReading Managed: Coming soon\nDocument processing on OpenReading's servers, without managing local compute. Planned after the public OSS launch.",
-  "author": { "name": "OpenReading" },
+  "long_description": "Local development preview for macOS on Apple Silicon. Choose a document directory; enable OCR explicitly to read scanned text. The bundled slim Docling runtime performs extraction locally and retains source copies and evidence until you remove its store. Retrieved excerpts enter your assistant's context. The folder grant limits OpenReading tools, not other assistant tools. Resource limits are reported by the import tool. No passwords, hosted fallback, or measured token-savings claim. This candidate is not a signed public release.\n\nOpenReading Managed: Coming soon\nDocument processing on OpenReading's servers, without managing local compute. Planned after the public OSS launch.\n\nOCR text can differ from the printed page, including letters and digits. Exact identifier searches may miss evidence. Verify important OCR quotes against the source page; citations verify extracted text, not transcription accuracy.",
+  "author": {
+    "name": "OpenReading"
+  },
   "server": {
     "type": "binary",
     "entry_point": "server/openreading-worker",
@@ -21,7 +23,11 @@
       ]
     }
   },
-  "compatibility": { "platforms": ["darwin"] },
+  "compatibility": {
+    "platforms": [
+      "darwin"
+    ]
+  },
   "user_config": {
     "input_root": {
       "type": "directory",
@@ -32,7 +38,7 @@
     "ocr": {
       "type": "boolean",
       "title": "Read scanned text (OCR)",
-      "description": "Enable local Tesseract OCR for text stored in page images. This uses additional time and memory. OCR evidence is labeled in citations.",
+      "description": "Enable local Tesseract OCR for text stored in page images. This uses additional time and memory. OCR evidence is labeled in citations. OCR can misread letters and digits, so exact identifier searches may miss evidence. Verify important quotes against the printed page.",
       "default": false
     }
   },

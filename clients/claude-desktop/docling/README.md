@@ -4,6 +4,10 @@ Choose a document directory during installation. Enable **Read scanned text (OCR
 The candidate uses bundled slim Docling and Tesseract; it does not require a user-managed Python installation.
 That packaging property does not establish a clean-machine installation pass.
 
+OCR text can differ from the printed page, including letters and digits in identifiers.
+Exact search may miss those identifiers; verify important OCR quotes against the source page.
+Citation checks verify extracted text and provenance, not OCR transcription accuracy.
+
 This is a local development candidate, not a signed public release. Native installation and basic extraction have been observed; complete acceptance is still being tested.
 The installer form must supply the selected directory and OCR value to the bundled executable as separate arguments.
 The manifest's distinct name preserves the historical extension and the separate manually registered connector.

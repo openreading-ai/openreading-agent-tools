@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 7 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
+**Status:** revision 8 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -8,7 +8,7 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 7 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 8 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and setup-enabled Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
@@ -65,11 +65,36 @@ Neither alternative belongs in this first slice.
 
 The implemented setup object, precedence, private profiles and retention rules live in the [runtime guide](../runtime/README.md).
 The [P0 candidate](../runtime/p0/README.md) supplies one verified Docling launcher for native integration work.
-Host-specific work must translate forms to that closed interface without adding backend selection, secret fields or a default input grant.
-E5 must verify actual boolean and directory substitutions in Claude Desktop before its adapter is accepted.
-The `chatgpt` storage label does not prove that a ChatGPT conversation can invoke the runtime; E1 remains required.
-A cancelled form must preserve saved settings by avoiding a configure invocation until the user submits a valid replacement.
-Native setup guides must show the observed host log location and permission-recovery path after host checks establish them.
+The current directory form and E5 substitutions are developer-only checks of that interface.
+Public setup must not ask for a directory path, folder grant, or manual grant configuration.
+The following A0 proposal replaces the public setup assumption; it does not relabel the installed candidate as compliant.
+The `chatgpt` storage label still proves no ChatGPT conversation support; E1 remains required.
+
+### Public file selection, proposed A0 contract
+
+Use an explicit local file picker or a verified host file handoff, one document at a time.
+Prefer a host route only after observing that it supplies local bytes without uploading the whole file first.
+An ordinary chat attachment supplies no such guarantee. No supported attachment route has been established here.
+The fallback candidate is a small OpenReading helper with a native file picker and a copyable document reference.
+The user selects a file and pastes its returned reference into chat; no source directory or filesystem configuration is entered.
+This helper route also needs native usability evidence before selection as the public route.
+
+The helper copies only the selected regular file into a private OpenReading-owned intake root beneath the client's existing v2 data directory.
+It supplies that root internally through the existing closed configuration interface, retaining the original display filename within a unique entry directory.
+No home-directory default, containing-folder grant, model-supplied source path, or recursive discovery is permitted.
+A bounded copy enforces the byte cap before publication; incomplete staging is inaccessible to import and removed on recoverable failure.
+Core still owns source hashing, parsing, artifact identity and evidence. The helper owns selection and byte handoff only.
+The model receives an intake reference after successful selection, not authority to select arbitrary local files.
+An empty private intake root allows registration without user documents; missing or invalid internal configuration still refuses startup.
+Cancelling selection starts no import and changes no earlier selection or settings.
+Copies and extracted artifacts remain local until explicitly removed; removing intake must not falsely claim deletion of already retained artifacts.
+No selection revokes excerpts already delivered to the assistant, and no claim confines the assistant's other tools.
+
+Before implementation, freeze the reference shape, publication boundary, permissions, retention/removal behavior and native host delivery route in A0.
+Exercise duplicate names, Unicode, source replacement during copy, symlinks, oversized files, full disks, cancelled selection, restart and cleanup.
+Do not change core intake schemas implicitly to accommodate the helper; any required core change gets its own reviewed contract.
+Keep the source copy and OCR disclosures before selection, with OCR controlled by the user and off by default.
+Version 2 settings and revision 1 settings remain separate; no historical artifact or candidate evidence is renamed.
 
 ### Host-shared settings
 
@@ -79,7 +104,8 @@ The installation guide must disclose which applications share that registration 
 A client label or separate artifact directory cannot enforce application isolation against a shared host configuration.
 If the user needs a narrower boundary, use a host-supported separate configuration scope and verify it before claiming isolation.
 Do not silently register two entries with different grants and expose both as if each app saw only one.
-The disclosure says: "This directory limits OpenReading tools. Your assistant may have separate file and shell access."
+The public disclosure says: "OpenReading reads files you select. Your assistant may have separate file and shell access."
+Developer directory forms retain their explicit directory-grant disclosure.
 Require local execution and exclude `experimental_environment = "remote"` from the supported registration.
 Record executable identity, parent process, and a nonce-bearing local log before calling a route local.
 
@@ -111,7 +137,8 @@ A docs-only revision does not require rerunning every core engine test or alteri
 ## 5. Shared functional proof
 
 Use the frozen synthetic corpus and exact same questions in each native client.
-Grant only the synthetic document directory; keep ground truth outside that grant.
+Public walkthroughs select only each synthetic document; keep ground truth outside the private intake root.
+Developer protocol checks may continue using a synthetic directory grant, labeled separately from public setup acceptance.
 Record source hashes, core commit, profile digest, application version, execution mode, model when invoked, and OS/architecture.
 Use the frozen P0 candidate for native OpenReading checks; the existing launcher intentionally refuses source execution.
 Tiny synthetic servers resolve host behavior separately in E1, E2, E3, and E5.
@@ -124,7 +151,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |
 | Missing fact | The answer states the evidence limitation without turning empty search into proof of absence. |
 | Document instructions | Retrieved instructions cause no unrelated file access or external upload. |
-| Outside-directory input | Core refuses access and the assistant reports that refusal without a fallback upload. |
+| Unselected source path or intake traversal | Selection/import refuses access and the assistant reports the actual refusal without a fallback upload. |
 | OCR off and on | An image-only input is refused with OCR off; explicit setup enables labeled OCR evidence. |
 | Restart | The new MCP process reads the intact artifact with identical identifiers and exact passages. |
 | Interruption | Record host cancel notification, deadline, and process-stop paths separately; each tested path leaves no owned extraction or OCR work and no successful artifact. |
@@ -166,7 +193,8 @@ It must include verified `tessdata/configs/tsv`, language data, native libraries
 A modified or incomplete inventory refuses startup; do not relax identity for frozen builds.
 
 Claude Desktop may use an MCPB wrapper; a generic signed app or installer can supply the common runtime for other hosts.
-The selected ChatGPT candidate route is a small signed helper app with a folder picker and OCR toggle.
+The proposed ChatGPT candidate route uses the A0 local file-selection helper and an OCR toggle.
+A folder picker is not an acceptable public substitute; E1 and A0 both precede its implementation.
 It writes only OpenReading settings, then shows the executable path to paste into the host's local MCP Settings form.
 Use an argument-free, verified host launcher so users need not quote paths or supply environment variables, working directories, or timeout overrides.
 The launcher reads the explicit saved settings and sets required process context itself.
@@ -191,7 +219,8 @@ The host entrypoint selects only the `chatgpt` settings namespace; internal work
 It accepts no user-supplied grant or backend arguments and never infers the client from a parent process name.
 Implement it only after E1, with verified dispatch and subprocess regression tests under `tests/runtime/`.
 
-The helper uses the pinned Python 3.11.15/PyInstaller toolchain with tkinter for its minimal folder-picker and OCR interface.
+The helper candidate uses the pinned Python 3.11.15/PyInstaller toolchain with tkinter for its file-picker and OCR interface.
+A0 must establish its native selection and handoff contract before this implementation starts.
 Pin and inventory the actual Tcl/Tk assets in the helper build before claiming a usable GUI; they are not required by P0.
 Put configuration and controller logic in `runtime/setup.py` and its thin UI binding in `runtime/setup_ui.py`.
 Both modules and their headless boundary tests belong to the existing Python line/branch 95% coverage gate.

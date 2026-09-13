@@ -1,7 +1,7 @@
 # Docling local proof migration design
 
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
-**Intent:** [ProductSpec revision 7](../product/specs/local-document-proof.product-spec.md).
+**Intent:** [ProductSpec revision 8](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
 OSS product v1 launches before managed product v2. The [launch design](oss-launch.md) requires complete pinned-core MCP coverage and a static Coming soon visual only; no managed components are part of this work. Internal v2 profiles and settings keep their existing local meaning.
@@ -41,9 +41,11 @@ The [runtime guide](../runtime/README.md) owns the implemented shared configurat
 The [assistant integration design](assistant-clients.md) owns the remaining native setup work.
 It preserves explicit grants, setup-only OCR disabled by default, and settings outside replaceable plugin caches.
 Core receives a closed profile configuration; model-facing tools accept neither backend selectors nor OCR switches.
-A filename is required from the user; the skill asks when it is absent and never guesses paths or probes directories by trial imports.
+Public file selection is proposed in A0 of the implementation plan and the assistant design.
+The current filename-within-grant workflow remains a developer mechanism, not a public directory-setting requirement.
+Public selection supplies the internal intake root and document reference; the model never chooses arbitrary source paths.
 
-Unset, cancelled, or invalid setup produces a nonzero startup exit and a fixed `configuration_required` stderr message before registering tools.
+For the implemented developer launcher, unset, cancelled, or invalid setup produces a nonzero startup exit and a fixed `configuration_required` stderr message before registering tools.
 This retains the implemented fail-closed startup model instead of introducing an unconfigured server state.
 Guides give the exact host setup command and observed host log location after the host check records it.
 They must not promise that a tool returns an error when startup prevented tool registration.

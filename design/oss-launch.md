@@ -1,8 +1,8 @@
 # OSS launch v1 and the Coming soon boundary
 
-Status: ProductSpec revision 7 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
+Status: ProductSpec revision 8 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-29.
-Execution order: C0 and N3 in the [implementation plan](implementation-plan.md).
+Execution order: A0, C0 and N3 in the [implementation plan](implementation-plan.md).
 
 ## Product versions and ownership
 
@@ -20,7 +20,7 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `7d97b75` implements:
+The current candidate `e12c2fd3` implements:
 
 | Tool | Required behavior |
 | --- | --- |
@@ -33,7 +33,8 @@ A future pin must include every additional implemented core tool before that pin
 Do not advertise MCP parse, compare, strategy, folder or job operations merely because related CLI/HTTP operations exist.
 Do not invent placeholder tools for operations core has not implemented.
 
-The first distribution keeps its explicit local Docling profile, grants, resource limits and no-hosted-dispatch rule.
+The first distribution keeps its explicit local Docling profile, internal grants, resource limits and no-hosted-dispatch rule.
+A0 supplies public per-file selection without directory configuration; the current developer form does not pass that launch requirement.
 Exposing the full MCP interface does not install every backend or make unsupported extraction capabilities work.
 Where core supports an operation only with absent optional capabilities, preserve its explicit refusal or warning.
 If a core pin introduces a tool incompatible with these boundaries, resolve its safe local contract before accepting the pin.

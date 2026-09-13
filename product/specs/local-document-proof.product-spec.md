@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 7
+spec_revision: 8
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-12T00:00:00Z"
@@ -56,10 +56,12 @@ It does not infer one outcome from another.
 
 ## Product Summary
 
-You install an OpenReading bundle and choose a directory containing documents you want it to read.
+You install an OpenReading bundle without configuring a directory or typing a filesystem path.
+You explicitly select each document through a tested local file-selection interface.
 Each client connects to the same runtime through its tested local MCP interface.
-Setup uses a host form where available or the bundled configuration interface.
-You name one supported PDF and ask a question.
+Setup discloses local retention and shared excerpts, and offers OCR without asking for a directory.
+A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
+You use the selected document reference to ask a question about one supported PDF.
 OpenReading parses the file locally, keeps the extraction on disk, and returns a short receipt.
 The assistant searches that extraction, reads bounded passages, and answers with source references.
 
@@ -78,10 +80,11 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 7 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 8 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
-Client binaries remain the historical revision 1 PyMuPDF prototype.
+Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
+The Docling directory form proves developer setup only, not the public installation experience.
 Revision 3 added ChatGPT desktop, explicit client compatibility gates, and separate provider measurement contracts.
 Revision 5 removes API studies and their packaging prerequisite, while retaining revision 4 host, setup, timing, and provenance requirements.
 It preserves the selected `local-document-proof-v2` engine profile and does not relabel historical binaries or trials.
@@ -96,7 +99,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The reviewed candidate core `7d97b75` exposes `openreading_import`, `openreading_search`, and `openreading_read`.
+The reviewed candidate core `e12c2fd3` exposes `openreading_import`, `openreading_search`, and `openreading_read`.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
 The launch must verify the complete tool catalog using existing frozen/native checks and the client manifest declarations.
@@ -121,7 +124,7 @@ in:
   - Deliver a signed and notarized Claude Desktop runtime for macOS on Apple Silicon with pinned Docling, PDFium, ONNX layout weights, and Tesseract; add ChatGPT desktop only under a separately passed, named local conversation mode.
   - Disclose the bundled local vision model and allow OCR at setup, disabled by default, with OCR-derived evidence labeled.
   - Exclude table structure recognition until a separately approved compatible engine exists.
-  - Let the user select one input directory during setup and parse one explicitly named PDF per tool call.
+  - Require no directory-path configuration in public installation; accept one explicitly user-selected local PDF through a verified file picker or handoff per import.
   - Expose the complete implemented MCP tool catalog of the pinned core release; currently import, search, and read, with bounded retained evidence.
   - Include only a static OpenReading Managed Coming soon visual for the future product; build no managed components.
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
@@ -149,10 +152,12 @@ cut:
   - Cut public marketplace submission and automatic updates from the first proof.
 ~~~
 
-Folder selection grants input access through OpenReading only.
-The assistant may have separate file and shell tools whose access this grant does not restrict.
-It does not submit or parse every file in that directory.
-Until a later folder milestone exists, a client may call import once per explicitly requested file.
+Public selection authorizes the selected file, not its containing directory.
+The runtime manages its own private intake root; this internal grant is never a public directory-setting prompt.
+The assistant may have separate file and shell tools whose access OpenReading cannot restrict.
+The current explicit directory form remains a developer-only fixture mechanism.
+An ordinary chat attachment is not assumed to reach local MCP or bypass the host upload limits.
+A public route without verified local file handoff cannot pass installation acceptance.
 
 ## User Experience
 
@@ -160,9 +165,9 @@ Until a later folder milestone exists, a client may call import once per explici
 
 1. You receive a versioned bundle for your tested operating system and client.
 2. You install the signed runtime through the tested instructions for your named desktop client.
-3. Setup requires a document directory, discloses the additional retained source copy and local vision model, and offers OCR disabled by default.
+3. Setup discloses the retained source copy and local vision model, and offers OCR disabled by default without a directory setting.
 4. Setup explains that passages returned to your assistant may enter its cloud context.
-5. You ask: "Use OpenReading on agreement.pdf. What is the renewal notice period? Cite the source page."
+5. You select agreement.pdf locally, then use its returned reference to ask for the renewal notice period and physical source page.
 6. The assistant imports the file and receives its document identifier, page count, and extraction status. Retrieval limits appear in the tool descriptions.
 7. It searches for renewal evidence and reads the matching passages.
 8. It answers with the supporting quote, physical page, and evidence identifier.
@@ -192,7 +197,7 @@ It is not a portable cloud link or a cross-client authorization token.
 ### Input or installation failure
 
 An unsupported architecture is refused before document access, during installation where supported or otherwise during launcher startup.
-A path outside the selected directory returns access_denied.
+An unselected source path cannot be imported. Traversal outside the internal intake root returns access_denied.
 With OCR disabled, an image-only PDF returns no_readable_text and explains the setup option.
 Mixed documents disclose unreadable pages without implying complete text coverage.
 An encrypted file returns password_required without requesting its password through this tool.
@@ -210,13 +215,15 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 7 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 8 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
 Revision 5 replaces the API study criteria AC-15 through AC-17 and EVAL-2 with Desktop-only evidence requirements.
 Revision 6 added AC-27 through AC-29 for full pinned-core MCP parity, the static Coming soon visual, and launch independence from managed v2.
 Revision 7 clarifies the released-core prerequisite, profile-aware parity, independent setup route, and segmented pilot without renumbering criteria.
+Revision 8 replaces public directory configuration with explicit file selection in AC-2, AC-3, AC-14 and AC-25.
+Implemented developer settings and historical evidence keep their existing identities.
 All earlier identifiers remain stable; unchanged engine criteria still need their separate release evidence.
 The runtime evidence table describes historical revision 1 checks only; changed criteria require new evidence.
 
@@ -224,9 +231,9 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-1
   criterion: On the recorded macOS Apple Silicon test environment without user-installed Python, pip, uv, Homebrew, Node, or Docker, Claude Desktop installs or connects to the supplied runtime and completes the synthetic cited-answer walkthrough without a terminal server.
 - id: AC-2
-  criterion: Setup requires an explicit input directory, discloses an additional source copy, the local layout model, and shared excerpts; each host uses a tested form or bundled setup interface, while cancelled or invalid first setup leaves startup refused without a grant and a failed replacement preserves the previous valid configuration; version 2 settings coexist with the untouched revision 1 settings.
+  criterion: Public installation never asks for a directory or filesystem-path configuration; a verified local picker or handoff authorizes each selected file, discloses retained copies, the local layout model and shared excerpts, and offers OCR off by default; cancelled or invalid selection imports nothing, failed settings replacement preserves valid configuration, and internally generated version 2 settings coexist with untouched revision 1 settings.
 - id: AC-3
-  criterion: Import reads exactly one requested regular file inside the configured directory, refuses traversal and symlink escapes, and never interprets a directory selection as a recursive import.
+  criterion: Public import reads one explicitly selected regular file through an OpenReading-owned intake root, refuses unselected source paths, traversal and symlink escapes, and never grants the containing folder; model tool arguments cannot create or widen a source grant.
 - id: AC-4
   criterion: The first profile invokes only the pinned in-process Docling, PDFium, ONNX layout, and setup-enabled Tesseract engines; it loads no weights or OCR data outside the verified bundle, reads no ambient routing configuration, fetches no document URL, and performs no hosted dispatch.
 - id: AC-5
@@ -248,7 +255,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-13
   criterion: A public package pins a core release merged into its default branch, records that release version and exact commit alongside its dependency lock, platform, runtime digest and notices, and refuses modified binaries or inconsistent metadata before parsing; development candidates remain explicitly unreleased.
 - id: AC-14
-  criterion: Install, restart, update, removal, spaces in paths, Unicode filenames, read-only source files, and configured-root changes each have a recorded expected result and test evidence for each desktop mode included in a release.
+  criterion: Install, restart, update, removal, spaces in paths, Unicode filenames, read-only source files, and selection cancellation/replacement each have a recorded expected result and test evidence for each desktop mode included in a release.
 - id: AC-15
   criterion: Provider API execution, study preparation and finalization refuse unconditionally before credential access, subprocess execution, or output creation; no provider execution SDK is installed, while offline historical accounting and reporting remain available.
 - id: AC-16
@@ -270,7 +277,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-24
   criterion: Every supported client mode has recorded configuration, native launch, tool discovery, cited answer, refusal, restart, and observed interruption-path results against common core schemas and frozen cases; a deterministic checker binds citations to captured calls and retained evidence, unsupported host cancellation stays explicit, and documentation or another client cannot substitute for native evidence.
 - id: AC-25
-  criterion: Shared setup semantics require one explicit document grant and setup-only OCR, refuse unknown backend or credential fields, and never infer access from the working directory or another client's settings; any host-shared registration is disclosed, the grant limits only OpenReading tools, and native evidence establishes local execution rather than a remote executor.
+  criterion: Shared setup semantics require explicit per-file user selection, an internally managed intake grant and setup-only OCR, refuse unknown backend or credential fields, and never infer access from the working directory or another client's settings; any host-shared registration is disclosed, the grant limits only OpenReading tools, and native evidence establishes local execution rather than a remote executor.
 - id: AC-26
   criterion: ChatGPT desktop is supported only after a named application version and conversation mode completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; a Codex local thread is labeled as such and never passes the Chat conversation target.
 - id: AC-27

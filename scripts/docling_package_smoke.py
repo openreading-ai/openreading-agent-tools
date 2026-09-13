@@ -10,6 +10,8 @@ Optional --reference and --manifest compare captured same-profile core tools/ins
 and manifest names. The reference is trusted review input, not an authenticated transcript.
 Its core commit must match the bundle; both OCR modes require an independently captured
 reference. A smoke without these inputs reports catalog_parity=not_checked.
+The CLI exits 2 for invalid input or filesystem errors and prints only the exception type.
+Manifest descriptions are installation summaries; only their tool names enter parity.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import time
 from datetime import timedelta
@@ -103,8 +106,16 @@ async def smoke(
         raise ValueError("Provide both the core catalog reference and Desktop manifest.")
     expected = json.loads(reference.read_text()) if reference else None
     declared = json.loads(manifest.read_text()) if manifest else None
-    if expected is not None and expected["core_commit"] != metadata["core_commit"]:
-        raise ValueError("The catalog reference names another core commit.")
+    if reference is not None:
+        # Validate both profiles before any child starts, rather than failing halfway through OCR.
+        if (
+            not isinstance(expected, dict)
+            or not isinstance(expected.get("profiles"), dict)
+            or not {"false", "true"}.issubset(expected["profiles"])
+        ):
+            raise ValueError("The catalog reference requires both OCR profiles.")
+        if expected.get("core_commit") != metadata["core_commit"]:
+            raise ValueError("The catalog reference names another core commit.")
     if (
         metadata["format_version"] != "2"
         or sha256(fixture) != recipe()["expected_hashes"]["functional.pdf"]
@@ -317,20 +328,17 @@ def main(argv=None):
     )
     parser.add_argument("--manifest", type=Path, help="Desktop manifest to compare with core")
     args = parser.parse_args(argv)
-    print(
-        json.dumps(
-            asyncio.run(
-                smoke(
-                    args.runtime.resolve(),
-                    args.fixture.resolve(),
-                    args.reference,
-                    args.manifest,
-                )
-            ),
-            indent=2,
+    try:
+        report = asyncio.run(
+            smoke(args.runtime.resolve(), args.fixture.resolve(), args.reference, args.manifest)
         )
-    )
+    except (ValueError, OSError) as error:
+        # Input paths and parser exception messages can contain private document information.
+        print(f"Docling smoke refused: {type(error).__name__}", file=sys.stderr)
+        return 2
+    print(json.dumps(report, indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

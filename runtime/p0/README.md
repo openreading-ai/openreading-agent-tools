@@ -64,8 +64,9 @@ A small bootstrap/verifier necessarily executes first; no first-parse verificati
 A one-second optional catalog grace is distinct from the host's initialization timeout.
 Native probes must establish eventual discovery and a usable setup route before the client can be supported.
 
-The refreshed local development smoke passes with core `7d97b75b6ef9c65349fd044775087997205c72e2` and Docling integration v5.
+The refreshed packed/unpacked development smoke passes with core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1` and Docling integration v5.
 Native and OCR imports, warm conversion and restart reuse pass through the same frozen executable.
+The earlier `7d97b75` runtime supplied the following separate integrity observations.
 A relocated copy with spaces and Unicode in its path verifies native and OCR citations through public MCP reads.
 Twenty changed or missing source, metadata, lock, model and OCR inputs refuse startup.
 These observations replace no historical result and establish no native assistant support.

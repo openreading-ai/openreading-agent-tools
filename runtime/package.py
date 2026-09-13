@@ -33,8 +33,15 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
         if client != "claude-desktop":
             target = target / "plugins" / "openreading-local-proof"
         shutil.copytree(
-            REPOSITORY / "clients" / client, target, ignore=shutil.ignore_patterns("docling")
+            REPOSITORY / "clients" / client,
+            target,
+            ignore=shutil.ignore_patterns("docling", "historical"),
         )
+        if client == "claude-desktop":
+            # The repository index describes newer candidates that this archive cannot run.
+            shutil.copy2(
+                REPOSITORY / "clients/claude-desktop/historical/README.md", target / "README.md"
+            )
         shutil.copytree(runtime, target / "server", symlinks=True)
         if client != "claude-desktop":
             shutil.copytree(REPOSITORY / "skills", target / "skills")

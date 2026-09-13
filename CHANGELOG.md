@@ -2,6 +2,11 @@
 
 ## Coverage requirements
 
+- Separate historical Desktop package instructions from the Docling candidate guide.
+- Refuse incomplete catalog references before launching smoke workers and sanitize input failures.
+- Explain OCR transcription limits and correct current candidate pin references without relabeling older evidence.
+- Revise public setup acceptance to require local file selection without directory configuration; implementation remains gated by A0.
+
 - Accept the reviewed core search/origin fixes through the pinned Docling candidate.
 - Verify trial artifact identity, preserve per-model usage, and expose size, adherence, and stop diagnostics.
 - Stop on unpriced models or observed budget overruns; salt per-study account fingerprints.

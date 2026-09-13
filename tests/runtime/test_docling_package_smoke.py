@@ -24,6 +24,11 @@ class DoclingSmokeTests(unittest.TestCase):
             None,
             "no_reference",
             "reference_core",
+            "reference_missing_true",
+            "reference_missing_false",
+            "reference_missing_profiles",
+            "reference_null",
+            "reference_missing_commit",
             "reference_instructions",
             "manifest_missing",
             "reference_only",
@@ -151,6 +156,23 @@ class DoclingSmokeTests(unittest.TestCase):
                     }
                 )
             )
+            if fault in (
+                "reference_missing_true",
+                "reference_missing_false",
+                "reference_missing_profiles",
+            ):
+                data = json.loads(reference.read_text())
+                if fault == "reference_missing_profiles":
+                    del data["profiles"]
+                else:
+                    del data["profiles"][fault.removeprefix("reference_missing_")]
+                reference.write_text(json.dumps(data))
+            if fault == "reference_null":
+                reference.write_text("null")
+            if fault == "reference_missing_commit":
+                data = json.loads(reference.read_text())
+                del data["core_commit"]
+                reference.write_text(json.dumps(data))
             manifest = root / "manifest.json"
             manifest.write_text(
                 json.dumps(
@@ -193,6 +215,10 @@ class DoclingSmokeTests(unittest.TestCase):
                 if fault not in (None, "no_reference"):
                     with self.assertRaises(ValueError):
                         asyncio.run(module.smoke(root, fixture, reference_arg, manifest_arg))
+                    if fault.startswith("reference_missing_"):
+                        self.assertEqual(
+                            states, [], "Reject incomplete references before launching children"
+                        )
                 else:
                     report = asyncio.run(module.smoke(root, fixture, reference_arg, manifest_arg))
                     self.assertEqual(
@@ -262,3 +288,25 @@ class DoclingSmokeTests(unittest.TestCase):
         ):
             module.main(["--runtime", "bundle", "--fixture", "fixture.pdf"])
         self.assertEqual(json.loads(output.getvalue()), {"passed": True})
+
+    def test_cli_refuses_bad_input_without_traceback_or_secret(self):
+        import contextlib
+        import io
+
+        module = self.module()
+        for failure in (ValueError("planted-secret"), OSError("planted-secret")):
+
+            async def refuse(*args, failure=failure):
+                raise failure
+
+            with (
+                self.subTest(failure=type(failure).__name__),
+                patch.object(module, "smoke", refuse),
+                contextlib.redirect_stdout(io.StringIO()) as output,
+                contextlib.redirect_stderr(io.StringIO()) as error,
+            ):
+                self.assertEqual(
+                    module.main(["--runtime", "bundle", "--fixture", "fixture.pdf"]), 2
+                )
+            self.assertEqual(output.getvalue(), "")
+            self.assertEqual(error.getvalue(), f"Docling smoke refused: {type(failure).__name__}\n")
