@@ -1,5 +1,10 @@
 # Changelog
 
+## Local timing diagnostics
+
+- Add a read-only Claude Desktop log diagnostic that separates tool-call intervals from gaps without exporting document payloads.
+- Refuse ambiguous request pairing and preserve unknown parser, document and answer timings.
+
 ## Coverage requirements
 
 - Separate historical Desktop package instructions from the Docling candidate guide.

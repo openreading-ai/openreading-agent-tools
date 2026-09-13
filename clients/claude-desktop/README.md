@@ -119,3 +119,10 @@ Remaining native checks include exact host identity, complete capture, cross-pag
 
 The [historical package guide](historical/README.md) describes its setup and retention separately.
 Only that guide ships with the revision 1 Desktop archive.
+
+### Investigating a slow answer
+
+Use the [Desktop timing diagnostic](../../measurement/README.md#desktop-timing-diagnostic) on this connector's existing compact log.
+It distinguishes logged tool-call intervals from gaps between calls without exporting document payloads.
+An interval is not pure parsing time, and a gap is not proof that the model was thinking.
+Do not combine logs from the manual connector and the packaged extension.

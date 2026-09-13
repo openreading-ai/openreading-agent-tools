@@ -162,3 +162,25 @@ Retain CLI stdout unchanged as the machine result, such as `citation-cli-report.
 Store wrapper annotations and run context separately; added context is not a field emitted by the checker.
 The earlier `citation-report.json` development record includes a `scope` field added by the synthetic wrapper.
 Its corresponding `citation-cli-report.json` is the unedited CLI output; neither is a native assistant result.
+
+## Desktop timing diagnostic
+
+`desktop_timing.py` reads one existing Claude Desktop compact MCP log without starting a server or calling a model.
+It prints request/response durations, initialization intervals and gaps between completed calls.
+The report excludes connector names, document payloads and input paths, and binds the input bytes with SHA-256.
+
+~~~sh
+runtime/.venv/bin/python -m measurement.desktop_timing --log /absolute/connector.log
+~~~
+
+Exit 0 means the observed tool calls and initializations have paired endpoints, not that the tools succeeded.
+Exit 1 reports incomplete pairing; missing durations stay null. Exit 2 refuses invalid input or incompatible message syntax.
+The supported format contains `Message from client: method="tools/call" id=N params` and `Message from server: id=N`.
+Use one connector log; concatenated or interleaved process logs cannot establish reliable sessions.
+Repeated IDs without initialization and backwards timestamps refuse. Notifications and unrelated log lines are ignored.
+
+A 12-second interval includes transport and server work. It does not establish 12 seconds of PDF parsing.
+The compact host log does not identify the document or separate model loading, OCR, extraction and artifact writing.
+A gap between calls may include model work, tool approval, user interaction or separate questions.
+The diagnostic therefore leaves document identity, parser time and complete answer time unknown, with token savings unmeasured.
+It does not enable verbose logging, change host settings or collect telemetry.
