@@ -39,7 +39,7 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
         shutil.copytree(
             REPOSITORY / "clients" / client,
             target,
-            ignore=shutil.ignore_patterns("docling", "historical", "selection"),
+            ignore=shutil.ignore_patterns("docling", "historical", "selection", "chat"),
         )
         if client == "claude-desktop":
             # The repository index describes newer candidates that this archive cannot run.
@@ -92,18 +92,29 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
     return paths
 
 
-def package_docling_desktop(runtime: Path, output: Path, *, selection: bool = False) -> Path:
+def package_docling_desktop(
+    runtime: Path, output: Path, *, selection: bool = False, chat: bool = False
+) -> Path:
+    if selection and chat:
+        raise ValueError("Choose one selection candidate mode.")
     metadata = verify_release(runtime)
     if metadata["format_version"] != "2":
         raise ValueError("The Desktop development candidate requires a Docling runtime.")
     if output.exists():
         raise ValueError("Choose a new package output directory.")
-    if selection and not {
+    if "_internal/openreading/mcp_server/selection.py" not in metadata["files"]:
+        raise ValueError("Rebuild with the core selection contract before using this manifest.")
+    if (selection or chat) and not {
         "_internal/runtime/selection.py",
         "_internal/_tcl_data/init.tcl",
         "_internal/_tk_data/tk.tcl",
     }.issubset(metadata["files"]):
         raise ValueError("Rebuild the runtime with the file picker and bundled Tcl/Tk resources.")
+    if chat and not {
+        "_internal/runtime/chat_selection.py",
+        "_internal/openreading/mcp_server/selection.py",
+    }.issubset(metadata["files"]):
+        raise ValueError("Rebuild with the chat chooser and core selection contract.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
     shutil.copytree(runtime, output / "server", symlinks=True)
     shutil.copy2(REPOSITORY / "skills/read-local-document/SKILL.md", output / "WORKFLOW.md")
@@ -157,6 +168,28 @@ def package_docling_desktop(runtime: Path, output: Path, *, selection: bool = Fa
             "helper_sha256": sha256(executable),
             "helper_info_sha256": sha256(contents / "Info.plist"),
         }
+    if chat:
+        manifest = json.loads((output / "manifest.json").read_text())
+        manifest["name"] = "openreading-chat-selection-preview"
+        manifest["display_name"] = "OpenReading Chat Documents (development)"
+        manifest["long_description"] = (
+            "Ask OpenReading to choose a local PDF. Choose your document in its OS file dialog, "
+            "then ask a question in chat. OpenReading processes it locally with automatic OCR. "
+            "Selected copies and evidence remain locally until removed; retrieved excerpts enter "
+            "your assistant context. OCR can misread words and identifiers. Verify important "
+            "quotes against the printed page. Use Cancel in the file dialog to dismiss it; "
+            "the chat Stop button may not cancel local work. This unsigned development candidate "
+            "does not establish public installation or measured token savings."
+            "\n\nOpenReading Managed: Coming soon"
+        )
+        manifest.pop("user_config", None)
+        manifest["server"]["mcp_config"]["args"] = [
+            "--client",
+            "claude-desktop",
+            "--chat-documents",
+        ]
+        (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
     # Bind the review materials without claiming these hashes authenticate a publisher.
     (output / "package-info.json").write_text(
         json.dumps(
@@ -184,18 +217,27 @@ def main() -> int:
         action="store_true",
         help="assemble only a development Docling Desktop candidate for local checks",
     )
-    parser.add_argument(
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument(
+        "--chat-documents",
+        action="store_true",
+        help="assemble the chat chooser candidate with automatic OCR",
+    )
+    modes.add_argument(
         "--selected-documents",
         action="store_true",
         help="with --docling-desktop, assemble the separate file-picker development candidate",
     )
     args = parser.parse_args()
-    if args.selected_documents and not args.docling_desktop:
-        parser.error("--selected-documents requires --docling-desktop")
+    if (args.selected_documents or args.chat_documents) and not args.docling_desktop:
+        parser.error("Selection candidates require --docling-desktop")
     if args.docling_desktop:
         paths = {
             "claude-desktop": package_docling_desktop(
-                args.runtime.resolve(), args.output.resolve(), selection=args.selected_documents
+                args.runtime.resolve(),
+                args.output.resolve(),
+                selection=args.selected_documents,
+                chat=args.chat_documents,
             )
         }
     else:

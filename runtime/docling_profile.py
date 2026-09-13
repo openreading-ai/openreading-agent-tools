@@ -67,7 +67,7 @@ def profile_file(client, settings, bundle):
             os.rmdir(name, dir_fd=parent)
 
 
-def launch(args, bundle: Path) -> int:
+def launch(args, bundle: Path, *, selection_provider=None) -> int:
     from openreading.artifacts.limits import ArtifactError
 
     if args.configure:
@@ -95,7 +95,12 @@ def launch(args, bundle: Path) -> int:
                     str(settings.input_root),
                     "--artifact-root",
                     str(store),
-                ]
+                ],
+                **(
+                    {"selection_provider": selection_provider}
+                    if selection_provider is not None
+                    else {}
+                ),
             )
     except (ArtifactError, OSError):
         raise ValueError(

@@ -21,6 +21,7 @@ class DesktopPackageTests(unittest.TestCase):
         release.setUp()
         self.addCleanup(release.doCleanups)
         for name in [
+            "_internal/openreading/mcp_server/selection.py",
             "resources/docling-runtime.uv.lock",
             "resources/models/docling-project--docling-layout-heron-onnx/model.onnx",
             "resources/tessdata/eng.traineddata",
@@ -204,3 +205,66 @@ console.log(JSON.stringify(results));
         ):
             package.main()
         self.assertEqual(error.exception.code, 2)
+
+    def test_chat_package_requires_provider_and_has_no_configuration_or_helper(self):
+        source = self.fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "chat"
+            with self.assertRaises(ValueError):
+                package.package_docling_desktop(source.root, target, chat=True)
+            self.assertFalse(target.exists())
+            for name in (
+                "_internal/runtime/selection.py",
+                "_internal/runtime/chat_selection.py",
+                "_internal/openreading/mcp_server/selection.py",
+                "_internal/_tcl_data/init.tcl",
+                "_internal/_tk_data/tk.tcl",
+            ):
+                path = source.root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("synthetic provider resource")
+            source.metadata["files"] = inventory(source.root)
+            source.write_metadata()
+            package.package_docling_desktop(source.root, target, chat=True)
+            manifest = json.loads((target / "manifest.json").read_text())
+            self.assertEqual(manifest.get("user_config", {}), {})
+            self.assertEqual(
+                manifest["server"]["mcp_config"]["args"],
+                ["--client", "claude-desktop", "--chat-documents"],
+            )
+            self.assertEqual(manifest["name"], "openreading-chat-selection-preview")
+            self.assertIn(
+                "openreading_select_document", [tool["name"] for tool in manifest["tools"]]
+            )
+            self.assertEqual(verify_release(target / "server"), source.metadata)
+            self.assertFalse((target / "OpenReading Choose Document.app").exists())
+            self.assertIn("Cancel", (target / "README.md").read_text())
+            self.assertNotIn("Copy reference", (target / "README.md").read_text())
+            with self.assertRaises(ValueError):
+                package.package_docling_desktop(
+                    source.root, Path(temp) / "both", chat=True, selection=True
+                )
+
+    def test_chat_cli_requires_docling_and_cannot_combine_selection_modes(self):
+        for options in (
+            ["--chat-documents"],
+            ["--chat-documents", "--selected-documents", "--docling-desktop"],
+        ):
+            with (
+                patch("sys.argv", ["package", "--runtime", "r", "--output", "o", *options]),
+                contextlib.redirect_stderr(io.StringIO()),
+                self.assertRaises(SystemExit),
+            ):
+                package.main()
+
+    def test_current_manifest_cannot_package_an_older_three_tool_runtime(self):
+        source = self.fixture()
+        path = source.root / "_internal/openreading/mcp_server/selection.py"
+        path.unlink(missing_ok=True)
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "old-core"
+            with self.assertRaisesRegex(ValueError, "selection contract"):
+                package.package_docling_desktop(source.root, target)
+            self.assertFalse(target.exists())

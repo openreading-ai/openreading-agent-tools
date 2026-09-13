@@ -24,8 +24,9 @@ async def channel(*args, **kwargs):
 
 
 class Session:
-    def __init__(self, handler):
+    def __init__(self, handler, *, selection=True):
         self.handler = handler
+        self.selection = selection
 
     async def __aenter__(self):
         return self
@@ -42,7 +43,11 @@ class Session:
         return Box(
             tools=[
                 Box(name=f"openreading_{name}", inputSchema={"type": "object"}, outputSchema=None)
-                for name in ("import", "search", "read")
+                for name in (
+                    ("import", "search", "read", "select_document")
+                    if self.selection
+                    else ("import", "search", "read")
+                )
             ]
         )
 
@@ -411,7 +416,11 @@ class PackagedSmokeTests(unittest.TestCase):
                 return_value={"core_commit": "core", "worker_sha256": "hash"},
             ),
             patch.object(package_smoke, "stdio_client", channel),
-            patch.object(package_smoke, "ClientSession", side_effect=lambda *a: Session(handler)),
+            patch.object(
+                package_smoke,
+                "ClientSession",
+                side_effect=lambda *a: Session(handler, selection=False),
+            ),
         ):
             result = asyncio.run(package_smoke.smoke(Path("/runtime")))
             self.assertEqual(result["status"], "passed")

@@ -4,7 +4,9 @@ Unsupported hosts and unfrozen source execution return status 2 before inventory
 The client name selects only its retained-store location. It cannot change the core
 profile or backend. Explicit directory arguments are never interpreted by a shell.
 The internal child dispatch uses the same frozen executable and verified inventory.
-Format 2 also supports --select-document for the GUI and --selected-documents for MCP.
+Format 2 supports --select-document for the GUI and --selected-documents for MCP.
+The separate --chat-documents candidate installs a trusted local chooser and automatic OCR.
+It ignores saved settings and refuses directory or OCR overrides.
 Both reject directory configuration. The latter supplies only private completed intake
 copies and ignores saved grants; OCR remains an explicit connector argument, default off.
 """
@@ -49,6 +51,10 @@ def main(argv: list[str] | None = None) -> int:
         from openreading.artifacts.worker import main as worker_main
 
         return worker_main(argv[1:])
+    if metadata.get("format_version") == "2" and argv == ["--internal-select-file"]:
+        from runtime.chat_selection import main as chooser_main
+
+        return chooser_main()
     parser = argparse.ArgumentParser(
         description="Run the verified local OpenReading document tools."
     )
@@ -58,6 +64,11 @@ def main(argv: list[str] | None = None) -> int:
     if docling:
         parser.add_argument("--ocr", help="setup-only OCR: on/true or off/false; default off")
         selection = parser.add_mutually_exclusive_group()
+        selection.add_argument(
+            "--chat-documents",
+            action="store_true",
+            help="select documents through chat with automatic local OCR",
+        )
         selection.add_argument(
             "--selected-documents",
             action="store_true",
@@ -79,11 +90,11 @@ def main(argv: list[str] | None = None) -> int:
         if docling:
             from runtime.docling_profile import launch
 
-            if args.selected_documents or args.select_document:
+            if args.selected_documents or args.select_document or args.chat_documents:
                 if (
                     args.input_root is not None
                     or args.configure
-                    or (args.select_document and args.ocr is not None)
+                    or ((args.select_document or args.chat_documents) and args.ocr is not None)
                 ):
                     raise ValueError(
                         "File selection cannot use directory configuration or picker OCR overrides."
@@ -96,6 +107,11 @@ def main(argv: list[str] | None = None) -> int:
 
                     return run(store)
                 args.input_root = store.prepare()
+                if args.chat_documents:
+                    from runtime.chat_selection import LocalSelectionProvider
+
+                    args.ocr = "true"
+                    return launch(args, root, selection_provider=LocalSelectionProvider(store))
             return launch(args, root)
         if args.configure:
             if args.input_root is None:

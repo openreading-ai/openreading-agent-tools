@@ -189,3 +189,11 @@ Use the [Desktop candidate guide](../clients/claude-desktop/README.md#docling-in
 The explicit `--docling-desktop` option preserves the historical client packages and verifies the runtime before and after copying.
 The new package exposes only the directory and OCR settings; its static Coming soon text configures no service.
 Packed protocol checks and manifest substitution do not prove native installation, signing or clean-machine support.
+
+## Chat selection candidate
+
+The separate format-2 `--chat-documents` launcher supplies core's local selection provider and enables selective OCR automatically.
+It uses private completed intake and refuses directory configuration or OCR overrides. Historical launch modes keep their explicit settings.
+`runtime.chat_selection` owns the fixed OS chooser child and transactional copy cleanup; core owns tools and selection deadlines.
+Package this route with `runtime.package --docling-desktop --chat-documents`.
+Its [walkthrough](../clients/claude-desktop/chat/README.md) describes cancellation, retention and the remaining native acceptance boundary.

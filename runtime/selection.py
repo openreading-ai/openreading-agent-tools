@@ -1,6 +1,6 @@
 """Hand one user-selected file to core through an atomic private intake copy.
 
-The GUI supplies a chosen absolute path; no MCP tool calls this module. References are
+The GUI or trusted chat selection provider supplies a chosen absolute path. References are
 random-entry/original-filename paths under CLIENT/v2/selection/ready. Source directories
 never become grants. Staging and the advisory publisher lock remain outside that root.
 Core supplies safe source opening and owns subsequent parsing and artifact identity.
@@ -95,12 +95,12 @@ class SelectionStore:
             ) from None
 
     @contextmanager
-    def locked(self):
+    def locked(self, *, wait: bool = False):
         with self.directories() as (root, ready, staging):
             lock = os.open("lock", os.O_CREAT | os.O_NOFOLLOW | os.O_RDWR, 0o600, dir_fd=root)
             try:
                 try:
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    fcntl.flock(lock, fcntl.LOCK_EX | (0 if wait else fcntl.LOCK_NB))
                 except BlockingIOError:
                     # Convert inside directory(), which otherwise sanitizes OSError first.
                     raise SelectionError(
@@ -225,11 +225,11 @@ class SelectionStore:
                 if scratch.exists():
                     shutil.rmtree(scratch)
 
-    def remove(self, reference: str) -> None:
+    def remove(self, reference: str, *, wait: bool = False) -> None:
         parts = reference.split("/")
         if len(parts) != 2 or not re.fullmatch(r"[0-9a-f]{32}", parts[0]) or not filename(parts[1]):
             raise SelectionError("Choose a reference created by this picker.")
-        with self.locked() as (ready, _), directory(self.grant / parts[0]) as entry:
+        with self.locked(wait=wait) as (ready, _), directory(self.grant / parts[0]) as entry:
             if os.listdir(entry) != [parts[1]]:
                 raise SelectionError("The selected copy no longer matches this reference.")
             info = os.stat(parts[1], dir_fd=entry, follow_symlinks=False)

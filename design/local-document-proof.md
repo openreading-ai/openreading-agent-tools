@@ -43,7 +43,7 @@ It preserves explicit file selection and settings outside replaceable plugin cac
 The public profile uses automatic local OCR; existing developer profiles retain their explicit off/on controls.
 The [public document experience](public-document-experience.md) owns the migration and mixed-page checks.
 Core receives a closed profile configuration; model-facing tools accept neither backend selectors nor OCR switches.
-Public file selection is proposed in A0 of the implementation plan and the assistant design.
+Public chat-driven selection requires A1 of the implementation plan and the public document experience design.
 The current filename-within-grant workflow remains a developer mechanism, not a public directory-setting requirement.
 Public selection supplies the internal intake root and document reference; the model never chooses arbitrary source paths.
 

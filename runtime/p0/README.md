@@ -64,7 +64,7 @@ A small bootstrap/verifier necessarily executes first; no first-parse verificati
 A one-second optional catalog grace is distinct from the host's initialization timeout.
 Native probes must establish eventual discovery and a usable setup route before the client can be supported.
 
-The refreshed packed/unpacked development smoke passes with core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1` and Docling integration v5.
+The September 12 packed/unpacked development smoke passed with core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1` and Docling integration v5.
 Native and OCR imports, warm conversion and restart reuse pass through the same frozen executable.
 The earlier `7d97b75` runtime supplied the following separate integrity observations.
 A relocated copy with spaces and Unicode in its path verifies native and OCR citations through public MCP reads.
@@ -75,3 +75,9 @@ Native client installation, signing, notarization, and helper packaging remain g
 Do not share this build or assemble historical client packages from it.
 The explicit `runtime.package --docling-desktop` path assembles a separate local Desktop installation candidate; see the [Desktop guide](../../clients/claude-desktop/README.md).
 That path does not authorize distribution or establish native installation acceptance.
+
+The current candidate pins core `9af2606f6a53da632ab0a8f11a3cf8478099f941`, adding the optional local chooser contract.
+Its unpacked frozen smoke passes extraction, OCR, restart and same-profile catalog parity.
+The separate chat package also matches the provider-enabled core catalog without any setup fields.
+Its native chooser timeout returns a sanitized refusal and reaps the child. Successful user selection remains unverified.
+These results do not replace named-host interaction or clean-machine acceptance.

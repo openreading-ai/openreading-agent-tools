@@ -1,0 +1,32 @@
+# Chat document selection candidate
+
+This unsigned development candidate opens an OS file chooser from a chat tool call.
+The selected reference returns through MCP without copying a path or configuring a directory.
+Automatic local OCR uses the bundled slim Docling pipeline and Tesseract assets.
+Native focus, accessibility, installation and cancellation acceptance remain to be verified.
+
+## Try the candidate
+
+Ask: "Use OpenReading to choose a local document, then find its totals."
+Approve the selection tool if your host asks. Choose one PDF in "OpenReading: Choose one PDF".
+The assistant imports the returned reference, searches evidence and reads passages with physical page citations.
+Ordinary chat attachments still follow the host's upload path; this tool does not intercept them.
+
+Use **Cancel** in the OS dialog to dismiss it. Selection and copying have a 120-second deadline.
+Another selection while that dialog is pending returns busy, without adopting another conversation's dialog.
+Claude Desktop's observed Stop action did not send MCP cancellation; it cannot be promised to dismiss this chooser.
+Delivered cancellation closes the chooser and removes this operation's incomplete intake copy.
+
+Copies stay under `claude-desktop/v2/selection/ready`, within OpenReading's application data.
+Imported evidence stays in `claude-desktop/v2/artifacts`, shared with other v2 Claude Desktop connectors.
+Removing an intake copy does not erase an imported artifact or excerpts already sent to the assistant.
+The development helper can clear selected copies; a public retention interface remains unfinished.
+
+OCR text can differ from printed text, and exact identifier search can miss evidence.
+Rotated text and damaged native layers remain recorded limitations of the selective pipeline.
+Verify important OCR quotes against the physical source page.
+No setup decision changes historical directory grants, OCR switches or saved settings.
+
+This candidate is not signed, notarized or accepted on a clean machine. Token savings remain unmeasured.
+
+OpenReading Managed: Coming soon.

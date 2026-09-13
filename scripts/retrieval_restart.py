@@ -3,7 +3,7 @@
 Run with the same candidate and network-denial wrapper as retrieval_check.py. This checks
 stdio process restart, input-root isolation, and exact citation persistence. It does not
 exercise a Desktop installation or invoke a language model. Each process must expose exactly
-the three selected tools with identical schema hashes, negotiated protocol and server identity.
+the selected tools with identical schema hashes, negotiated protocol and server identity.
 """
 
 import argparse
@@ -81,10 +81,11 @@ async def check(args):
         ):
             initialized = await session.initialize()
             tools = (await session.list_tools()).tools
-            if len(tools) != 3 or {tool.name for tool in tools} != {
+            if len(tools) != 4 or {tool.name for tool in tools} != {
                 "openreading_import",
                 "openreading_search",
                 "openreading_read",
+                "openreading_select_document",
             }:
                 raise ValueError("The selected MCP tool catalog is not available.")
             contract = [

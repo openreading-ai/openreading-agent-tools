@@ -20,7 +20,7 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `e12c2fd3` implements:
+The current candidate `9af2606f` implements:
 
 | Tool | Required behavior |
 | --- | --- |
@@ -28,13 +28,15 @@ The current candidate `e12c2fd3` implements:
 | `openreading_search` | Search retained evidence with the documented literal retrieval contract, exact excerpts and cursors. |
 | `openreading_read` | Resolve returned evidence identifiers to bounded exact passages and source provenance. |
 
-The current catalog is three tools. Three is not a permanent commercial limit.
+| `openreading_select_document` | Return a locally selected reference through a trusted provider, or explicitly refuse when absent. |
+
+The current catalog is four tools. Four is not a permanent commercial limit.
 A future pin must include every additional implemented core tool before that pin can ship in Agent Tools.
 Do not advertise MCP parse, compare, strategy, folder or job operations merely because related CLI/HTTP operations exist.
 Do not invent placeholder tools for operations core has not implemented.
 
 The first distribution keeps its explicit local Docling profile, internal grants, resource limits and no-hosted-dispatch rule.
-A0 supplies public per-file selection without directory configuration; the current developer form does not pass that launch requirement.
+A1 owns public chat-driven file selection without directory configuration; the current developer form does not pass that launch requirement.
 Exposing the full MCP interface does not install every backend or make unsupported extraction capabilities work.
 Where core supports an operation only with absent optional capabilities, preserve its explicit refusal or warning.
 If a core pin introduces a tool incompatible with these boundaries, resolve its safe local contract before accepting the pin.

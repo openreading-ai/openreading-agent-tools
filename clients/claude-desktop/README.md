@@ -39,7 +39,7 @@ The package records runtime identity plus manifest/workflow hashes and preserves
 `WORKFLOW.md` is a review copy; the pinned core supplies the actual MCP initialization instructions.
 No skill-delivery claim follows from copying that file into an archive.
 
-The refreshed candidate pins core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1` for current bounded-evidence instructions.
+The current candidate pins core `9af2606f6a53da632ab0a8f11a3cf8478099f941`, including the optional local selection tool.
 Its dependency versions and Docling integration remain unchanged from the preceding candidate.
 The packed/unpacked archive passes native/OCR imports, warm reuse, restart, exact citations and same-profile catalog/instruction comparison against direct core.
 This is development-machine protocol evidence, not a Desktop conversation or clean-machine pass.
@@ -150,3 +150,10 @@ The server received seconds 12 and progress_every 2, with progress_token_present
 This verifies absent token delivery for that call, not for every host invocation.
 The probe was removed again, both processes exited, and the original configuration and extension registry bytes were restored.
 The four-minute observation remains a no-progress limit; absolute versus inactivity timeout is unresolved.
+
+## Chat-driven selection candidate
+
+The [chat chooser](chat/README.md) uses a separate package name and no setup fields.
+Build it with `runtime.package --docling-desktop --chat-documents` against the current candidate runtime.
+It returns the selected reference through core's MCP tool and enables local OCR automatically.
+Existing installed development extensions and native observations remain tied to their original binaries.

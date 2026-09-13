@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Add a separate chat chooser candidate with automatic local OCR and no directory or OCR configuration.
+- Add transactional chooser cancellation and a four-tool catalog at the refreshed core pin.
+
 - Distinguish compact transport results from errors in timing format 3, without inspecting tool payloads.
 - Record validated probe intervals and progress-token presence for reproducible native progress checks.
 - Document continuing imports after an undelivered host Stop and separate observed Claude budgets from other host hypotheses.

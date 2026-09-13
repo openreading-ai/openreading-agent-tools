@@ -10,7 +10,7 @@ A passing offline gate is necessary but cannot replace native application or sig
 
 ProductSpec revision 7 resolves mode-specific acceptance, setup, configuration coexistence, host budgets, citation checks, and study prerequisites.
 Revision 8 adds A0 for public file selection without directory configuration. The current form remains developer evidence.
-Revision 9 requires chat-driven selection without reference copying and automatic local OCR. A1 below owns these unbuilt production changes.
+Revision 9 requires chat-driven selection without reference copying and automatic local OCR. A1 below owns the candidate and remaining native production acceptance.
 Revision 5 prohibited provider API trials and removed their release prerequisites.
 Revision 6 defines public OSS product v1, full pinned-core MCP parity, and a static Coming soon visual; managed product v2 follows launch.
 It preserves `local-document-proof-v2`, historical locks, native acceptance, and owner-operated Desktop testing.
@@ -106,7 +106,7 @@ Contract: [OSS launch design](oss-launch.md). This is proposed release verificat
 - [ ] Add focused regressions for omitted tools, changed schemas, wrong profile prose and missing instructions.
 - [ ] Check the final package after R0/P1. A pin-update check is necessary for the first release too; it is not a separate prerequisite for beginning N2.
 
-The current core catalog is import, search and read. There is no duplicate engine contract to implement in wrappers.
+The current core catalog is import, search, read and local selection. There is no duplicate engine contract to implement in wrappers.
 The [launch design](oss-launch.md) defines strict fields and permitted profile/presentation differences.
 
 ## N1. Common configuration and launcher migration
@@ -148,9 +148,9 @@ Owner: Agent Tools maintainer owns the picker and package; core maintainer owns 
 - [ ] Run E2 for the named host before accepting a picker-inside-call interaction; measure absolute/inactivity deadlines, progress and delayed approval.
 - [ ] Use the documented local tool route to prepare a selection probe. Prove native dialog focus, cancel, timeout and automatic reference return on the named host before choosing final UI.
 - [ ] Prefer an OpenReading action within chat. Ordinary host drag/drop requires separate evidence that bytes reach local OpenReading before host upload; never infer interception from a file picker or plugin file API.
-- [ ] Review and implement any selection tool/provider interface in core first, preserving headless CLI/HTTP behavior and default dependencies. Agent Tools supplies only the trusted local selection provider.
-- [ ] Keep the existing private intake, byte cap, publication, removal and source-retention contracts. Return selected references through the tool response without clipboard or model-supplied source paths.
-- [ ] Build a distinct public launcher/profile using selective local OCR automatically. Preserve existing developer settings and artifacts, and retain diagnostic off/on controls outside public setup.
+- [x] Implement the reviewed selection tool/provider interface in core, preserving headless CLI/HTTP behavior and default dependencies. Agent Tools supplies the trusted local selection provider; native acceptance remains separate.
+- [x] Keep the existing private intake, byte cap, publication, removal and source-retention contracts. Return selected references through the tool response without clipboard or model-supplied source paths.
+- [x] Implement a distinct candidate launcher/profile using selective local OCR automatically. Public installation acceptance remains pending. Preserve existing developer settings and artifacts, and retain diagnostic off/on controls outside public setup.
 - [ ] Verify native-only, image-only, mixed-page, blank, damaged-text-layer and rotated text cases. Retained text, origin labels, missing-text warnings and converter reuse must match observed output.
 - [ ] Repeat C1 resource measurements with automatic OCR before selecting public limits. If the existing selective pipeline misses needed text, fix core or disclose the limitation; do not add an undocumented retry engine.
 - [ ] Rebuild after the supported core pin change and repeat catalog, integrity, retrieval/restart and native citation checks. A0's POC or a source probe cannot satisfy A1.

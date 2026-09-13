@@ -4,7 +4,7 @@ This is the power-user route for managing your own OpenReading installation and 
 It does not use the Agent Tools bundle or add settings to that bundle.
 You manage Python, dependencies, model assets and updates yourself.
 
-Status: configuration below is checked against the current candidate contract at core `e12c2fd3d4761b2349051861e6d57da91aa0e7d1`.
+Status: configuration below is checked against the current candidate contract at core `9af2606f6a53da632ab0a8f11a3cf8478099f941`.
 The released-version installation and native walkthrough remain R1 acceptance work in the [implementation plan](../../design/implementation-plan.md).
 Replace `<released-version>` with the merged core release selected by R0 before running the installation recipe or publishing it as release instructions.
 This guide does not imply that the candidate's MCP features are already on PyPI.
@@ -18,7 +18,9 @@ Core currently requires an explicit `--profile`; the CLI does not silently selec
 | `local-document-proof-v1` | PyMuPDF, 25 MiB input, 100 physical pages, no OCR. Requires the `agent,pymupdf` extras. |
 | `local-document-proof-v2` | Local Docling, explicit assets and resource settings, optional setup-time OCR. Requires `agent,docling-local` and a profile JSON file. |
 
-Both expose import, search and read. Neither is a general MCP wrapper around every backend or CLI operation.
+Both expose import, search, read and local document selection.
+Selection returns `selection_unavailable` until an embedded launcher explicitly supplies a trusted provider.
+Core documents that optional Python seam in `openreading.mcp_server.selection`. Neither is a general MCP wrapper around every backend or CLI operation.
 Core's broader backend/strategy selection remains available through its CLI, Python and HTTP interfaces.
 Installing more extras does not add MCP operations or a per-call backend selector.
 A future core release can extend this contract; use that release's help and discovered tools.

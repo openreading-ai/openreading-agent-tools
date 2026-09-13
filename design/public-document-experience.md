@@ -1,6 +1,6 @@
 # Public document selection and automatic OCR
 
-**Status:** proposed production behavior for [ProductSpec revision 9](../product/specs/local-document-proof.product-spec.md).
+**Status:** production intent with an implemented development candidate for [ProductSpec revision 9](../product/specs/local-document-proof.product-spec.md).
 The existing picker, copyable reference and OCR switch remain development mechanisms.
 This design supersedes their use as the public walkthrough, not their retained evidence or settings.
 A1 in the [implementation plan](implementation-plan.md) owns implementation and native proof.
@@ -50,19 +50,14 @@ Agent Tools supplies the trusted local picker implementation and retains its exi
 Do not register a private tool with a copied core server or alter core tools in a manifest wrapper.
 Independently installed core must be able to configure the same capability without requiring this package.
 An ordinary headless core installation keeps its current dependencies and startup behavior; absent picker capability must be explicit.
-The tool contract and capability reporting require core review before implementation or a pin change.
+The reviewed contract is implemented in core; each packaged pin still requires catalog and functional verification.
 
-Proposed core mechanism, not implemented:
-
-- Extend core's Python server construction with an optional keyword-only selection provider, passed explicitly from the trusted launcher into serve and create_server. No entry-point scanning, environment import path, executable setting or dependency on Agent Tools discovers it.
-- Core defines the provider protocol and selected-reference/result types. The provider accepts cancellation through the call context, opens the fixed picker and stages the chosen file in the configured private intake. Core revalidates the returned relative reference under its existing input root before returning it to the model.
-- Keep one core-owned openreading_select_document tool and closed input/output contracts. Without a provider it returns selection_unavailable and opens nothing. Ordinary core CLI/HTTP startup remains headless and its default dependencies stay unchanged.
-- Core owns the pending-call guard, cancellation/deadline coordination and selection error mapping. The trusted provider owns UI dismissal and publication rollback on cancellation; tests must prove cancellation cannot publish a returned reference.
-- A standalone core user supplies a provider through the same Python construction seam. Agent Tools passes its bundled provider object directly; neither side imports the sibling checkout.
-- Names, schemas and annotations remain equal with and without a provider. Compare core-owned capability descriptions and initialization instructions against a direct-core server configured with the same provider availability and OCR profile. Test both availability states and the absent-provider refusal. No private tool is added or rewritten by a wrapper.
-
-Before production implementation, core review must freeze those contracts, cancellation ownership and callable entrypoints against its existing server lifecycle.
-The above seam does not authorize a new tool to appear in the current frozen catalog.
+The core provider mechanism and empty-input selection contract are implemented at the pinned candidate commit.
+Core's `openreading.mcp_server.selection` documents admission, deadlines, validation and cleanup responsibilities.
+Agent Tools implements the fixed OS chooser and transactional copy handoff in `runtime.chat_selection`.
+The [candidate walkthrough](../clients/claude-desktop/chat/README.md) documents the separate launcher and package.
+Core remains headless without a provider; installed development extensions are unchanged.
+These mechanisms do not establish native host focus, accessible interaction or successful in-chat selection.
 
 The selection tool accepts exactly an empty object, with additionalProperties false.
 No model argument controls dialog text, starting directory, suggested filename, file-type filter, source path, executable, callback URL or folder grant.

@@ -54,6 +54,10 @@
     {
       "name": "openreading_read",
       "description": "Read exact returned evidence with physical pages and text origins."
+    },
+    {
+      "name": "openreading_select_document",
+      "description": "Choose a local document when the launcher supplies a trusted picker; otherwise returns selection_unavailable."
     }
   ]
 }

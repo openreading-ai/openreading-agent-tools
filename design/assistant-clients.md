@@ -24,7 +24,7 @@ For example, a successful OpenAI API trial proves nothing about a ChatGPT deskto
 
 The client starts the runtime over local standard input/output, abbreviated STDIO.
 The runtime exposes every implemented MCP tool from the pinned core using unchanged core schemas.
-The current catalog is import, search, and read. The [OSS launch design](oss-launch.md) requires parity again for every pin update.
+The current catalog is import, search, read, and local selection. The [OSS launch design](oss-launch.md) requires parity again for every pin update.
 A host may qualify tool names, but it cannot require a different artifact or citation contract.
 The shared evidence workflow describes tool purpose and uses identifiers returned by the tools.
 Where a host cannot load a skill, its integration supplies the same concise workflow through a supported instruction channel.
@@ -136,7 +136,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 
 | Case | Required result |
 | --- | --- |
-| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently three tools). |
+| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently four tools). |
 | Factual question | Import, search, and read precede a correct answer with an exact quote and physical page. |
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |
 | Missing fact | The answer states the evidence limitation without turning empty search into proof of absence. |
@@ -210,7 +210,7 @@ It accepts no user-supplied grant or backend arguments and never infers the clie
 Implement it only after E1, with verified dispatch and subprocess regression tests under `tests/runtime/`.
 
 The helper candidate uses the pinned Python 3.11.15/PyInstaller toolchain with the existing picker/controller separation as a prototype. The public handoff and accessible native UI require the A0 successor check before selecting final widgets.
-A0 must establish its native selection and handoff contract before this implementation starts.
+A1 must establish its native selection and handoff contract before this implementation starts.
 Pin and inventory the actual Tcl/Tk assets in the helper build before claiming a usable GUI; they are not required by P0.
 Put configuration and controller logic in `runtime/setup.py` and its thin UI binding in `runtime/setup_ui.py`.
 Both modules and their headless boundary tests belong to the existing Python line/branch 95% coverage gate.
