@@ -23,6 +23,74 @@ def response(seconds, identifier):
 
 
 class DesktopTimingTests(unittest.TestCase):
+    def test_unanswered_initialization_alone_makes_pairing_incomplete(self):
+        report = self.report(request(0, 0, "initialize"), request(1, 2), response(2, 2))
+        self.assertEqual(report["pairing"], "incomplete")
+
+    def test_clean_restart_resets_gap_without_an_unfinished_call(self):
+        report = self.report(
+            request(0, 0, "initialize"),
+            response(1, 0),
+            request(2, 2),
+            response(3, 2),
+            request(20, 0, "initialize"),
+            response(21, 0),
+            request(22, 2),
+            response(23, 2),
+        )
+        self.assertIsNone(report["calls"][1]["gap_before_seconds"])
+
+    def test_stray_response_alone_makes_pairing_incomplete(self):
+        report = self.report(response(0, 99), request(1, 2), response(2, 2))
+        self.assertEqual(report["pairing"], "incomplete")
+
+    def test_unanswered_non_tool_request_is_not_complete(self):
+        report = self.report(request(0, 1, "tools/list"), request(1, 2), response(2, 2))
+        self.assertEqual(report["pairing"], "incomplete")
+
+    def test_close_and_shutdown_prevent_cross_boundary_pairing_and_gaps(self):
+        for boundary in ("Client transport closed", "Shutting down server..."):
+            with self.subTest(boundary=boundary):
+                report = self.report(
+                    request(0, 2), event(1, boundary), response(2, 2), request(3, 3), response(4, 3)
+                )
+                self.assertIsNone(report["calls"][0]["seconds"])
+                self.assertIsNone(report["calls"][1]["gap_before_seconds"])
+                self.assertEqual(report["pairing"], "incomplete")
+
+    def test_late_response_after_ambiguous_restart_is_not_a_duration(self):
+        report = self.report(
+            request(0, 2),
+            request(1, 0, "initialize"),
+            response(2, 0),
+            request(3, 2),
+            response(4, 2),
+        )
+        self.assertEqual(report["pairing"], "incomplete")
+        self.assertIsNone(report["calls"][1]["seconds"])
+
+    def test_non_info_tool_call_is_not_silently_skipped(self):
+        report = self.report(
+            request(0, 2),
+            response(1, 2),
+            request(2, 3).replace("[info]", "[debug]"),
+            response(4, 3),
+            request(5, 4),
+            response(6, 4),
+        )
+        self.assertEqual(len(report["calls"]), 3)
+        self.assertEqual(report["calls"][2]["gap_before_seconds"], 1)
+
+    def test_server_requests_use_a_separate_id_namespace(self):
+        report = self.report(
+            request(0, 2),
+            event(1, 'Message from server: method="elicitation/create" id=2 params PRIVATE'),
+            event(2, "Message from client: id=2 PRIVATE"),
+            response(3, 2),
+        )
+        self.assertEqual(report["calls"][0]["seconds"], 3)
+        self.assertNotIn("PRIVATE", json.dumps(report))
+
     def report(self, *lines):
         return desktop_timing.summarize(io.BytesIO("".join(lines).encode()))
 
@@ -38,7 +106,7 @@ class DesktopTimingTests(unittest.TestCase):
         self.assertEqual(report["initializations"][0]["seconds"], 0.5)
         self.assertEqual([r["seconds"] for r in report["calls"]], [12, 0.025])
         self.assertEqual(report["calls"][1]["gap_before_seconds"], 17)
-        self.assertEqual(report["pairing"], "complete")
+        self.assertEqual(report["pairing"], "observed_pairs_complete")
         self.assertIsNone(report["document"])
         self.assertIsNone(report["parser_seconds"])
         self.assertNotIn("PRIVATE", json.dumps(report))
@@ -54,9 +122,9 @@ class DesktopTimingTests(unittest.TestCase):
             request(6, 2),
             response(7, 2),
         )
-        self.assertEqual([r["session"] for r in report["calls"]], [1, 2])
+        self.assertEqual([r["segment"] for r in report["calls"]], [1, 2])
         self.assertIsNone(report["calls"][0]["seconds"])
-        self.assertEqual(report["calls"][1]["seconds"], 1)
+        self.assertIsNone(report["calls"][1]["seconds"])
         self.assertIsNone(report["calls"][1]["gap_before_seconds"])
         self.assertEqual(report["pairing"], "incomplete")
 
@@ -87,7 +155,7 @@ class DesktopTimingTests(unittest.TestCase):
         )
         self.assertEqual(len(report["calls"]), 1)
         self.assertEqual(report["unmatched_responses"], 0)
-        self.assertEqual(report["pairing"], "complete")
+        self.assertEqual(report["pairing"], "observed_pairs_complete")
 
     def test_rejects_ambiguous_ids_clock_rollback_and_unknown_format(self):
         for lines in (

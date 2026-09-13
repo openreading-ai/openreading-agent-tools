@@ -2,7 +2,7 @@
 
 Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
-**Status:** proposed in ProductSpec revision 4. No Docling package or native ChatGPT walkthrough is verified yet.
+**Status:** proposed in ProductSpec revision 9. No Docling package or native ChatGPT walkthrough is verified yet.
 The [client matrix](../README.md) separates documented routes from tested behavior.
 
 ## Connection candidate
@@ -10,15 +10,18 @@ The [client matrix](../README.md) separates documented routes from tested behavi
 [OpenAI's MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) describes adding a local STDIO server through ChatGPT desktop settings.
 It also describes configuration shared with Codex clients on the same host.
 Check the installed application and execution mode before following that route.
-A shared registration can expose the same OpenReading directory grant to multiple local clients.
+A shared registration can expose the same OpenReading internal intake grant to multiple local clients.
 That grant limits only OpenReading; it does not restrict the assistant's other file or shell tools.
 The route must execute locally and cannot set `experimental_environment = "remote"`.
 
 The desired target is a local Chat conversation, with Work and Codex local threads checked separately in [E1](../../design/native-probes.md).
 A Codex-thread pass does not establish support for Chat conversations.
-The proposed signed helper app supplies a folder picker, saves OpenReading settings, and shows an argument-free executable path to paste into the host form.
+The proposed signed setup helper shows an argument-free executable path for host registration.
+Public document selection uses A1's chat-invoked local picker and returns the selected reference automatically.
 It does not edit shared TOML. The native form and its path handling remain unverified.
-Setup requires an explicit document directory and offers OCR disabled by default.
+Public setup asks for neither a document directory nor an OCR decision. Bundled OCR works automatically within its verified limits.
+Pasting the executable path registers the host; it is not per-document reference copying.
+E1 must establish the named Chat mode, E2 its deadlines, and A1 the native handoff before implementation acceptance.
 The [assistant design](../../design/assistant-clients.md) owns the pending setup interface and grant rules.
 No copy-and-paste installation command is provided until the corresponding artifact exists and its native launch is tested.
 

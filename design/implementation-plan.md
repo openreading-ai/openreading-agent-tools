@@ -145,6 +145,7 @@ The existing developer form is retained for diagnostics; no candidate or histori
 Acceptance: AC-2, AC-3, AC-4, AC-21 and AC-25. Contract: [public document experience](public-document-experience.md).
 Owner: Agent Tools maintainer owns the picker and package; core maintainer owns any new MCP selection contract.
 
+- [ ] Run E2 for the named host before accepting a picker-inside-call interaction; measure absolute/inactivity deadlines, progress and delayed approval.
 - [ ] Use the documented local tool route to prepare a selection probe. Prove native dialog focus, cancel, timeout and automatic reference return on the named host before choosing final UI.
 - [ ] Prefer an OpenReading action within chat. Ordinary host drag/drop requires separate evidence that bytes reach local OpenReading before host upload; never infer interception from a file picker or plugin file API.
 - [ ] Review and implement any selection tool/provider interface in core first, preserving headless CLI/HTTP behavior and default dependencies. Agent Tools supplies only the trusted local selection provider.
@@ -161,13 +162,13 @@ Exact startup/model-load/extraction/write timing remains C1 work at the responsi
 ## N2. Thin host adapters and native functional checks
 
 Developer prerequisites: N1, passing P0, and the corresponding E1/E5 native setup observation.
-Public setup additionally requires A1. Start Claude Desktop first; ChatGPT waits on E1 and A0.
+Public setup additionally requires A1. Start Claude Desktop first; ChatGPT waits on E1 and A1.
 Acceptance: AC-1, AC-11, AC-12, AC-14, AC-24, EVAL-1.
 Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tests, and client READMEs.
 
 1. Inspect the existing packaging implementation and keep the common runtime independent of any one host manifest format.
 2. Add host-specific setup translation and workflow delivery using the shared configuration semantics.
-3. After E1 and A0, implement the named argument-free ChatGPT entrypoint and Python/tkinter helper in assistant design section 7, including inventory, coverage, and native GUI checks.
+3. After E1 and A1, implement the named argument-free ChatGPT entrypoint and reviewed native selection provider in assistant design section 7, including inventory, coverage, and native GUI checks.
 4. Test argument arrays with shell metacharacters, spaces, Unicode, absent configuration, and host-qualified tool names.
 5. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
 6. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.

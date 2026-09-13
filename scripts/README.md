@@ -40,7 +40,8 @@ The initialization delay accepts 0 through 30 seconds.
 `probe_echo` returns a nonce; `probe_delay` waits 0 through 330 seconds.
 Both require an alphanumeric, underscore or hyphen nonce of at most 64 characters.
 A progress interval is zero (off), or 0.01 through 60 seconds, and emits only when the client supplies a progress token.
-The log records initialization, catalog requests, calls, completion, progress and cancellation with monotonic timestamps.
+The log records initialization, catalog requests, request receipt, calls, completion, progress and cancellation with monotonic and UTC timestamps.
+UTC timestamps support comparison with native approval observations; they do not establish approval placement without that observation.
 It also records PID, parent identity, source digest and environment variable names, never credential values.
 Existing logs are refused and new logs use mode 0600.
 Optional `--input-root` and `--ocr` arguments record synthetic form substitutions without granting access or enabling OCR.

@@ -183,8 +183,8 @@ It must include verified `tessdata/configs/tsv`, language data, native libraries
 A modified or incomplete inventory refuses startup; do not relax identity for frozen builds.
 
 Claude Desktop may use an MCPB wrapper; a generic signed app or installer can supply the common runtime for other hosts.
-The proposed ChatGPT candidate route uses the A0 local file-selection handoff with automatic local OCR.
-A folder picker is not an acceptable public substitute; E1 and A0 both precede its implementation.
+The proposed ChatGPT candidate route uses the A1 chat-driven local file-selection handoff with automatic local OCR.
+A folder picker is not an acceptable public substitute; E1, E2 and A1 precede its implementation.
 It writes only OpenReading settings, then shows the executable path to paste into the host's local MCP Settings form.
 Use an argument-free, verified host launcher so users need not quote paths or supply environment variables, working directories, or timeout overrides.
 The launcher reads the explicit saved settings and sets required process context itself.

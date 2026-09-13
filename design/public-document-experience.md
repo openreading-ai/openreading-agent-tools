@@ -52,10 +52,27 @@ Independently installed core must be able to configure the same capability witho
 An ordinary headless core installation keeps its current dependencies and startup behavior; absent picker capability must be explicit.
 The tool contract and capability reporting require core review before implementation or a pin change.
 
-The model supplies no source path, executable, callback URL or containing-folder grant to this action.
+Proposed core mechanism, not implemented:
+
+- Extend core's Python server construction with an optional keyword-only selection provider, passed explicitly from the trusted launcher into serve and create_server. No entry-point scanning, environment import path, executable setting or dependency on Agent Tools discovers it.
+- Core defines the provider protocol and selected-reference/result types. The provider accepts cancellation through the call context, opens the fixed picker and stages the chosen file in the configured private intake. Core revalidates the returned relative reference under its existing input root before returning it to the model.
+- Keep one core-owned openreading_select_document tool and closed input/output contracts. Without a provider it returns selection_unavailable and opens nothing. Ordinary core CLI/HTTP startup remains headless and its default dependencies stay unchanged.
+- Core owns the pending-call guard, cancellation/deadline coordination and selection error mapping. The trusted provider owns UI dismissal and publication rollback on cancellation; tests must prove cancellation cannot publish a returned reference.
+- A standalone core user supplies a provider through the same Python construction seam. Agent Tools passes its bundled provider object directly; neither side imports the sibling checkout.
+- Names, schemas and annotations remain equal with and without a provider. Compare core-owned capability descriptions and initialization instructions against a direct-core server configured with the same provider availability and OCR profile. Test both availability states and the absent-provider refusal. No private tool is added or rewritten by a wrapper.
+
+Before production implementation, core review must freeze those contracts, cancellation ownership and callable entrypoints against its existing server lifecycle.
+The above seam does not authorize a new tool to appear in the current frozen catalog.
+
+The selection tool accepts exactly an empty object, with additionalProperties false.
+No model argument controls dialog text, starting directory, suggested filename, file-type filter, source path, executable, callback URL or folder grant.
+OpenReading supplies the fixed title "OpenReading: Choose one PDF" and a PDF-only filter.
+The picker never derives dialog text or its starting location from retrieved document contents.
+The filter is a convenience, not validation: the existing source validation still checks the selected file.
 The user chooses the file through the local OS dialog. Only that chosen file enters private intake.
 The selected reference then uses the existing import/search/read contract; source identity remains core-owned.
-Concurrent selections return a bounded busy result or a clearly associated existing dialog, never the wrong conversation's selection.
+Allow one pending selection per server process. A concurrent call receives busy without focusing, adopting or receiving another call's dialog.
+MCP provides no conversation identity on which to base cross-chat dialog reuse.
 Cancellation, host disconnect and timeout dismiss the pending picker and do not publish a new reference.
 A pending selection must not hold the intake publisher lock while waiting for the user.
 Byte validation and copy publication retain their existing serialization after the user chooses.
@@ -64,18 +81,30 @@ Selection is a user action, not authority carried by document text. The workflow
 Native proof must show the chooser is visible, attributable to OpenReading, cancellable and usable with keyboard and pointer.
 A mock picker establishes protocol plumbing only; it cannot satisfy this native requirement.
 
+### Deadline prerequisite
+
+E2 must measure the actual host tool deadline and progress behavior before committing to a picker that waits inside a tool call.
+Use the synthetic delay server first; test a deliberate approval pause separately to locate approval relative to the logged request.
+Record a finite selection deadline shorter than the measured host budget, with time reserved for cancellation and bounded copy publication.
+A deadline closes the picker, returns no reference and allows a new user-initiated attempt. Do not open a replacement automatically.
+If the measured budget cannot accommodate a useful human selection interval, stop this interaction design and review another local handoff.
+Do not compensate with an unmeasured progress heartbeat or an implicit background job.
+A source/controller probe can be prepared before E2; it does not accept the production interaction.
+
 ## Automatic OCR migration
 
 The current pinned core already distinguishes selective OCR from forced whole-page OCR.
 The first production candidate should use its verified selective stage with bundled Tesseract available, not add a second page classifier in Agent Tools.
 Enabling that stage is a starting implementation choice, not proof of complete text coverage.
-Mixed pages, broken text layers and rotated scans can expose gaps that simple native/image fixtures miss.
+Small stamps, text inside figures, rotated snippets, mixed pages and broken text layers can expose gaps that simple native/image fixtures miss.
 Core owns any necessary correction to extraction or origin reporting.
 
 The public launcher selects automatic local OCR without exposing a required OCR form field.
 Existing development launchers retain their explicit off/on settings and saved configuration bytes.
 Do not silently rewrite a user's historical false setting, rename old profiles, or attribute new results to an old bundle.
-The public candidate records its effective OCR configuration in the existing core engine identity and receives the corresponding artifact identifiers.
+The public candidate records its effective OCR configuration in the existing core engine identity.
+With identical engine bytes and effective configuration, automatic OCR equals developer --ocr on and shares its artifacts in the same store.
+No new core OCR contract or artificial identity difference is required for a different setup presentation.
 Reusing older OCR-off artifacts as successful automatic-OCR imports must fail a regression check.
 
 Verify at least these cases before native acceptance:
@@ -84,7 +113,7 @@ Verify at least these cases before native acceptance:
 2. An image-only page yields searchable text and a correct physical page with OCR origin.
 3. A single page containing both native and image text retains both, with the origin labels the core can establish.
 4. A blank page stays blank; illegible image text never becomes a fabricated answer.
-5. A damaged text layer and rotated scan produce verified text or an explicit limitation.
+5. A damaged text layer, rotated scan, small stamp, text inside a figure and rotated snippet each produce verified text or a recorded limitation. Region OCR depends on the layout stage detecting the text region.
 6. Missing or changed bundled OCR assets refuse integrity verification without a download or hosted fallback.
 7. Repeated imports reuse the initialized converter; restart reuses only artifacts matching the effective engine identity.
 

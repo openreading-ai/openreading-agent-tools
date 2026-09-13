@@ -78,6 +78,21 @@ class HostProbeTests(unittest.TestCase):
                 any(e["event"] == "progress" and e.get("nonce") == "no_progress" for e in events)
             )
             self.assertTrue(all("pid" in e and "monotonic_seconds" in e for e in events))
+            from datetime import datetime
+
+            self.assertTrue(
+                all(
+                    datetime.fromisoformat(e["utc_time"]).utcoffset().total_seconds() == 0
+                    for e in events
+                )
+            )
+            received = [e for e in events if e["event"] == "tool_request_received"]
+            called = [e for e in events if e["event"] == "called"]
+            self.assertTrue(received)
+            for call in called:
+                observed = next(e for e in received if e["request_id"] == call["request_id"])
+                self.assertLessEqual(observed["monotonic_seconds"], call["monotonic_seconds"])
+                self.assertNotIn("arguments", observed)
 
     def test_log_cannot_clobber_an_existing_file_and_invalid_delays_refuse(self):
         module = self.module()

@@ -2,6 +2,8 @@
 
 Run with the locked runtime interpreter: python -m scripts.host_probe --log ABSOLUTE_NEW_FILE.
 The log records synthetic nonces, timing, process identity, cancellation, and setup arguments.
+UTC timestamps correlate host approval observations with monotonic receipt/start/completion events.
+Receipt alone cannot establish when a native host showed or approved a tool request.
 It never records environment values. Existing log files are refused instead of overwritten.
 No host configuration is modified. Native registration and model requests are separate steps.
 """
@@ -15,6 +17,7 @@ import math
 import os
 import subprocess
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import anyio
@@ -125,6 +128,7 @@ class Probe:
                     "event": event,
                     "pid": os.getpid(),
                     "monotonic_seconds": time.monotonic(),
+                    "utc_time": datetime.now(UTC).isoformat(timespec="milliseconds"),
                     **values,
                 },
                 allow_nan=False,
@@ -152,6 +156,8 @@ class Probe:
                             self.record("initialize_received")
                             await anyio.sleep(self.startup_delay)
                             self.record("initialization_released")
+                        elif method == "tools/call":
+                            self.record("tool_request_received", request_id=value.id)
                         elif method == "notifications/cancelled":
                             self.record(
                                 "cancel_notification",

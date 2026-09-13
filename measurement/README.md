@@ -173,14 +173,19 @@ The report excludes connector names, document payloads and input paths, and bind
 runtime/.venv/bin/python -m measurement.desktop_timing --log /absolute/connector.log
 ~~~
 
-Exit 0 means the observed tool calls and initializations have paired endpoints, not that the tools succeeded.
+Format 2 uses log-boundary segment numbers, not process or conversation identities.
+Exit 0 reports observed_pairs_complete for all recognized requests, not tool success or complete session capture.
 Exit 1 reports incomplete pairing; missing durations stay null. Exit 2 refuses invalid input or incompatible message syntax.
 The supported format contains `Message from client: method="tools/call" id=N params` and `Message from server: id=N`.
 Use one connector log; concatenated or interleaved process logs cannot establish reliable sessions.
-Repeated IDs without initialization and backwards timestamps refuse. Notifications and unrelated log lines are ignored.
+Repeated IDs within a segment and backwards timestamps refuse. Initialization, transport close and shutdown delimit segments.
+Pending requests at a boundary make the report incomplete; their IDs remain ambiguous if reused later, with no inferred duration.
+Numeric client and server request IDs have separate namespaces. Requests at other log levels are included.
+Notifications and unrelated log lines are ignored. Logs without process IDs cannot establish transport identity even when all observed pairs exist.
 
-A 12-second interval includes transport and server work. It does not establish 12 seconds of PDF parsing.
+A 12-second interval includes transport and server work and may include approval waiting. It does not establish 12 seconds of PDF parsing.
 The compact host log does not identify the document or separate model loading, OCR, extraction and artifact writing.
 A gap between calls may include model work, tool approval, user interaction or separate questions.
+Approval may instead occur inside the interval; only an observed delayed-approval probe can locate it.
 The diagnostic therefore leaves document identity, parser time and complete answer time unknown, with token savings unmeasured.
 It does not enable verbose logging, change host settings or collect telemetry.

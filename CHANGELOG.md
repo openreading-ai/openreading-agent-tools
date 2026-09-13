@@ -1,5 +1,15 @@
 # Changelog
 
+## Probe correlation
+
+- Add UTC timestamps and transport receipt events to the synthetic host probe for native delayed-approval checks.
+
+## Timing and selection review
+
+- Mark timing segments as inferred log boundaries, count unpaired requests in both directions, and suppress ambiguous restart timings.
+- Restrict the proposed picker to fixed, argument-free UI and a busy response; require host deadline evidence before interaction acceptance.
+- Align the ChatGPT proposal with automatic OCR and chat-driven selection, and specify the trusted core provider seam and catalog comparison.
+
 ## Proposed public document experience
 
 - Revise the production contract to chat-driven local selection without reference copying and automatic local OCR.

@@ -55,7 +55,7 @@ Do not broaden the claim to ChatGPT generally or silently change the nondevelope
 
 ## E2. Startup, tool timeout, and discovery
 
-Blocks: supported release limits and nondeveloper setup feasibility.
+Blocks: supported release limits, A1 picker-inside-call acceptance, and nondeveloper setup feasibility.
 Test Claude Desktop, the E1-established local mode, Claude Code, and Codex CLI separately.
 Use actual default registration first; any changed timeout configuration is a different recorded route.
 
@@ -64,6 +64,11 @@ Probe tool delays of 30, 55, 65, 120, and 330 seconds, without progress and with
 Only send progress when the caller supplied a progress token.
 Stop an individual series once its relevant boundary and cleanup behavior are established; refine around that boundary rather than repeating pointless failures.
 Use finite external watchdogs and asynchronous monitoring so a long probe never blocks operator control.
+
+For approval placement, request one short probe_delay call with a unique nonce and deliberately wait before clicking Allow.
+Record the visible approval and click timestamps, the host compact request/response timestamps, and the probe's received/started/completed timestamps.
+Do not infer approval placement from a gap. It may fall inside a logged interval or before it, depending on the host.
+This requires native observation; an SDK client cannot prove the host's approval behavior.
 
 Record timeout error, cancellation notification, signals, surviving processes, and whether the host admits a later successful request.
 Distinguish absolute deadlines, inactivity deadlines, process initialization, and initial catalog grace.
