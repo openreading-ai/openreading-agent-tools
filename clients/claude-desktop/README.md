@@ -7,6 +7,13 @@ The Docling developer harness is implemented; the [assistant migration](../../de
 See the [client matrix](../README.md) for the limits of existing evidence.
 Existing setup commands and test results below do not establish revision 2 compatibility.
 
+## File-selection candidate
+
+The separate [file-selection guide](selection/README.md) uses **Choose document → Copy reference → Paste into chat**.
+Its generated manifest has only the OCR setting; it does not request a directory or replace existing connector settings.
+The frozen helper has been exercised with the native file dialog and direct MCP import/search/read on this development machine.
+This does not establish an installed assistant integration or clean-machine acceptance for the new package.
+
 ## Docling installation candidate
 
 The distinct `openreading-docling-local-preview` package uses the format-2 frozen runtime.

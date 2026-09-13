@@ -27,6 +27,7 @@ class PackagingTests(unittest.TestCase):
                         b"synthetic runtime",
                     )
                     self.assertFalse((path / "docling").exists())
+                    self.assertFalse((path / "selection").exists())
                     if client == "claude-desktop":
                         guide = (path / "README.md").read_text()
                         self.assertIn("Historical revision 1", guide)

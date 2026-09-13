@@ -5,7 +5,8 @@ remain unchanged. This command requires macOS arm64, explicit pre-downloaded lay
 assets and Tesseract inputs. It never downloads models or overwrites a prior build.
 The diagnostic profile remains 100 pages and 300 seconds; neither is a release promise.
 The emitted inventory includes Python source, distribution metadata, models, native
-libraries, traineddata, and configs/tsv. Publication and native-host support remain gated.
+libraries, traineddata, configs/tsv, picker sources, and Tcl/Tk resources.
+Publication, native accessibility and clean-machine support remain gated.
 """
 
 from __future__ import annotations
@@ -48,7 +49,7 @@ for name in ['openreading.adapters.docling_local', 'docling.datamodel', 'docling
 a = Analysis([{str(HERE / "entrypoint.py")!r}], pathex=[{str(HERE.parent)!r}],
     binaries=[], datas=datas, hiddenimports=hidden,
     excludes=['torch', 'torchvision', 'docling_ibm_models', 'pymupdf', 'fitz'],
-    module_collection_mode={{'openreading': 'pyz+py', 'docling': 'pyz+py', 'docling_core': 'pyz+py'}})
+    module_collection_mode={{'runtime': 'pyz+py', 'openreading': 'pyz+py', 'docling': 'pyz+py', 'docling_core': 'pyz+py'}})
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='openreading-worker', console=True, upx=False)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='openreading-worker')

@@ -5,12 +5,16 @@ use the separately pinned official CLI. No archive is signed or submitted automa
 The historical assembler refuses format-2 runtimes. An explicit Docling Desktop path
 assembles a development candidate for local installation checks, never a signed release.
 WORKFLOW.md is a review copy; actual model instructions come from the pinned core server.
+The selected-documents variant removes the directory setting and adds a co-located GUI app.
+Its wrapper starts the verified worker without user-controlled shell interpolation.
+The helper wrapper and plist have package hashes; signing remains a distribution gate.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import plistlib
 import shutil
 from pathlib import Path
 
@@ -35,7 +39,7 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
         shutil.copytree(
             REPOSITORY / "clients" / client,
             target,
-            ignore=shutil.ignore_patterns("docling", "historical"),
+            ignore=shutil.ignore_patterns("docling", "historical", "selection"),
         )
         if client == "claude-desktop":
             # The repository index describes newer candidates that this archive cannot run.
@@ -88,21 +92,77 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
     return paths
 
 
-def package_docling_desktop(runtime: Path, output: Path) -> Path:
+def package_docling_desktop(runtime: Path, output: Path, *, selection: bool = False) -> Path:
     metadata = verify_release(runtime)
     if metadata["format_version"] != "2":
         raise ValueError("The Desktop development candidate requires a Docling runtime.")
     if output.exists():
         raise ValueError("Choose a new package output directory.")
+    if selection and not {
+        "_internal/runtime/selection.py",
+        "_internal/_tcl_data/init.tcl",
+        "_internal/_tk_data/tk.tcl",
+    }.issubset(metadata["files"]):
+        raise ValueError("Rebuild the runtime with the file picker and bundled Tcl/Tk resources.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
     shutil.copytree(runtime, output / "server", symlinks=True)
     shutil.copy2(REPOSITORY / "skills/read-local-document/SKILL.md", output / "WORKFLOW.md")
     verify_release(output / "server")
+    helper_metadata = {}
+    if selection:
+        manifest = json.loads((output / "manifest.json").read_text())
+        manifest["name"] = "openreading-file-selection-preview"
+        manifest["display_name"] = "OpenReading Selected Documents (development)"
+        manifest["long_description"] = (
+            "Local file-selection development preview. Use the included OpenReading Choose Document app "
+            "to select a PDF, then copy its reference into chat. No directory configuration is required. "
+            "Selected source copies and evidence stay locally until removed. Retrieved evidence enters "
+            "your assistant context. OCR is optional and can misread printed text; verify important quotes "
+            "against the source page. This unsigned candidate does not establish public installation or token savings."
+            "\n\nOpenReading Managed: Coming soon\nDocument processing on OpenReading's servers, without managing local compute. Planned after the public OSS launch."
+        )
+        del manifest["user_config"]["input_root"]
+        manifest["server"]["mcp_config"]["args"] = [
+            "--client",
+            "claude-desktop",
+            "--selected-documents",
+            "--ocr",
+            "${user_config.ocr}",
+        ]
+        (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        shutil.copy2(
+            REPOSITORY / "clients/claude-desktop/selection/README.md", output / "README.md"
+        )
+        contents = output / "OpenReading Choose Document.app/Contents"
+        executable = contents / "MacOS/openreading-select"
+        executable.parent.mkdir(parents=True)
+        executable.write_text(
+            '#!/bin/sh\nset -eu\nbase=$(/usr/bin/dirname "$0")\nexec "$base/../../../server/openreading-worker" --client claude-desktop --select-document\n'
+        )
+        executable.chmod(0o755)
+        (contents / "Info.plist").write_bytes(
+            plistlib.dumps(
+                {
+                    "CFBundleExecutable": "openreading-select",
+                    "CFBundleIdentifier": "ai.openreading.selection.preview",
+                    "CFBundleName": "OpenReading Choose Document",
+                    "CFBundlePackageType": "APPL",
+                    "CFBundleVersion": "1",
+                    "CFBundleShortVersionString": "0.2.0",
+                    "NSHighResolutionCapable": True,
+                }
+            )
+        )
+        helper_metadata = {
+            "helper_sha256": sha256(executable),
+            "helper_info_sha256": sha256(contents / "Info.plist"),
+        }
     # Bind the review materials without claiming these hashes authenticate a publisher.
     (output / "package-info.json").write_text(
         json.dumps(
             {
                 "distribution": "development-only",
+                **helper_metadata,
                 "core_commit": metadata["core_commit"],
                 "worker_sha256": metadata["worker_sha256"],
                 "manifest_sha256": sha256(output / "manifest.json"),
@@ -124,10 +184,19 @@ def main() -> int:
         action="store_true",
         help="assemble only a development Docling Desktop candidate for local checks",
     )
+    parser.add_argument(
+        "--selected-documents",
+        action="store_true",
+        help="with --docling-desktop, assemble the separate file-picker development candidate",
+    )
     args = parser.parse_args()
+    if args.selected_documents and not args.docling_desktop:
+        parser.error("--selected-documents requires --docling-desktop")
     if args.docling_desktop:
         paths = {
-            "claude-desktop": package_docling_desktop(args.runtime.resolve(), args.output.resolve())
+            "claude-desktop": package_docling_desktop(
+                args.runtime.resolve(), args.output.resolve(), selection=args.selected_documents
+            )
         }
     else:
         paths = package_clients(args.runtime.resolve(), args.output.resolve())

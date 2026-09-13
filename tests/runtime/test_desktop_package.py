@@ -3,6 +3,7 @@
 import contextlib
 import io
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -117,3 +118,89 @@ class DesktopPackageTests(unittest.TestCase):
             paths = json.loads(output.getvalue())
             self.assertEqual(set(paths), {"claude-desktop"})
             self.assertTrue((Path(paths["claude-desktop"]) / "manifest.json").is_file())
+
+    def test_selection_package_requires_picker_runtime_and_has_no_directory_setting(self):
+        source = self.fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "selection"
+            with self.assertRaises(ValueError):
+                package.package_docling_desktop(source.root, target, selection=True)
+            self.assertFalse(target.exists())
+            for name in (
+                "_internal/runtime/selection.py",
+                "_internal/_tcl_data/init.tcl",
+                "_internal/_tk_data/tk.tcl",
+            ):
+                path = source.root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("synthetic picker resource")
+            source.metadata["files"] = inventory(source.root)
+            source.write_metadata()
+            package.package_docling_desktop(source.root, target, selection=True)
+            manifest = json.loads((target / "manifest.json").read_text())
+            self.assertEqual(set(manifest["user_config"]), {"ocr"})
+            self.assertEqual(
+                manifest["server"]["mcp_config"]["args"],
+                [
+                    "--client",
+                    "claude-desktop",
+                    "--selected-documents",
+                    "--ocr",
+                    "${user_config.ocr}",
+                ],
+            )
+            self.assertEqual(manifest["name"], "openreading-file-selection-preview")
+            resolved = subprocess.run(
+                [
+                    "node",
+                    "--input-type=module",
+                    "-e",
+                    """
+import {getMcpConfigForManifest} from '@anthropic-ai/mcpb';
+let text=''; for await (const chunk of process.stdin) text+=chunk;
+const manifest=JSON.parse(text), results=[];
+for (const ocr of [false,true]) results.push(await getMcpConfigForManifest({
+ manifest, extensionPath:"/installed/Unicode 界 space ' $(echo forbidden) ; *",
+ systemDirs:{}, userConfig:{ocr}, pathSeparator:"/"}));
+console.log(JSON.stringify(results));
+""",
+                ],
+                input=json.dumps(manifest),
+                text=True,
+                capture_output=True,
+                check=True,
+                cwd=package.REPOSITORY,
+            )
+            for enabled, config in zip((False, True), json.loads(resolved.stdout), strict=True):
+                self.assertEqual(
+                    config["args"],
+                    [
+                        "--client",
+                        "claude-desktop",
+                        "--selected-documents",
+                        "--ocr",
+                        str(enabled).lower(),
+                    ],
+                )
+                self.assertEqual(
+                    config["command"],
+                    "/installed/Unicode 界 space ' $(echo forbidden) ; */server/openreading-worker",
+                )
+
+            self.assertIn("Choose", (target / "README.md").read_text())
+            helper = target / "OpenReading Choose Document.app/Contents/MacOS/openreading-select"
+            self.assertTrue(helper.stat().st_mode & 0o111)
+            self.assertIn("--select-document", helper.read_text())
+            info = json.loads((target / "package-info.json").read_text())
+            self.assertEqual(info["helper_sha256"], sha256(helper))
+
+    def test_selection_cli_requires_explicit_docling_package_mode(self):
+        with (
+            patch(
+                "sys.argv", ["package", "--runtime", "r", "--output", "o", "--selected-documents"]
+            ),
+            contextlib.redirect_stderr(io.StringIO()),
+            self.assertRaises(SystemExit) as error,
+        ):
+            package.main()
+        self.assertEqual(error.exception.code, 2)

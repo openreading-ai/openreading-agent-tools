@@ -104,7 +104,30 @@ No evidence here establishes thousand-page support or token savings.
 The [isolated feasibility harness](feasibility/README.md) targets revision 2 independently of the historical runtime.
 The revision 1 runtime pin remains unchanged until client and bundle migration checks pass.
 
-## Version 2 configuration and launcher
+## File-selection development candidate
+
+The [selection guide](../clients/claude-desktop/selection/README.md) describes the separate picker package.
+Its connector asks only about optional OCR. Choosing a document needs no source-directory configuration.
+The frozen launcher has two format-2 entry points:
+
+~~~sh
+/absolute/runtime/openreading-worker --client claude-desktop --select-document
+/absolute/runtime/openreading-worker --client claude-desktop --selected-documents --ocr false
+~~~
+
+The first opens the picker. The second serves completed copies from the private intake over MCP.
+Both reject `--configure` and `--input-root`; the picker also rejects OCR arguments.
+Neither reads or replaces the existing saved directory configuration.
+The helper supplies bytes through [selection.py](selection.py); core still owns parsing and evidence.
+A reference contains a random entry name and the original filename, never the source directory.
+Copies use mode 0600 inside mode-0700 directories and publish by an atomic directory rename.
+The ready directory is the only input grant; staging and the publisher lock remain outside it.
+The 25 MiB file limit and 512 MiB copy quota are separate from the artifact quota.
+Catchable failures remove current staging. Forced termination can leave private unfinished data counted against quota.
+Copies persist across launches. Removing a selected copy does not erase retained artifacts or excerpts.
+The selection guide records the remaining accessibility and public installation checks.
+
+## Version 2 developer directory configuration and launcher
 
 A verified format-2 bundle selects `local-document-proof-v2` and its bundled Docling assets.
 The configuration selects a document directory and OCR; it cannot select another backend or a hosted endpoint.

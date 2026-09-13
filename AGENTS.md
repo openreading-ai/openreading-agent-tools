@@ -11,6 +11,7 @@ The revision 2 developer feasibility harness and corpus/retrieval gate are imple
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
 The core candidate implements local Docling supervision; a distinct Desktop development packager is implemented.
+The separate file-selection candidate bundles a Tk picker and a private intake launcher without directory settings.
 Native installation acceptance and signed distribution remain pending.
 Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
 No public binary or measured token savings are released.
@@ -23,7 +24,8 @@ Historical prototype revision 1, version 2 settings and `local-document-proof-v2
 Expose every implemented MCP tool from the pinned core release, with no commercial subset.
 The reviewed candidate has import, search and read; planned core MCP operations are not already implemented.
 Core pin changes require full catalog parity and functional cases before release.
-Public installation requires no directory-path configuration; per-file local handoff is an unbuilt release gate.
+Public installation requires no directory-path configuration. A per-file picker and private intake are implemented as a development candidate.
+Native accessibility, installation and clean-machine acceptance still gate that public route.
 Existing directory forms and explicit grants remain developer-only mechanisms.
 Keep the bundled slim Docling runtime and no alternative local backend or server manager.
 A power user's independent full-core MCP connection remains outside this package's configuration.

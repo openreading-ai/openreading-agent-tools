@@ -152,3 +152,4 @@ class DoclingBuildTests(unittest.TestCase):
         self.assertIn("plugin.discovered_from_metadata", analyses[0]["hiddenimports"])
         self.assertIn(("metadata", "destination"), analyses[0]["datas"])
         self.assertEqual(analyses[0]["module_collection_mode"]["openreading"], "pyz+py")
+        self.assertEqual(analyses[0]["module_collection_mode"]["runtime"], "pyz+py")

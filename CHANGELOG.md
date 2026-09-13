@@ -21,6 +21,11 @@
 
 ## Unreleased
 
+- Add a separate local file-picker candidate with a private, bounded intake and copyable chat references.
+- Bundle picker resources and remove directory configuration from that candidate while preserving existing developer and historical launchers.
+- Test selection failure, cancellation, source changes, publication, retention and official MCPB argument resolution.
+- Keep public installation and accessibility acceptance separate from the demonstrated native picker and local MCP handoff.
+
 - Record partial Claude Desktop installation, native-text and OCR observations, with fresh-chat guidance after settings changes.
 
 - Add a distinct Docling Desktop development candidate with an explicit directory and default-off OCR form.

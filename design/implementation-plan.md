@@ -123,12 +123,17 @@ Acceptance: AC-1, AC-2, AC-3, AC-14 and AC-25. Owner: Agent Tools maintainer; Ak
 Contract: public file selection in [the assistant design](assistant-clients.md#public-file-selection-proposed-a0-contract).
 This is required before public setup implementation and acceptance, while existing developer protocol checks may continue.
 
-- [ ] Observe a host-local file handoff or prototype the helper picker and copyable reference using synthetic files, without provider API calls.
-- [ ] Freeze the reference format, private intake publication, byte limits, source identity handoff, retention and removal rules before implementation.
+- [x] Observe a host-local file handoff or prototype the helper picker and copyable reference using synthetic files, without provider API calls.
+- [x] Freeze the reference format, private intake publication, byte limits, source identity handoff, retention and removal rules before implementation.
 - [ ] Confirm no installation step requests a directory, broad filesystem grant or path configuration; never infer local attachment access from a chat upload button.
-- [ ] Implement the selected thin helper/handoff under the existing coverage gate, preserving core parsing and evidence ownership.
-- [ ] Test cancelled/invalid selection, unselected paths, traversal, symlinks, duplicate names, source mutation, disk failure, size caps, restart and cleanup.
-- [ ] Inventory and sign any helper alongside the runtime, then repeat native and clean-machine walkthroughs using the public selection route.
+- [x] Implement the selected thin helper/handoff under the existing coverage gate, preserving core parsing and evidence ownership.
+- [x] Test cancelled/invalid selection, unselected paths, traversal, symlinks, duplicate names, source mutation, disk failure, size caps, restart and cleanup.
+- [x] Inventory helper sources and GUI resources; bind the wrapper and plist in package metadata.
+- [ ] Resolve native accessibility and pointer interaction before accepting the non-developer walkthrough.
+- [ ] Integrate and sign the helper alongside the runtime, then repeat native and clean-machine walkthroughs using the public selection route.
+
+The [implemented selection guide](../clients/claude-desktop/selection/README.md) owns the development behavior and tests.
+Native picker plus direct MCP evidence does not mark the public setup or assistant-conversation checks complete.
 
 If neither local route works in the named host, stop that host's public launch. Directory setup does not satisfy AC-2.
 The existing developer form is retained for diagnostics; no candidate or historical native record is retroactively marked compliant.

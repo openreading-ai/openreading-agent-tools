@@ -106,3 +106,52 @@ class EntrypointTests(unittest.TestCase):
             self.assertEqual(main(["--version"]), 2)
             verify.assert_not_called()
             self.assertIn("packaged", output.getvalue())
+
+    def test_selection_server_uses_private_intake_without_overwriting_saved_grants(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            client = root / "Library/Application Support/OpenReading/agent-tools/claude-desktop"
+            (client / "v2").mkdir(parents=True)
+            saved = [client / "config.json", client / "v2/config.json"]
+            for path in saved:
+                path.write_bytes(b"existing settings must not be read or replaced")
+            with (
+                patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
+                patch("pathlib.Path.home", return_value=root),
+                patch("runtime.docling_profile.launch", return_value=0) as launch,
+            ):
+                self.assertEqual(
+                    main(["--client", "claude-desktop", "--selected-documents", "--ocr", "false"]),
+                    0,
+                )
+                args = launch.call_args.args[0]
+                self.assertEqual(
+                    args.input_root,
+                    root
+                    / "Library/Application Support/OpenReading/agent-tools/claude-desktop/v2/selection/ready",
+                )
+                self.assertTrue(args.input_root.is_dir())
+                for path in saved:
+                    self.assertEqual(
+                        path.read_bytes(), b"existing settings must not be read or replaced"
+                    )
+                for forbidden in (["--input-root", str(root)], ["--configure"]):
+                    with contextlib.redirect_stderr(io.StringIO()):
+                        self.assertEqual(
+                            main(
+                                ["--client", "claude-desktop", "--selected-documents", *forbidden]
+                            ),
+                            2,
+                        )
+
+    def test_picker_dispatch_has_no_source_or_settings_override(self):
+        with (
+            patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
+            patch("runtime.selection_ui.run", return_value=0) as picker,
+        ):
+            self.assertEqual(main(["--client", "claude-desktop", "--select-document"]), 0)
+            picker.assert_called_once()
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(
+                    main(["--client", "claude-desktop", "--select-document", "--ocr", "true"]), 2
+                )

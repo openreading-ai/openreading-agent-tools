@@ -72,29 +72,18 @@ The `chatgpt` storage label still proves no ChatGPT conversation support; E1 rem
 
 ### Public file selection, proposed A0 contract
 
-Use an explicit local file picker or a verified host file handoff, one document at a time.
-Prefer a host route only after observing that it supplies local bytes without uploading the whole file first.
-An ordinary chat attachment supplies no such guarantee. No supported attachment route has been established here.
-The fallback candidate is a small OpenReading helper with a native file picker and a copyable document reference.
-The user selects a file and pastes its returned reference into chat; no source directory or filesystem configuration is entered.
-This helper route also needs native usability evidence before selection as the public route.
+The thin helper and byte handoff are implemented in [the selection guide](../clients/claude-desktop/selection/README.md) and [runtime.selection](../runtime/selection.py).
+The reference format, atomic publication, quotas, permissions and removal behavior now live beside that implementation.
+The directory candidate stays developer-only; its historical records do not satisfy the public setup criteria.
 
-The helper copies only the selected regular file into a private OpenReading-owned intake root beneath the client's existing v2 data directory.
-It supplies that root internally through the existing closed configuration interface, retaining the original display filename within a unique entry directory.
-No home-directory default, containing-folder grant, model-supplied source path, or recursive discovery is permitted.
-A bounded copy enforces the byte cap before publication; incomplete staging is inaccessible to import and removed on recoverable failure.
-Core still owns source hashing, parsing, artifact identity and evidence. The helper owns selection and byte handoff only.
-The model receives an intake reference after successful selection, not authority to select arbitrary local files.
-An empty private intake root allows registration without user documents; missing or invalid internal configuration still refuses startup.
-Cancelling selection starts no import and changes no earlier selection or settings.
-Copies and extracted artifacts remain local until explicitly removed; removing intake must not falsely claim deletion of already retained artifacts.
-No selection revokes excerpts already delivered to the assistant, and no claim confines the assistant's other tools.
-
-Before implementation, freeze the reference shape, publication boundary, permissions, retention/removal behavior and native host delivery route in A0.
-Exercise duplicate names, Unicode, source replacement during copy, symlinks, oversized files, full disks, cancelled selection, restart and cleanup.
-Do not change core intake schemas implicitly to accommodate the helper; any required core change gets its own reviewed contract.
-Keep the source copy and OCR disclosures before selection, with OCR controlled by the user and off by default.
-Version 2 settings and revision 1 settings remain separate; no historical artifact or candidate evidence is renamed.
+No host-local attachment route has been established. The helper uses an explicit per-file picker and copyable reference instead.
+The development prototype needs a reliable, accessible native walkthrough before this becomes the public route.
+Fix or replace the inaccessible Tk controls before claiming non-developer setup acceptance.
+Integrate the helper with a signed install location so users never manage its relative path to the runtime.
+Retain explicit removal and storage disclosures; the current session-only removal control needs usability review for older copies.
+Repeat native setup, OCR selection, cancellation and full conversation capture with the packaged route on a clean machine.
+Do not change core intake schemas implicitly or infer local attachment access from an ordinary chat upload button.
+If the selected host cannot support this local route, stop its public release rather than returning to directory configuration.
 
 ### Host-shared settings
 
