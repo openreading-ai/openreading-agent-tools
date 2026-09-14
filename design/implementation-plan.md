@@ -1,7 +1,7 @@
-# Revision 10 implementation plan
+# Revision 11 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 10](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 11](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
@@ -96,13 +96,15 @@ Other common implementation work can continue without that unsupported claim.
 
 ## D0. Complete normalized result acceptance
 
-Core commit `25c15c4` implements complete retained normalized retrieval. Search remains optional.
+Core commit `fab92ad` implements complete retained normalized retrieval. Search remains optional.
 
 - [x] Refresh the Docling candidate and P0 pins together, retaining historical revision 1.
 - [x] Rebuild and validate all five tools against the same-profile core catalog.
 - [x] Verify whole-result reconstruction, OCR origins and exact code preservation through the frozen runtime.
 - [x] Rerun retrieval and restart checks on the new pin.
-- [ ] Capture a native Claude conversation that reads the complete result and cites the synthetic image-only code.
+- [ ] Capture the small native Claude OCR-code case with an exact citation.
+- [ ] Separately capture a larger native result requiring multiple replies at the shipped cap. Record every continuation, terminal null, reply count, actual approval prompts, complete answer and exact citations.
+- [ ] Check retrieval choice in native conversations: focused questions avoid an unrequested full continuation; explicit whole-document tasks continue without repeated scope confirmation.
 
 These tasks implement AC-30. Parser omissions remain visible; no neighboring-block inference or parser switch is added.
 

@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 9 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
+**Status:** revision 11 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -8,7 +8,7 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 9 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 11 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and automatically selected local Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
@@ -136,8 +136,9 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 
 | Case | Required result |
 | --- | --- |
-| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently four tools). |
-| Factual question | Import, search, and read precede a correct answer with an exact quote and physical page. |
+| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently five tools). |
+| Factual question | Import, complete normalized retrieval or optional search, and exact read precede a correct answer with an exact quote and physical page. |
+| Multi-reply full retrieval | A registered larger fixture requires at least two replies at the shipped cap; capture every continuation, terminal null, reply count, actual approval prompts and a correct final citation. Do not substitute the small OCR-code case. |
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |
 | Missing fact | The answer states the evidence limitation without turning empty search into proof of absence. |
 | Document instructions | Retrieved instructions cause no unrelated file access or external upload. |

@@ -1,8 +1,8 @@
 # OSS launch v1 and the Coming soon boundary
 
-Status: ProductSpec revision 9 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
-Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-29.
-Execution order: A0, C0 and N3 in the [implementation plan](implementation-plan.md).
+Status: ProductSpec revision 11 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
+Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-30.
+Execution order: A1, D0, C0 and N3 in the [implementation plan](implementation-plan.md).
 
 ## Product versions and ownership
 
@@ -20,17 +20,17 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `b03a6606` implements:
+The current candidate `fab92ad` implements:
 
 | Tool | Required behavior |
 | --- | --- |
 | `openreading_import` | Retain the requested granted document, return a bounded receipt, and preserve explicit core refusals. |
+| `openreading_get_document` | Return the complete retained normalized result through byte-bounded continuation, excluding the raw provider envelope. |
 | `openreading_search` | Search retained evidence with the documented literal retrieval contract, exact excerpts and cursors. |
 | `openreading_read` | Resolve returned evidence identifiers to bounded exact passages and source provenance. |
-
 | `openreading_select_document` | Return a locally selected reference through a trusted provider, or explicitly refuse when absent. |
 
-The current catalog is four tools. Four is not a permanent commercial limit.
+The current catalog is five tools. Five is not a permanent commercial limit.
 A future pin must include every additional implemented core tool before that pin can ship in Agent Tools.
 Do not advertise MCP parse, compare, strategy, folder or job operations merely because related CLI/HTTP operations exist.
 Do not invent placeholder tools for operations core has not implemented.
@@ -56,16 +56,21 @@ Record the core release/commit, effective profile, runtime hash and comparison r
 
 Compare names, input/output schemas where declared, annotations and declared capabilities strictly after documented host name qualification.
 Compare model-facing descriptions and initialization instructions against the pinned core's output for that same profile, including OCR off and on.
-The current core changes import/read descriptions for Docling; its initialization instructions are shared across profiles. Both fields still need capture to detect future regressions.
+The current core changes import/read descriptions for Docling; selection-provider availability also changes descriptions and initialization instructions. Both fields still need capture to detect future regressions.
 Do not compare default PyMuPDF prose against Docling prose, remove these fields from comparison, or blanket-allow all description differences.
 Manifest installation summaries may differ in wording, but must agree on tools, engine, limits, OCR and data disclosure. They are not necessarily the descriptions sent to the model.
 Any host-added prefix or instruction wrapper must be specifically recorded; the core instructions and shared workflow must still be delivered and agree with the selected configuration.
 
-Reuse existing import/search/read success, refusal and citation cases; add only missing coverage or cases for newly implemented core tools.
+Reuse existing selection/import/full-document/search/read success, refusal and citation cases; add only missing coverage or cases for newly implemented core tools.
 Use regression tests for missing manifest tools, changed contracts, wrong profile descriptions and missing initialization instructions within the existing coverage gate.
 Do not require a sibling checkout or network access in the offline gate.
 The final package still needs complete coverage before release. Calling this a pin-update gate does not exempt the first release or permit shipping a filtered catalog.
 A moving branch name cannot replace immutable provenance: keep existing candidate hashes, then record the released tag/version and resolved commit separately when R0 completes.
+
+D0 requires two native cases: the small image-only code check and a separately registered larger result that needs multiple replies at the shipped byte cap.
+Record actual reply counts, completion through a null cursor, observed approval prompts and the final citations. A one-reply fixture cannot satisfy continuation acceptance.
+Choose retrieval by task and observed scope. Full retrieval stays available without mandatory search; an explicitly requested complete read does not need repeated approval of that choice.
+Page and passage counts are rough signals only. Tool calls, JSON bytes, host approvals and model tokens are different measurements.
 
 ## Static Coming soon visual
 

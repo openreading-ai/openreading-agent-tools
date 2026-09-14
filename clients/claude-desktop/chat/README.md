@@ -9,7 +9,7 @@ Native focus, accessibility, installation and cancellation acceptance remain to 
 
 Ask: "Use OpenReading to choose a local document, then find its totals."
 Approve the selection tool if your host asks. Choose one PDF in "OpenReading: Choose one PDF".
-The assistant imports the returned reference, searches evidence and reads passages with physical page citations.
+The assistant imports the reference, retrieves requested content, and reads exact passages for physical page citations.
 Ordinary chat attachments still follow the host's upload path; this tool does not intercept them.
 
 Use **Cancel** in the OS dialog for the cancellation check. Selection and copying have a 120-second deadline.
@@ -48,12 +48,24 @@ The launcher now sets the pinned runtime's startup opt-out; it does not delete e
 The frozen smoke checks a fresh home for unexpected persistence, with network access denied.
 This check does not establish whether earlier builds transmitted events or prove installed-host network behavior.
 
-The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+The `25c15c4` candidate introduced `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
 Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
 The profile still controls available channels, including its table limitations.
 Updated frozen and native checks remain separate from the historical observations above.
 
-The September 14 frozen check reconstructed the synthetic OCR-code result and preserved its exact page-2 citation.
+The September 14 frozen check at core `25c15c4` reconstructed the synthetic OCR-code result and preserved its exact page-2 citation.
 The larger two-page synthetic 1040 required 66 replies and reconstructed all 549,055 bytes of retained normalized content.
 Both page-2 amounts survived. This is direct MCP with staged intake, not a native chooser or Claude answer.
 The repeated-call cost in native chat remains unmeasured. Complete transport is not complete host acceptance.
+
+The follow-up candidate pins core `fab92ad` and fills replies by bytes instead of stopping at 32 fragments.
+Its frozen 1040 check returns the same 549,055-byte content in 10 replies rather than 66.
+The small OCR-code case still takes one reply and preserves its exact page-2 code and origin.
+Both checks also compare all returned evidence, page origins and warnings with retained records.
+Native acceptance needs both cases: the OCR answer and a multi-reply read through the final null cursor.
+Record actual approval prompts separately from protocol reply counts.
+
+The shared workflow matches retrieval to the request. Whole-document requests authorize full continuation;
+focused questions can use search and exact reads. Counts of pages and passages are not token measurements.
+`WORKFLOW.md` is a review copy, not proof that Claude receives those skill instructions.
+Core supplies the model-facing instructions; retrieval choice still needs native observation.

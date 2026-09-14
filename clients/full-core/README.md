@@ -4,7 +4,7 @@ This is the power-user route for managing your own OpenReading installation and 
 It does not use the Agent Tools bundle or add settings to that bundle.
 You manage Python, dependencies, model assets and updates yourself.
 
-Status: configuration below is checked against the current candidate contract at core `25c15c42365af491f83e098856756076e270bc10`.
+Status: configuration below is checked against the current candidate contract at core `fab92ad02f92c187b28cf857735a6a55dc210ac4`.
 The released-version installation and native walkthrough remain R1 acceptance work in the [implementation plan](../../design/implementation-plan.md).
 Replace `<released-version>` with the merged core release selected by R0 before running the installation recipe or publishing it as release instructions.
 This guide does not imply that the candidate's MCP features are already on PyPI.
@@ -113,7 +113,7 @@ Use separate names and artifact directories when retaining the bundled connector
 A native ChatGPT connection remains conditional on its named-mode check; do not assume this JSON is accepted by every assistant.
 
 The grant and artifact directories must be absolute and separate. Create the document directory before launch.
-The grant confines OpenReading tools, not other assistant tools. Retrieved excerpts enter the assistant's context.
+The grant confines OpenReading tools, not other assistant tools. Requested document content enters the assistant's context.
 The current profiles require POSIX; no Windows support is established by these commands.
 
 ## Check and remove the connection
@@ -129,7 +129,7 @@ Removing the host entry does not delete those files automatically.
 
 R1 must record the released version, lock, host/version/mode, profile, discovery, cited answer and refusal before calling this a verified release walkthrough.
 
-The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+The `25c15c4` candidate introduced `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
 Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
 The profile still controls available channels, including its table limitations.
 Updated frozen and native checks remain separate from the historical observations above.

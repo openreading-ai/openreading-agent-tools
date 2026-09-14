@@ -132,6 +132,8 @@
 
 ## [Unreleased]
 
+- Pack complete-document replies by bytes through the refreshed core pin. Match retrieval scope to the request and require a separate native continuation check.
+
 ### Changed
 
 - ProductSpec revision 2 replaces the proposed distributed PyMuPDF profile with Docling, ONNX layout, PDFium, and setup-only Tesseract.

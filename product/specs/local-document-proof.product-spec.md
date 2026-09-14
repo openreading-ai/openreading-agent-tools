@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 10
+spec_revision: 11
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-14T00:00:00Z"
@@ -82,7 +82,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 10 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 11 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -101,7 +101,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `25c15c4` adds `openreading_get_document` alongside import, search, read and local selection.
+The candidate pin `fab92ad` adds `openreading_get_document` alongside import, search, read and local selection.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -218,7 +218,7 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 10 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 11 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
@@ -237,7 +237,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-1
   criterion: On the recorded macOS Apple Silicon test environment without user-installed Python, pip, uv, Homebrew, Node, or Docker, Claude Desktop installs or connects to the supplied runtime and completes the synthetic cited-answer walkthrough without a terminal server.
 - id: AC-2
-  criterion: Public installation never asks for a directory or filesystem-path configuration; a verified local picker or handoff authorizes each selected file, discloses retained copies, the local layout model and shared excerpts, and automatically applies local OCR without a required setup choice or manual reference copying; cancelled or invalid selection imports nothing, failed settings replacement preserves valid configuration, and internally generated version 2 settings coexist with untouched revision 1 settings.
+  criterion: Public installation never asks for a directory or filesystem-path configuration; a verified local picker or handoff authorizes each selected file, discloses retained copies, the local layout model and shared document content, and automatically applies local OCR without a required setup choice or manual reference copying; cancelled or invalid selection imports nothing, failed settings replacement preserves valid configuration, and internally generated version 2 settings coexist with untouched revision 1 settings.
 - id: AC-3
   criterion: Public import reads one explicitly selected regular file through an OpenReading-owned intake root, refuses unselected source paths, traversal and symlink escapes, and never grants the containing folder; model tool arguments cannot create or widen a source grant.
 - id: AC-4
@@ -293,7 +293,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-29
   criterion: OSS launch v1 works with no OpenReading account, service configuration or managed component; its bundle contains no managed endpoint, stub, authentication, upload, billing, polling or dormant managed tools, while a separately installed full core remains usable through the assistant's own MCP configuration and no alternative local backend manager is added.
 - id: AC-30
-  criterion: The frozen runtime exposes core complete-document retrieval without raw provider payloads or mandatory search; continuation preserves every retained normalized value, warning, origin and citation reference, and a named native-host check follows all continuations and cites the image-only verification code without claiming perfect OCR or token savings.
+  criterion: The frozen runtime exposes core complete-document retrieval without raw provider payloads or mandatory search; continuation preserves every retained normalized value, warning, origin and citation reference, and named native-host checks separately cite the image-only verification code and complete a registered larger result requiring multiple replies at the shipped cap, recording all continuations, terminal null, actual reply counts and approval prompts without claiming perfect OCR or token savings.
 ~~~
 
 ~~~productspec-ai-evals
@@ -313,7 +313,8 @@ The runtime evidence table describes historical revision 1 checks only; changed 
     - Preserve measurement/corpus.json and its hashes; expected answers and pages come from frozen task IDs.
     - The offline citation checker binds identifiers, pages, exact quotes, and observed tool calls; human review judges semantic support.
     - Search absence is not presented as proof that the complete document lacks a fact.
-    - For AC-30, use a separately registered synthetic OCR-code fixture and capture selection, import, complete normalized retrieval and exact citation read. Bind the printed code and source hash before the run. A source or frozen stdio check cannot substitute for the native answer.
+    - A focused task does not silently start an unrequested full continuation; an explicit complete-read request continues without repeated scope confirmation. Page/passage counts are rough signals only, and no model-token estimate is claimed from them.
+    - For AC-30, register two cases before the native run: the small synthetic OCR-code PDF and a larger synthetic result verified to need at least two replies at the shipped byte cap. Bind source hashes, expected page facts and the printed code. Capture selection, import, every full-result reply, final null cursor, exact read and the native answer. Record reply counts and actual approval prompts separately; a source or frozen stdio run and a one-reply result cannot substitute for native continuation acceptance.
 - id: EVAL-2
   type: human_review
   evaluator: human
@@ -350,7 +351,7 @@ The owner records observations in the private company repository.
   window: Within the respective 7-day and 14-day windows after the first successful answer
 - id: SM-3
   metric: Pilot participants correctly identifying what document information reaches the assistant
-  target: All 10 pilot participants distinguish local extraction from shared excerpts
+  target: All 10 pilot participants distinguish local extraction from content shared with the assistant
   target_status: committed
   window: At the end of the first pilot session
 ~~~

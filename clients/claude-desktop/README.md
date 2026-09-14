@@ -39,7 +39,7 @@ The package records runtime identity plus manifest/workflow hashes and preserves
 `WORKFLOW.md` is a review copy; the pinned core supplies the actual MCP initialization instructions.
 No skill-delivery claim follows from copying that file into an archive.
 
-The current candidate pins core `25c15c42365af491f83e098856756076e270bc10`, including the optional local selection tool.
+The current candidate pins core `fab92ad02f92c187b28cf857735a6a55dc210ac4`, including the optional local selection tool.
 Its dependency versions and Docling integration remain unchanged from the preceding candidate.
 The packed/unpacked archive passes native/OCR imports, warm reuse, restart, exact citations and same-profile catalog/instruction comparison against direct core.
 This is development-machine protocol evidence, not a Desktop conversation or clean-machine pass.
@@ -158,7 +158,7 @@ Build it with `runtime.package --docling-desktop --chat-documents` against the c
 It returns the selected reference through core's MCP tool and enables local OCR automatically.
 Existing installed development extensions and native observations remain tied to their original binaries.
 
-The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+The `25c15c4` candidate introduced `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
 Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
 The profile still controls available channels, including its table limitations.
 Updated frozen and native checks remain separate from the historical observations above.
