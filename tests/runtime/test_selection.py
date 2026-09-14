@@ -40,6 +40,21 @@ class SelectionTests(unittest.TestCase):
         self.assertFalse(selected.exists())
         self.assertTrue((store.grant / second.reference).exists())
 
+    def test_large_selection_has_no_file_or_accumulated_storage_quota(self):
+        m = self.module()
+        store = m.SelectionStore("claude-desktop", home=self.root / "home")
+        old = store.select(self.source)
+        with (store.grant / old.reference).open("r+b") as stream:
+            stream.truncate(513 * 1024**2)
+        with self.source.open("wb") as stream:
+            stream.write(b"%PDF-1.4\n")
+            stream.truncate(30 * 1024**2)
+        selected = store.select(self.source)
+        self.assertEqual(selected.length, 30 * 1024**2)
+        self.assertEqual((store.grant / selected.reference).stat().st_size, selected.length)
+        self.assertTrue((store.grant / old.reference).exists())
+        self.assertEqual(list(store.staging.iterdir()), [])
+
     def test_unselected_paths_symlinks_and_nonregular_files_are_refused(self):
         m = self.module()
         store = m.SelectionStore("claude-desktop", home=self.root / "home")
@@ -70,14 +85,11 @@ class SelectionTests(unittest.TestCase):
                 store.remove(reference)
         self.assertEqual(self.source.read_bytes(), b"%PDF-1.4\nsynthetic\n")
 
-    def test_caps_cancellation_and_write_failure_never_publish_partial_copies(self):
+    def test_cancellation_and_write_failure_never_publish_partial_copies(self):
         from unittest.mock import patch
 
         m = self.module()
         store = m.SelectionStore("claude-desktop", home=self.root / "home")
-        for keyword, value in (("MAX_FILE_BYTES", 4), ("MAX_SELECTION_BYTES", 4)):
-            with patch.object(m, keyword, value), self.assertRaises(m.SelectionError):
-                store.select(self.source)
         for size in (0,):
             empty = self.root / "empty.pdf"
             empty.write_bytes(b"" * size)
@@ -181,13 +193,12 @@ class SelectionTests(unittest.TestCase):
             store.clear()
         self.assertTrue(self.source.exists())
 
-    def test_growing_source_hits_streaming_limit_before_publication(self):
+    def test_growing_source_is_refused_before_publication(self):
         from unittest.mock import patch
 
         m = self.module()
         store = m.SelectionStore("claude-desktop", home=self.root / "home")
         read = m.os.read
-        initial = self.source.stat().st_size
         changed = False
 
         def grow(fd, size):
@@ -199,35 +210,27 @@ class SelectionTests(unittest.TestCase):
             return read(fd, size)
 
         with (
-            patch.object(m, "MAX_FILE_BYTES", initial),
             patch.object(m.os, "read", side_effect=grow),
-            self.assertRaisesRegex(m.SelectionError, "while being copied"),
+            self.assertRaisesRegex(m.SelectionError, "changed while being copied"),
         ):
             store.select(self.source)
         self.assertEqual(list(store.grant.iterdir()), [])
         self.assertEqual(list(store.staging.iterdir()), [])
 
-    def test_full_store_can_be_cleared_from_a_new_session(self):
-        from unittest.mock import patch
-
+    def test_retained_copies_can_be_cleared_from_a_new_session(self):
         m = self.module()
         store = m.SelectionStore("claude-desktop", home=self.root / "home")
-        with patch.object(m, "MAX_SELECTION_BYTES", self.source.stat().st_size * 2):
-            store.select(self.source)
-            store.select(self.source)
-            reopened = m.SelectionStore("claude-desktop", home=self.root / "home")
-            with self.assertRaisesRegex(m.SelectionError, "storage is full"):
-                reopened.select(self.source)
-            artifact = store.root.parent / "artifacts/keep"
-            artifact.parent.mkdir()
-            artifact.write_bytes(b"retained evidence")
-            self.assertEqual(reopened.clear(), 2)
-            self.assertEqual(artifact.read_bytes(), b"retained evidence")
-            self.assertEqual(self.source.read_bytes(), b"%PDF-1.4\nsynthetic\n")
-            self.assertTrue((store.grant / reopened.select(self.source).reference).exists())
+        store.select(self.source)
+        store.select(self.source)
+        reopened = m.SelectionStore("claude-desktop", home=self.root / "home")
+        artifact = store.root.parent / "artifacts/keep"
+        artifact.parent.mkdir()
+        artifact.write_bytes(b"retained evidence")
+        self.assertEqual(reopened.clear(), 2)
+        self.assertEqual(artifact.read_bytes(), b"retained evidence")
+        self.assertTrue((store.grant / reopened.select(self.source).reference).exists())
 
     def test_abandoned_staging_is_reclaimed_only_by_a_publisher(self):
-        from unittest.mock import patch
 
         m = self.module()
         store = m.SelectionStore("claude-desktop", home=self.root / "home")
@@ -238,8 +241,7 @@ class SelectionTests(unittest.TestCase):
             with self.assertRaisesRegex(m.SelectionError, "in progress"):
                 store.select(self.source)
             self.assertTrue(abandoned.exists())
-        with patch.object(m, "MAX_SELECTION_BYTES", self.source.stat().st_size):
-            result = store.select(self.source)
+        result = store.select(self.source)
         self.assertFalse(abandoned.exists())
         self.assertTrue((store.grant / result.reference).exists())
 
@@ -272,7 +274,6 @@ class SelectionTests(unittest.TestCase):
         import subprocess
         import sys
         from threading import Thread
-        from unittest.mock import patch
 
         m = self.module()
         home = self.root / "home"
@@ -302,8 +303,7 @@ with store.locked():
                 reader.join(1)
         store = m.SelectionStore("claude-desktop", home=home)
         self.assertTrue(list(store.staging.iterdir()))
-        with patch.object(m, "MAX_SELECTION_BYTES", self.source.stat().st_size):
-            result = store.select(self.source)
+        result = store.select(self.source)
         self.assertEqual(list(store.staging.iterdir()), [])
         self.assertTrue((store.grant / result.reference).exists())
 
@@ -331,8 +331,7 @@ with store.locked():
                 store.rollback(selected.reference)
         self.assertFalse((store.grant / selected.reference).exists())
         self.assertEqual(store.used_bytes(), size)
-        with patch.object(m, "MAX_SELECTION_BYTES", size):
-            fresh = store.select(self.source)
+        fresh = store.select(self.source)
         self.assertEqual(list(store.discarded.iterdir()), [])
         self.assertTrue((store.grant / fresh.reference).exists())
         store.rollback(fresh.reference)

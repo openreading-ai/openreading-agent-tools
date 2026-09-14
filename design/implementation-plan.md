@@ -317,3 +317,14 @@ Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC
 - [ ] Move implemented facts beside code and delete completed proposal sections without deleting unmet requirements.
 
 No release or merge occurs automatically when tests pass.
+
+## B0: large local background imports
+
+- [ ] Package core background start/status/cancel and expose all eight tools.
+- [ ] Remove the prototype file/page/extraction/storage ceilings; preserve selected-file access and atomic publication.
+- [ ] Verify reconnect, cancellation, parser failure and intact full normalized results in a frozen runtime.
+- [ ] Run the complete 251-page owner document locally, retaining only private evidence and measurements.
+- [ ] Confirm the memory policy separately; the development cutoff remains until resolved.
+- [ ] Check named-host stage reporting and cancellation. Do not assume a native progress bar or infer large-document accuracy from completion.
+
+These tasks change processing lifecycle, not parser semantics. No neighboring-block inference is added.

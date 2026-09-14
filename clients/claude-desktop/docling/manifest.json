@@ -62,6 +62,18 @@
     {
       "name": "openreading_get_document",
       "description": "Read the complete retained normalized result with bounded continuation, existing structure, origins and citation references; no raw provider payloads."
+    },
+    {
+      "name": "openreading_start_import",
+      "description": "Start local document processing in the background."
+    },
+    {
+      "name": "openreading_get_import",
+      "description": "Check processing status, elapsed time and the finished document receipt."
+    },
+    {
+      "name": "openreading_cancel_import",
+      "description": "Cancel a pending document import."
     }
   ]
 }

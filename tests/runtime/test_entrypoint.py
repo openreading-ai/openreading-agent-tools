@@ -17,6 +17,30 @@ class EntrypointTests(unittest.TestCase):
         self.enterContext(patch("platform.machine", return_value="arm64"))
         self.enterContext(patch("runtime.entrypoint.sys.frozen", True, create=True))
 
+    def test_background_dispatch_follows_integrity_and_telemetry_setup(self):
+        import os
+        import sys
+        from types import SimpleNamespace
+
+        events = []
+
+        def verify(root):
+            events.append("verified")
+            return {"format_version": "2"}
+
+        def job(args):
+            self.assertEqual(events, ["verified"])
+            self.assertEqual(os.environ["ORT_DISABLE_TELEMETRY"], "1")
+            self.assertEqual(args, ["/private/job"])
+            return 0
+
+        with (
+            patch("runtime.entrypoint.verify_release", side_effect=verify),
+            patch.dict(sys.modules, {"openreading.artifacts.jobs": SimpleNamespace(main=job)}),
+            patch.dict(os.environ, {"ORT_DISABLE_TELEMETRY": "0"}),
+        ):
+            self.assertEqual(main(["--internal-artifact-job", "/private/job"]), 0)
+
     def test_bad_inventory_refuses_even_version_probe(self):
         with (
             patch(

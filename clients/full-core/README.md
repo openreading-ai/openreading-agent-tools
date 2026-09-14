@@ -4,7 +4,7 @@ This is the power-user route for managing your own OpenReading installation and 
 It does not use the Agent Tools bundle or add settings to that bundle.
 You manage Python, dependencies, model assets and updates yourself.
 
-Status: configuration below is checked against the current candidate contract at core `e795234a7a9aa98c88e78e31ba33039a4c9780b5`.
+Status: configuration below is checked against the current candidate contract at core `e25b1016456e332f998c6b9f883faa31d2636099`.
 The released-version installation and native walkthrough remain R1 acceptance work in the [implementation plan](../../design/implementation-plan.md).
 Replace `<released-version>` with the merged core release selected by R0 before running the installation recipe or publishing it as release instructions.
 This guide does not imply that the candidate's MCP features are already on PyPI.
@@ -78,7 +78,8 @@ Save this as `/absolute/openreading-profile.json`, replacing paths with your own
 ~~~
 
 These are diagnostic example limits, not supported release defaults or a promise of 100-page completion on your machine.
-The current profile additionally caps input at 25 MiB and retained storage at 512 MiB; the JSON does not override those caps.
+The Docling profile accepts null page, deadline and memory fields to disable those cutoffs.
+Source, extraction and retained-storage limits default to null; positive overrides remain available in the setup JSON.
 The lock identifies the environment you installed; a lock hash alone does not verify that installed packages match it.
 Keep the installation synchronized and record its actual dependency versions when diagnosing behavior.
 

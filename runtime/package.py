@@ -104,6 +104,8 @@ def package_docling_desktop(
         raise ValueError("Choose a new package output directory.")
     if "_internal/openreading/artifacts/document.py" not in metadata["files"]:
         raise ValueError("Rebuild with full normalized document access before using this manifest.")
+    if "_internal/openreading/artifacts/jobs.py" not in metadata["files"]:
+        raise ValueError("Rebuild with background import support before using this manifest.")
     if "_internal/openreading/mcp_server/selection.py" not in metadata["files"]:
         raise ValueError("Rebuild with the core selection contract before using this manifest.")
     if (selection or chat) and not {

@@ -24,7 +24,7 @@ For example, a successful OpenAI API trial proves nothing about a ChatGPT deskto
 
 The client starts the runtime over local standard input/output, abbreviated STDIO.
 The runtime exposes every implemented MCP tool from the pinned core using unchanged core schemas.
-The current catalog is import, search, read, and local selection. The [OSS launch design](oss-launch.md) requires parity again for every pin update.
+The candidate catalog includes import, full retrieval, search, read, local selection, and background import start/status/cancel. The [OSS launch design](oss-launch.md) requires parity again for every pin update.
 A host may qualify tool names, but it cannot require a different artifact or citation contract.
 The shared evidence workflow describes tool purpose and uses identifiers returned by the tools.
 Where a host cannot load a skill, its integration supplies the same concise workflow through a supported instruction channel.
@@ -136,7 +136,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 
 | Case | Required result |
 | --- | --- |
-| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently five tools). |
+| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently eight tools). |
 | Factual question | Import, complete normalized retrieval or optional search, and exact read precede a correct answer with an exact quote and physical page. |
 | Multi-reply full retrieval | A registered larger fixture requires at least two replies at the shipped cap; capture every continuation, terminal null, reply count, actual approval prompts and a correct final citation. Do not substitute the small OCR-code case. |
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |

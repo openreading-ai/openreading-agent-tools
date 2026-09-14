@@ -11,7 +11,7 @@ Enable only the intended OpenReading connector in the test conversation to keep 
 Do not move the helper app away from its accompanying `server` directory; both belong to this development package.
 This packaging layout still needs a signed installer and clean-machine usability checks before public distribution.
 
-The picker allows 25 MiB per file and 512 MiB of selected copies. Those diagnostic limits do not promise a supported page count or speed.
+The picker copies selected files without fixed input or retained-byte quotas. Actual write failures refuse publication.
 Source copies remain in the client's private `v2/selection/ready` directory; incomplete copies stay outside the input grant.
 Cancelling the file dialog leaves the prior selection unchanged; cancelling an unfinished copy publishes nothing. A failed selection preserves any previously completed selection.
 **Remove selected copy** removes only the current intake copy; already retained artifacts and delivered excerpts remain.

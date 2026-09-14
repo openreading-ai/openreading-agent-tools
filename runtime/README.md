@@ -122,7 +122,7 @@ The helper supplies bytes through [selection.py](selection.py); core still owns 
 A reference contains a random entry name and the original filename, never the source directory.
 Copies use mode 0600 inside mode-0700 directories and publish by an atomic directory rename.
 The ready directory is the only input grant; staging and the publisher lock remain outside it.
-The 25 MiB file limit and 512 MiB copy quota are separate from the artifact quota.
+Selected copies have no fixed input-size or retained-byte quota; actual write failures refuse publication.
 Catchable failures remove current staging. After forced termination, the next publisher-lock holder reclaims abandoned staging before checking quota.
 Server startup only validates directories, so it succeeds while a picker holds that lock.
 Copies persist across launches. Confirmed **Clear selected copies…** removes previous sessions’ intake copies as well as the current one.
@@ -167,7 +167,9 @@ This grant limits OpenReading tools; your assistant may have separate file and s
 
 The version 2 store is `CLIENT/v2/artifacts/` under the same application-data parent.
 Each launch creates a unique mode-0600 `CLIENT/v2/launch/ID/profile.json` inside private directories.
-The profile uses inventoried resource paths, 100 pages, a 300-second deadline, four-GiB sampled worker memory, and a 60-second idle timeout.
+The profile uses inventoried resources without fixed file/page/extraction/storage/time caps.
+It retains the development four-GiB sampled worker-memory cutoff and 60-second idle shutdown.
+Background jobs own their profile and parser lifecycle independently of a host connection.
 These are diagnostic limits pending native host measurements, not supported product limits.
 `HF_HUB_OFFLINE` and `TRANSFORMERS_OFFLINE` are set to `1` for core and its children and restored when the launcher exits.
 No cloud fallback or model download occurs through this profile.

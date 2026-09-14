@@ -70,3 +70,9 @@ focused questions can use search and exact reads. Counts of pages and passages a
 `WORKFLOW.md` is a review copy, not proof that Claude receives those skill instructions.
 Core now delivers this scope rule in its MCP initialization instructions. Protocol tests prove delivery, not model compliance.
 A separately registered focused question complements the two explicit complete-read cases. Retrieval choice still needs native observation.
+
+Background imports use `openreading_start_import`, `openreading_get_import`, and `openreading_cancel_import`.
+The job survives a chat disconnect and exposes actual stage, elapsed time and its final artifact receipt.
+Use explicit job cancellation to stop processing; host Stop alone does not cancel it.
+This candidate removes prototype document-size, page-count, extraction-size, storage and elapsed-time caps.
+The development sampled-memory cutoff remains configured. Large-document accuracy and native progress UI require separate checks.

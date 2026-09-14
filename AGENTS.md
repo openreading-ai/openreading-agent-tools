@@ -22,7 +22,7 @@ The remaining native and release gates stay in `design/`.
 Product v1 is the first public OSS release. Managed product v2 starts after launch.
 Historical prototype revision 1, version 2 settings and `local-document-proof-v2` keep their names and hashes.
 Expose every implemented MCP tool from the pinned core release, with no commercial subset.
-The candidate has import, complete normalized retrieval, search, read and optional local selection; planned core MCP operations are not already implemented.
+The candidate has import, complete normalized retrieval, search, read, local selection and background import start/status/cancel; planned core MCP operations are not already implemented.
 Core pin changes require full catalog parity and functional cases before release.
 Public installation requires no directory-path configuration. A per-file picker and private intake are implemented as a development candidate.
 Production selection must return its reference to chat without manual copying, and local OCR must work automatically.

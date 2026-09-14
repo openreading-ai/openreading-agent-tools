@@ -6,8 +6,8 @@ The historical revision 1 bundle and measurement runtime remain separate.
 
 ## Run
 
-The current candidate pins core `e795234a7a9aa98c88e78e31ba33039a4c9780b5` with Docling integration v5 and updated bounded-evidence instructions.
-Dependency versions remain unchanged. The core update includes picture-child text preservation and complete normalized-document retrieval.
+The current candidate pins core `e25b1016456e332f998c6b9f883faa31d2636099` with Docling integration v5 and updated bounded-evidence instructions.
+Dependency versions remain unchanged. The core update retains picture-child text and complete normalized-document retrieval. It adds persistent background imports.
 
 `make verify` checks this lock against its declared inputs without network access or installing the candidate.
 It also refuses prohibited packages in the lock and requires this guide to name the locked core and engine versions.

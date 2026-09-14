@@ -1,6 +1,8 @@
 """Run the diagnostic Docling profile from verified, relocated bundle resources.
 
-P0 uses finite 100-page, 300-second, 4-GiB safeguards, not supported host limits.
+The profile removes prototype document, storage and elapsed-time caps.
+The development 4-GiB sampled memory cutoff remains configured.
+Background imports retain their own profile after the launcher exits.
 Each invocation writes its own private profile until core has closed its owned workers.
 No model tool or environment variable selects the backend, resources, or input grant.
 HF_HUB_OFFLINE and TRANSFORMERS_OFFLINE are set for launch and restored on exit.
@@ -31,8 +33,11 @@ def profile_file(client, settings, bundle):
             close()
     resources = bundle / "resources"
     profile = {
-        "pages": 100,
-        "deadline_seconds": 300,
+        "pages": None,
+        "source_bytes": None,
+        "extraction_bytes": None,
+        "store_bytes": None,
+        "deadline_seconds": None,
         "worker_memory_bytes": 4 * 1024**3,
         "worker_idle_seconds": 60,
         "docling": {

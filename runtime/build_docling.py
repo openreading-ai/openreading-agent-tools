@@ -43,7 +43,7 @@ for name in ['openreading', 'docling', 'docling_core', 'docling_parse', 'pypdfiu
     datas += collect_data_files(name)
 plugin_data, plugin_modules = collect_entry_point('docling')
 datas += plugin_data
-hidden = plugin_modules + ['openreading.artifacts.worker', 'openreading.mcp_server.main']
+hidden = plugin_modules + ['openreading.artifacts.worker', 'openreading.artifacts.jobs', 'openreading.mcp_server.main']
 for name in ['openreading.adapters.docling_local', 'docling.datamodel', 'docling_core.transforms', 'docling_parse']:
     hidden += collect_submodules(name)
 a = Analysis([{str(HERE / "entrypoint.py")!r}], pathex=[{str(HERE.parent)!r}],

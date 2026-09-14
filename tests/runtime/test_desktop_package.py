@@ -23,6 +23,7 @@ class DesktopPackageTests(unittest.TestCase):
         for name in [
             "_internal/openreading/mcp_server/selection.py",
             "_internal/openreading/artifacts/document.py",
+            "_internal/openreading/artifacts/jobs.py",
             "resources/docling-runtime.uv.lock",
             "resources/models/docling-project--docling-layout-heron-onnx/model.onnx",
             "resources/tessdata/eng.traineddata",
@@ -94,6 +95,17 @@ class DesktopPackageTests(unittest.TestCase):
             source.metadata["files"] = inventory(source.root)
             source.write_metadata()
             with self.assertRaisesRegex(ValueError, "full normalized"):
+                self.operation()(source.root, target)
+            self.assertFalse(target.exists())
+
+    def test_background_manifest_refuses_runtime_without_job_dispatch(self):
+        source = self.fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "candidate"
+            (source.root / "_internal/openreading/artifacts/jobs.py").unlink()
+            source.metadata["files"] = inventory(source.root)
+            source.write_metadata()
+            with self.assertRaisesRegex(ValueError, "background import"):
                 self.operation()(source.root, target)
             self.assertFalse(target.exists())
 

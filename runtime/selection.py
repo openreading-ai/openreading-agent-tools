@@ -4,19 +4,15 @@ The GUI or trusted chat selection provider supplies a chosen absolute path. Refe
 random-entry/original-filename paths under CLIENT/v2/selection/ready. Source directories
 never become grants. Staging and the advisory publisher lock remain outside that root.
 Core supplies safe source opening and owns subsequent parsing and artifact identity.
-This module bounds and hashes only the byte handoff; it never constructs a core artifact.
+This module copies and hashes only the byte handoff; it never constructs a core artifact.
 The helper refuses observed source edits rather than publishing a possibly mixed copy.
 
-Each selection allows 25 MiB, with 512 MiB total ready and unfinished copies. This quota
-is separate from core's artifact quota. Copies persist until explicitly removed; removing
-intake does not erase already retained artifacts or excerpts delivered to the assistant.
-Catchable copy failures clean current staging. SIGKILL can leave private unfinished data,
-but the next publisher-lock holder removes abandoned staging before quota accounting.
-Failed chat handoffs atomically move their owned entry from ready to discarded without
-waiting for the publisher lock. Discarded copies remain outside the grant and count toward
-quota until deletion succeeds. The next publisher retries their deletion under its lock.
-Quota and clearing tolerate entries revoked during their scan. A moved file is counted once,
-and corruption or access failures on entries that remain present still refuse the operation.
+Copies have no fixed input-size or accumulated-storage quota. Actual disk write failures
+refuse publication. Copies persist until removed; removing intake leaves retained artifacts.
+Catchable failures clean staging. The next publisher sweeps unfinished copies left by SIGKILL.
+Failed handoffs revoke their owned ready entry without waiting for the publisher lock.
+The next publisher retries deletion of discarded entries. Listing and clearing tolerate
+concurrent revocation without following links or deleting unrelated files.
 Server startup validates directories without that lock and never removes unfinished data.
 Explicit clearing removes all completed intake copies, including earlier picker sessions.
 The shared CLIENT/v2/artifacts store remains untouched. No environment variable selects
@@ -42,9 +38,6 @@ from openreading.artifacts.intake import directory, source
 from openreading.artifacts.limits import ArtifactError
 
 from runtime.configuration import client_root
-
-MAX_FILE_BYTES = 25 * 1024**2
-MAX_SELECTION_BYTES = 512 * 1024**2
 
 
 class SelectionError(ValueError):
@@ -234,7 +227,8 @@ class SelectionStore:
 
         with self.locked() as (ready, staging):
             check()
-            available = MAX_SELECTION_BYTES - self.used_bytes()
+            # Validate existing entries without imposing a retained-byte quota.
+            self.used_bytes()
             name = secrets.token_hex(16)
             if (self.grant / name).exists():
                 raise SelectionError("Selection name collision. Try again.")
@@ -245,28 +239,16 @@ class SelectionStore:
                     before = os.fstat(opened)
                     if before.st_size <= 0:
                         raise SelectionError("The selected document is empty.")
-                    if before.st_size > MAX_FILE_BYTES:
-                        raise SelectionError(
-                            "The selected document exceeds the 25 MiB input limit."
-                        )
-                    if before.st_size > available:
-                        raise SelectionError(
-                            "Selection storage is full. Use Clear selected copies before adding another."
-                        )
                     digest = hashlib.sha256()
                     length = 0
                     with (scratch / path.name).open("xb") as output:
                         os.fchmod(output.fileno(), 0o600)
                         while True:
                             check()
-                            chunk = os.read(opened, min(65536, MAX_FILE_BYTES - length + 1))
+                            chunk = os.read(opened, 65536)
                             if not chunk:
                                 break
                             length += len(chunk)
-                            if length > min(MAX_FILE_BYTES, available):
-                                raise SelectionError(
-                                    "The document exceeded the input or storage limit while being copied."
-                                )
                             output.write(chunk)
                             digest.update(chunk)
                         output.flush()

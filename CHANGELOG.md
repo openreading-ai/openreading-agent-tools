@@ -2,6 +2,8 @@
 
 ## Native evidence review
 
+- Package background import dispatch and all core job tools. Remove the prototype input, page, extraction, storage and elapsed-time ceilings while retaining selected-file access and the development memory cutoff.
+
 - Update the Docling candidate to core `25c15c4` and expose complete normalized document retrieval.
   Search is optional; full results keep existing structure, warnings, origins and citation references.
   Reject older runtimes before packaging a manifest that advertises the new tool.

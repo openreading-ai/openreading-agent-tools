@@ -58,6 +58,10 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         return 0
+    if metadata.get("format_version") == "2" and argv[:1] == ["--internal-artifact-job"]:
+        from openreading.artifacts.jobs import main as job_main
+
+        return job_main(argv[1:])
     if argv[:1] == ["--internal-artifact-worker"]:
         from openreading.artifacts.worker import main as worker_main
 

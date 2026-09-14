@@ -43,8 +43,11 @@ async def check(args):
     config.write_text(
         json.dumps(
             {
-                "pages": 100,
-                "deadline_seconds": 300,
+                "pages": None,
+                "source_bytes": None,
+                "extraction_bytes": None,
+                "store_bytes": None,
+                "deadline_seconds": None,
                 "worker_memory_bytes": 4 * 1024**3,
                 "worker_idle_seconds": 60,
                 "docling": {
@@ -81,12 +84,15 @@ async def check(args):
         ):
             initialized = await session.initialize()
             tools = (await session.list_tools()).tools
-            if len(tools) != 5 or {tool.name for tool in tools} != {
+            if len(tools) != 8 or {tool.name for tool in tools} != {
                 "openreading_import",
                 "openreading_search",
                 "openreading_read",
                 "openreading_select_document",
                 "openreading_get_document",
+                "openreading_start_import",
+                "openreading_get_import",
+                "openreading_cancel_import",
             }:
                 raise ValueError("The selected MCP tool catalog is not available.")
             contract = [

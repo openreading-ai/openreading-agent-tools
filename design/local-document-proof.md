@@ -90,14 +90,17 @@ A server missing the initial catalog may pass only if E2 proves later discovery 
 If later discovery fails, that registration remains unsupported; do not weaken identity to fit a one-second catalog window.
 Measure frozen cold startup from process creation through inventory verification and MCP initialization.
 Worker startup repeats verification in the current launcher, so include that cost in cold import timing too.
-Require cold/warm startup p95 within 80% of the observed startup allowance and imports within 80% of the observed tool allowance.
+Require cold/warm startup p95 within 80% of the observed startup allowance.
+Background start, status and cancellation must fit the tool allowance; complete parsing is independent of that allowance.
+The following synchronous-import timing budgets remain historical diagnostic context.
 For a mode actually using the OpenAI-documented 10/60-second limits, the corresponding budgets are 8 and 48 seconds.
 Do not transfer those hypotheses to Claude Desktop. Its observed 240-second no-progress limit implies a provisional 192-second total tool budget with 20% margin.
 That includes staging, cold worker startup, conversion and commit; it is not a chosen release profile or measured throughput guarantee.
 A verified alternative registration may change them; unsupported manual TOML edits cannot rescue the nondeveloper path.
 Do not assume progress extends an absolute deadline or that a server absent from the initial catalog becomes discoverable later.
 
-Keep the existing source, extraction, store, and response byte caps as compatibility constraints until measured evidence requires a separate change.
+Keep revision 1 compatibility limits unchanged. The Docling candidate removes prototype source, page, extraction, store and elapsed-time ceilings.
+Response payload caps remain necessary for continuation; a local import job is separate from full-result transfer to chat.
 The revision 1 values are documented beside [the current implementation](../runtime/README.md); they are not Docling throughput promises.
 Page count, import deadline, worker RSS ceiling, and idle policy require a measured revision 2 profile before release.
 No missing profile field may silently inherit the old 100-page/45-second combination.

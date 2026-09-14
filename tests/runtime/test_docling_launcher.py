@@ -89,8 +89,15 @@ class DoclingLaunchTests(unittest.TestCase):
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             self.assertEqual(path.parent.stat().st_mode & 0o777, 0o700)
             value = json.loads(path.read_bytes())
-            self.assertEqual(value["pages"], 100)
-            self.assertEqual(value["deadline_seconds"], 300)
+            for key in (
+                "pages",
+                "source_bytes",
+                "extraction_bytes",
+                "store_bytes",
+                "deadline_seconds",
+            ):
+                self.assertIsNone(value[key])
+            self.assertEqual(value["worker_memory_bytes"], 4 * 1024**3)
             self.assertTrue(value["docling"]["ocr"])
             self.assertEqual(
                 value["docling"]["tesseract_cmd"],

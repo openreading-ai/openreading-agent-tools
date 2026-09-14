@@ -100,6 +100,9 @@ class DoclingSmokeTests(unittest.TestCase):
                                 "openreading_read",
                                 "openreading_get_document",
                                 "openreading_select_document",
+                                "openreading_start_import",
+                                "openreading_get_import",
+                                "openreading_cancel_import",
                             ]
                         )
                     ]
@@ -207,6 +210,9 @@ class DoclingSmokeTests(unittest.TestCase):
                             "openreading_search",
                             "openreading_get_document",
                             "openreading_select_document",
+                            "openreading_start_import",
+                            "openreading_get_import",
+                            "openreading_cancel_import",
                         ]
                     )
                 ],

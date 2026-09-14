@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 11
+spec_revision: 12
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-14T00:00:00Z"
@@ -101,7 +101,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `e795234` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read and local selection.
+The candidate pin `e25b101` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read and local selection.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -251,7 +251,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-8
   criterion: A successful artifact remains readable after process restart, while incomplete or corrupted artifacts are refused and a source change produces a different document identity.
 - id: AC-9
-  criterion: File, page, extraction-size, response-size, concurrency, wall-time, and sampled worker-memory limits are recorded in the measured profile; cold startup and cold/warm imports fit the observed registration timeouts with documented margin, each exposed interruption path terminates owned work, and failures publish no successful partial artifact. An exposed host Stop action that sends no cancellation remains an unmet cleanup path, and documentation warns that imports can continue, retain worker capacity and commit on success.
+  criterion: Background import returns a job reference promptly and continues across host tool deadlines and disconnects. Status reports observed processing stages and elapsed time; explicit job cancellation stops the owned parser before terminal cancellation is reported. File size, physical pages, extraction size and retained-byte quotas do not reject otherwise eligible documents. Actual OS failures and configured memory cutoffs are reported honestly. Response payloads remain bounded. Startup still fits the observed registration deadline, and incomplete work never publishes a successful artifact. Host Stop alone is not job cancellation.
 - id: AC-10
   criterion: Unsupported formats, encrypted files, empty text, parser failures, cancellation, full disks, and unavailable artifacts produce sanitized errors with no planted document secrets or credentials.
 - id: AC-11
@@ -458,3 +458,15 @@ The [OSS launch design](../../design/oss-launch.md) specifies AC-27 through AC-2
   section_id: acceptance_criteria
   item_id: AC-20
 ~~~
+
+## Large-document background processing
+
+Local processing must not impose the prototype 25 MiB, 100-page, 64 MiB extraction or 512 MiB retention ceilings.
+The whole selected input reaches the configured parser; there is no silent truncation or page splitting.
+The 10,000-page and roughly 1 GB cases are target workloads, not measured support claims.
+Core owns persistent start/status/cancel tools and existing normalized artifacts. Agent Tools packages them.
+Status carries actual stages and elapsed time. A host may render progress visually; a progress bar is not assumed.
+A job can outlive the chat connection. Explicit cancellation remains available after reconnecting.
+Automatic full retrieval of a large result is separate from local parsing and remains governed by requested scope.
+The development profile retains its sampled memory cutoff pending a separate memory-policy decision.
+Public acceptance requires a complete large-document run, status after reconnect, explicit cancellation and truthful failure reporting through the frozen runtime.
