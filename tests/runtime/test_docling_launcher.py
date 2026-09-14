@@ -95,9 +95,9 @@ class DoclingLaunchTests(unittest.TestCase):
                 "extraction_bytes",
                 "store_bytes",
                 "deadline_seconds",
+                "worker_memory_bytes",
             ):
                 self.assertIsNone(value[key])
-            self.assertEqual(value["worker_memory_bytes"], 4 * 1024**3)
             self.assertTrue(value["docling"]["ocr"])
             self.assertEqual(
                 value["docling"]["tesseract_cmd"],
@@ -224,7 +224,8 @@ class DoclingLaunchTests(unittest.TestCase):
     def test_chat_launcher_forwards_provider_through_real_profile_launch(self):
         from runtime.chat_selection import LocalSelectionProvider
 
-        def core_boundary(args, *, selection_provider=None):
+        def core_boundary(args, *, selection_provider=None, selection_timeout_seconds=120):
+            self.assertIsNone(selection_timeout_seconds)
             self.assertIsInstance(selection_provider, LocalSelectionProvider)
             self.assertEqual(
                 Path(args[args.index("--input-root") + 1]), selection_provider.store.grant

@@ -1,7 +1,7 @@
 """Run the diagnostic Docling profile from verified, relocated bundle resources.
 
 The profile removes prototype document, storage and elapsed-time caps.
-The development 4-GiB sampled memory cutoff remains configured.
+Memory use is not capped by this launcher. Explicit cancellation and OS failures still apply.
 Background imports retain their own profile after the launcher exits.
 Each invocation writes its own private profile until core has closed its owned workers.
 No model tool or environment variable selects the backend, resources, or input grant.
@@ -38,7 +38,7 @@ def profile_file(client, settings, bundle):
         "extraction_bytes": None,
         "store_bytes": None,
         "deadline_seconds": None,
-        "worker_memory_bytes": 4 * 1024**3,
+        "worker_memory_bytes": None,
         "worker_idle_seconds": 60,
         "docling": {
             "artifacts_path": str(resources / "models"),
@@ -102,7 +102,7 @@ def launch(args, bundle: Path, *, selection_provider=None) -> int:
                     str(store),
                 ],
                 **(
-                    {"selection_provider": selection_provider}
+                    {"selection_provider": selection_provider, "selection_timeout_seconds": None}
                     if selection_provider is not None
                     else {}
                 ),

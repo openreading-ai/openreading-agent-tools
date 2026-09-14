@@ -48,7 +48,7 @@ async def check(args):
                 "extraction_bytes": None,
                 "store_bytes": None,
                 "deadline_seconds": None,
-                "worker_memory_bytes": 4 * 1024**3,
+                "worker_memory_bytes": None,
                 "worker_idle_seconds": 60,
                 "docling": {
                     "artifacts_path": str(args.assets),

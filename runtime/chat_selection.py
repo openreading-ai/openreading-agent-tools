@@ -12,7 +12,8 @@ leaves an unreadable discarded copy for the next publisher sweep. Cleanup failur
 fixed stderr diagnostic without replacing the original cancellation, deadline, or error.
 
 The OS chooser's Cancel works independently of a host's Stop button. Host Stop without
-MCP cancellation leaves the chooser active until local Cancel or core's finite deadline.
+MCP cancellation leaves the chooser active until local Cancel. This launcher sets no
+local chooser or copy deadline; a host can still cancel the request independently.
 Source execution supports development probes only. Frozen dispatch verifies its inventory
 before --internal-select-file. Nothing here claims native focus or installation acceptance.
 """

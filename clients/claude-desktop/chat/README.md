@@ -12,7 +12,7 @@ Approve the selection tool if your host asks. Choose one PDF in "OpenReading: Ch
 The assistant imports the reference, retrieves requested content, and reads exact passages for physical page citations.
 Ordinary chat attachments still follow the host's upload path; this tool does not intercept them.
 
-Use **Cancel** in the OS dialog for the cancellation check. Selection and copying have a 120-second deadline.
+Use **Cancel** in the OS dialog for the cancellation check. Selection and copying have no local elapsed-time cutoff; the host can still cancel the request.
 Another selection while that dialog is pending returns busy, without adopting another conversation's dialog.
 Claude Desktop's observed Stop action did not send MCP cancellation; it cannot be promised to dismiss this chooser.
 Source tests verify child reaping on delivered cancellation.
@@ -75,4 +75,4 @@ Background imports use `openreading_start_import`, `openreading_get_import`, and
 The job survives a chat disconnect and exposes actual stage, elapsed time and its final artifact receipt.
 Use explicit job cancellation to stop processing; host Stop alone does not cancel it.
 This candidate removes prototype document-size, page-count, extraction-size, storage and elapsed-time caps.
-The development sampled-memory cutoff remains configured. Large-document accuracy and native progress UI require separate checks.
+No local memory cutoff stops processing. Large-document accuracy and native progress UI require separate checks.

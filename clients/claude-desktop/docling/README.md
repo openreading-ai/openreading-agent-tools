@@ -43,4 +43,4 @@ Background imports use `openreading_start_import`, `openreading_get_import`, and
 The job survives a chat disconnect and exposes actual stage, elapsed time and its final artifact receipt.
 Use explicit job cancellation to stop processing; host Stop alone does not cancel it.
 This candidate removes prototype document-size, page-count, extraction-size, storage and elapsed-time caps.
-The development sampled-memory cutoff remains configured. Large-document accuracy and native progress UI require separate checks.
+No local memory cutoff stops processing. Large-document accuracy and native progress UI require separate checks.

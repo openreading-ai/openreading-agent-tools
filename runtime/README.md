@@ -168,9 +168,9 @@ This grant limits OpenReading tools; your assistant may have separate file and s
 The version 2 store is `CLIENT/v2/artifacts/` under the same application-data parent.
 Each launch creates a unique mode-0600 `CLIENT/v2/launch/ID/profile.json` inside private directories.
 The profile uses inventoried resources without fixed file/page/extraction/storage/time caps.
-It retains the development four-GiB sampled worker-memory cutoff and 60-second idle shutdown.
+It imposes no worker-memory cutoff. Idle workers still exit after 60 seconds without interrupting active work.
 Background jobs own their profile and parser lifecycle independently of a host connection.
-These are diagnostic limits pending native host measurements, not supported product limits.
+Actual memory exhaustion, disk failures and host-request cancellation can still stop work.
 `HF_HUB_OFFLINE` and `TRANSFORMERS_OFFLINE` are set to `1` for core and its children and restored when the launcher exits.
 No cloud fallback or model download occurs through this profile.
 The launcher removes its temporary profile after core closes its workers, including exceptional exits.

@@ -82,8 +82,8 @@ A mock picker establishes protocol plumbing only; it cannot satisfy this native 
 
 E2 must measure the actual host tool deadline and progress behavior before committing to a picker that waits inside a tool call.
 Use the synthetic delay server first; test a deliberate approval pause separately to locate approval relative to the logged request.
-Record a finite selection deadline shorter than the measured host budget, with time reserved for cancellation and bounded copy publication.
-A deadline closes the picker, returns no reference and allows a new user-initiated attempt. Do not open a replacement automatically.
+Record the host budget and cancellation behavior. The owner-selected local profile imposes no additional chooser or copy deadline.
+Delivered host cancellation closes the picker, returns no reference and allows a new user-initiated attempt. Do not open a replacement automatically.
 If the measured budget cannot accommodate a useful human selection interval, stop this interaction design and review another local handoff.
 Do not compensate with an unmeasured progress heartbeat or an implicit background job.
 A source/controller probe can be prepared before E2; it does not accept the production interaction.
@@ -91,7 +91,7 @@ A source/controller probe can be prepared before E2; it does not accept the prod
 The [recorded Claude Desktop probe](../clients/claude-desktop/README.md#synthetic-native-timing-and-interruption) observed timeout cancellation at 240 seconds.
 A 65-second call succeeded, while Stop response did not cancel a separate local call.
 These observations support a bounded selection experiment, not public handoff acceptance or a universal host timeout.
-Keep the picker deadline below the observed host budget with the required safety margin and copy/cleanup reserve.
+The earlier experiment used a local deadline; the current profile waits until selection, local Cancel or delivered host cancellation.
 Treat the OS chooser's Cancel action and delivered MCP cancellation as testable paths.
 The Chat Stop button cannot be promised to dismiss the chooser on this evidence.
 If public acceptance requires that button to stop selection immediately, that requirement remains unmet until a supported mechanism is demonstrated.
@@ -148,4 +148,4 @@ After selection, start a core import job and keep its returned ID. Parsing conti
 Show actual stage and elapsed time through status requests. Percentage, ETA and page progress require provider measurements.
 Explicit job cancellation stops processing; closing the chat or clicking host Stop does not imply cancellation.
 The selected whole document is not rejected by prototype file/page quotas or silently split to fit them.
-The existing native chooser still has an interactive deadline. Background parsing does not establish new chooser acceptance.
+The native host can still cancel an interactive chooser request. Background parsing does not establish new chooser acceptance.

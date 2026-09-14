@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 12
+spec_revision: 13
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-14T00:00:00Z"
@@ -101,7 +101,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `e25b101` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read and local selection.
+The candidate pin `56c1a6f` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read and local selection.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -251,7 +251,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-8
   criterion: A successful artifact remains readable after process restart, while incomplete or corrupted artifacts are refused and a source change produces a different document identity.
 - id: AC-9
-  criterion: Background import returns a job reference promptly and continues across host tool deadlines and disconnects. Status reports observed processing stages and elapsed time; explicit job cancellation stops the owned parser before terminal cancellation is reported. File size, physical pages, extraction size and retained-byte quotas do not reject otherwise eligible documents. Actual OS failures and configured memory cutoffs are reported honestly. Response payloads remain bounded. Startup still fits the observed registration deadline, and incomplete work never publishes a successful artifact. Host Stop alone is not job cancellation.
+  criterion: Background import returns a job reference promptly and continues across host tool deadlines and disconnects. Status reports observed processing stages and elapsed time; explicit job cancellation stops the owned parser before terminal cancellation is reported. File size, physical pages, extraction size and retained-byte quotas do not reject otherwise eligible documents. The shipped local profile imposes no memory cutoff. Actual OS failures are reported honestly. Response payloads remain bounded. Startup still fits the observed registration deadline, and incomplete work never publishes a successful artifact. Host Stop alone is not job cancellation.
 - id: AC-10
   criterion: Unsupported formats, encrypted files, empty text, parser failures, cancellation, full disks, and unavailable artifacts produce sanitized errors with no planted document secrets or credentials.
 - id: AC-11
@@ -468,5 +468,5 @@ Core owns persistent start/status/cancel tools and existing normalized artifacts
 Status carries actual stages and elapsed time. A host may render progress visually; a progress bar is not assumed.
 A job can outlive the chat connection. Explicit cancellation remains available after reconnecting.
 Automatic full retrieval of a large result is separate from local parsing and remains governed by requested scope.
-The development profile retains its sampled memory cutoff pending a separate memory-policy decision.
+The local profile imposes no memory or chooser-copy timeout cutoff. Host-delivered cancellation and actual OS failures remain explicit outcomes.
 Public acceptance requires a complete large-document run, status after reconnect, explicit cancellation and truthful failure reporting through the frozen runtime.
