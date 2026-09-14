@@ -96,7 +96,7 @@ Other common implementation work can continue without that unsupported claim.
 
 ## D0. Complete normalized result acceptance
 
-Core commit `fab92ad` implements complete retained normalized retrieval. Search remains optional.
+Core commit `e795234` implements complete retained normalized retrieval. Search remains optional.
 
 - [x] Refresh the Docling candidate and P0 pins together, retaining historical revision 1.
 - [x] Rebuild and validate all five tools against the same-profile core catalog.
@@ -104,6 +104,7 @@ Core commit `fab92ad` implements complete retained normalized retrieval. Search 
 - [x] Rerun retrieval and restart checks on the new pin.
 - [ ] Capture the small native Claude OCR-code case with an exact citation.
 - [ ] Separately capture a larger native result requiring multiple replies at the shipped cap. Record every continuation, terminal null, reply count, actual approval prompts, complete answer and exact citations.
+- [ ] Capture core retrieval-scope guidance in native initialization and run a separately registered focused-question case.
 - [ ] Check retrieval choice in native conversations: focused questions avoid an unrequested full continuation; explicit whole-document tasks continue without repeated scope confirmation.
 
 These tasks implement AC-30. Parser omissions remain visible; no neighboring-block inference or parser switch is added.

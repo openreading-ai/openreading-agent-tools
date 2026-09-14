@@ -101,7 +101,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `fab92ad` adds `openreading_get_document` alongside import, search, read and local selection.
+The candidate pin `e795234` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read and local selection.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -313,6 +313,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
     - Preserve measurement/corpus.json and its hashes; expected answers and pages come from frozen task IDs.
     - The offline citation checker binds identifiers, pages, exact quotes, and observed tool calls; human review judges semantic support.
     - Search absence is not presented as proof that the complete document lacks a fact.
+    - Capture the pinned core scope guidance in initialize.instructions. Register a focused-question case separately from the explicit complete-read cases.
     - A focused task does not silently start an unrequested full continuation; an explicit complete-read request continues without repeated scope confirmation. Page/passage counts are rough signals only, and no model-token estimate is claimed from them.
     - For AC-30, register two cases before the native run: the small synthetic OCR-code PDF and a larger synthetic result verified to need at least two replies at the shipped byte cap. Bind source hashes, expected page facts and the printed code. Capture selection, import, every full-result reply, final null cursor, exact read and the native answer. Record reply counts and actual approval prompts separately; a source or frozen stdio run and a one-reply result cannot substitute for native continuation acceptance.
 - id: EVAL-2

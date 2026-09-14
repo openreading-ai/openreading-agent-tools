@@ -58,7 +58,7 @@ The larger two-page synthetic 1040 required 66 replies and reconstructed all 549
 Both page-2 amounts survived. This is direct MCP with staged intake, not a native chooser or Claude answer.
 The repeated-call cost in native chat remains unmeasured. Complete transport is not complete host acceptance.
 
-The follow-up candidate pins core `fab92ad` and fills replies by bytes instead of stopping at 32 fragments.
+The current candidate pins core `e795234` and uses the byte packing introduced in `fab92ad`.
 Its frozen 1040 check returns the same 549,055-byte content in 10 replies rather than 66.
 The small OCR-code case still takes one reply and preserves its exact page-2 code and origin.
 Both checks also compare all returned evidence, page origins and warnings with retained records.
@@ -68,4 +68,5 @@ Record actual approval prompts separately from protocol reply counts.
 The shared workflow matches retrieval to the request. Whole-document requests authorize full continuation;
 focused questions can use search and exact reads. Counts of pages and passages are not token measurements.
 `WORKFLOW.md` is a review copy, not proof that Claude receives those skill instructions.
-Core supplies the model-facing instructions; retrieval choice still needs native observation.
+Core now delivers this scope rule in its MCP initialization instructions. Protocol tests prove delivery, not model compliance.
+A separately registered focused question complements the two explicit complete-read cases. Retrieval choice still needs native observation.

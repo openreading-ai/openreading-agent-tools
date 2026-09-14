@@ -132,6 +132,8 @@
 
 ## [Unreleased]
 
+- Refresh core with delivered retrieval-scope instructions and register a focused-question native check.
+
 - Pack complete-document replies by bytes through the refreshed core pin. Match retrieval scope to the request and require a separate native continuation check.
 
 ### Changed
