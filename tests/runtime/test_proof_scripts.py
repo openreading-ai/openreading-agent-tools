@@ -52,6 +52,7 @@ class Session:
                         "get_document",
                         "start_import",
                         "get_import",
+                        "list_imports",
                         "cancel_import",
                     )
                     if self.selection

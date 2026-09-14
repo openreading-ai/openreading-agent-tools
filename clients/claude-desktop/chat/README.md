@@ -14,6 +14,7 @@ Ordinary chat attachments still follow the host's upload path; this tool does no
 
 Use **Cancel** in the OS dialog for the cancellation check. Selection and copying have no local elapsed-time cutoff; the host can still cancel the request.
 Another selection while that dialog is pending returns busy, without adopting another conversation's dialog.
+If the chooser cannot be reached, restart Claude Desktop to reset selection. Background imports continue across that restart.
 Claude Desktop's observed Stop action did not send MCP cancellation; it cannot be promised to dismiss this chooser.
 Source tests verify child reaping on delivered cancellation.
 In Claude Desktop 1.52386.3, one chooser returned `selection_cancelled` and its recorded child exited.
@@ -58,7 +59,7 @@ The larger two-page synthetic 1040 required 66 replies and reconstructed all 549
 Both page-2 amounts survived. This is direct MCP with staged intake, not a native chooser or Claude answer.
 The repeated-call cost in native chat remains unmeasured. Complete transport is not complete host acceptance.
 
-The current candidate pins core `e795234` and uses the byte packing introduced in `fab92ad`.
+The earlier retrieval candidate pins core `e795234` and uses the byte packing introduced in `fab92ad`.
 Its frozen 1040 check returns the same 549,055-byte content in 10 replies rather than 66.
 The small OCR-code case still takes one reply and preserves its exact page-2 code and origin.
 Both checks also compare all returned evidence, page origins and warnings with retained records.
@@ -74,5 +75,14 @@ A separately registered focused question complements the two explicit complete-r
 Background imports use `openreading_start_import`, `openreading_get_import`, and `openreading_cancel_import`.
 The job survives a chat disconnect and exposes actual stage, elapsed time and its final artifact receipt.
 Use explicit job cancellation to stop processing; host Stop alone does not cancel it.
+Candidate core `4f4351a` adds `openreading_list_imports` for discovery after reconnecting.
+Use the returned job ID for status or explicit cancellation. Earlier eight-tool installations require an update for discovery.
+Before uninstalling, cancel unwanted jobs and wait for terminal status. Removing the extension does not automatically cancel detached work.
+Reconnecting with the same intake and artifact locations preserves access to retained jobs.
 This candidate removes prototype document-size, page-count, extraction-size, storage and elapsed-time caps.
 No local memory cutoff stops processing. Large-document accuracy and native progress UI require separate checks.
+The current retrieval verifier loads normalized content into server memory. Bounded replies do not bound server memory.
+The verifier removes redundant response decoding and streams passage verification.
+Complete frozen retrieval was measured on a retained large artifact, with every continuation matching stored content.
+Memory still grows with the normalized document. This direct-protocol check does not establish native Claude delivery or document accuracy.
+When a host reports a timeout, check whether its local MCP log recorded the request before attributing it to parser or retrieval performance.

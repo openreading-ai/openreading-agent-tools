@@ -136,7 +136,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 
 | Case | Required result |
 | --- | --- |
-| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (currently eight tools). |
+| Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (nine in candidate core `4f4351a`). |
 | Factual question | Import, complete normalized retrieval or optional search, and exact read precede a correct answer with an exact quote and physical page. |
 | Multi-reply full retrieval | A registered larger fixture requires at least two replies at the shipped cap; capture every continuation, terminal null, reply count, actual approval prompts and a correct final citation. Do not substitute the small OCR-code case. |
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |

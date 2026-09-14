@@ -40,6 +40,9 @@ The profile still controls available channels, including its table limitations.
 Updated frozen and native checks remain separate from the historical observations above.
 
 Background imports use `openreading_start_import`, `openreading_get_import`, and `openreading_cancel_import`.
+The next manifest adds `openreading_list_imports` to recover IDs after reconnecting.
+It requires a refreshed core pin and package; the existing built candidate does not expose it.
+Cancel unwanted jobs and wait for terminal status before uninstalling; client removal does not stop detached work.
 The job survives a chat disconnect and exposes actual stage, elapsed time and its final artifact receipt.
 Use explicit job cancellation to stop processing; host Stop alone does not cancel it.
 This candidate removes prototype document-size, page-count, extraction-size, storage and elapsed-time caps.

@@ -263,6 +263,7 @@ async def smoke(
                             "openreading_start_import",
                             "openreading_get_import",
                             "openreading_cancel_import",
+                            "openreading_list_imports",
                         }.issubset(tool.name for tool in tools):
                             raise ValueError("The frozen runtime exposes a different tool catalog.")
                         before = time.monotonic()

@@ -20,12 +20,13 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `56c1a6f` implements:
+The current candidate `4f4351a` implements:
 
 | Tool | Required behavior |
 | --- | --- |
 | `openreading_start_import` | Start a persistent local import and return a job ID promptly. |
 | `openreading_get_import` | Report actual stage, elapsed time and a terminal artifact receipt or error. |
+| `openreading_list_imports` | Discover grant-scoped retained jobs after reconnecting, without a saved job ID. |
 | `openreading_cancel_import` | Cancel one pending import without deleting a completed artifact. |
 | `openreading_import` | Retain the requested granted document, return a bounded receipt, and preserve explicit core refusals. |
 | `openreading_get_document` | Return the complete retained normalized result through byte-bounded continuation, excluding the raw provider envelope. |
@@ -33,12 +34,14 @@ The current candidate `56c1a6f` implements:
 | `openreading_read` | Resolve returned evidence identifiers to bounded exact passages and source provenance. |
 | `openreading_select_document` | Return a locally selected reference through a trusted provider, or explicitly refuse when absent. |
 
-The candidate catalog is eight tools; background import adds start, status and cancellation.
+The candidate catalog is nine tools, including background start, status, cancellation and job discovery.
+Pin changes require fresh same-profile catalog and frozen functional checks before installation.
 A future pin must include every additional implemented core tool before that pin can ship in Agent Tools.
 Do not advertise MCP parse, compare, strategy, folder operations merely because related CLI/HTTP operations exist.
 Do not invent placeholder tools for operations core has not implemented.
 
-The first distribution keeps its explicit local Docling profile, internal grants, resource limits and no-hosted-dispatch rule.
+The first distribution keeps its explicit local Docling profile, internal grants, bounded replies and no-hosted-dispatch rule.
+The local Docling profile has no document-size, page, extraction, storage, processing-time or memory cutoff.
 A1 owns public chat-driven file selection without directory configuration; the current developer form does not pass that launch requirement.
 Exposing the full MCP interface does not install every backend or make unsupported extraction capabilities work.
 Where core supports an operation only with absent optional capabilities, preserve its explicit refusal or warning.

@@ -106,6 +106,19 @@ def package_docling_desktop(
         raise ValueError("Rebuild with full normalized document access before using this manifest.")
     if "_internal/openreading/artifacts/jobs.py" not in metadata["files"]:
         raise ValueError("Rebuild with background import support before using this manifest.")
+    job_schema = "_internal/openreading/schemas/import-job.v0.1.json"
+    try:
+        if job_schema not in metadata["files"]:
+            raise ValueError
+        contract = json.loads((runtime / job_schema).read_text())
+        if (
+            not isinstance(contract, dict)
+            or not isinstance(contract.get("$defs"), dict)
+            or "ListRequest" not in contract["$defs"]
+        ):
+            raise ValueError
+    except (OSError, ValueError):
+        raise ValueError("Rebuild with job discovery before using this manifest.") from None
     if "_internal/openreading/mcp_server/selection.py" not in metadata["files"]:
         raise ValueError("Rebuild with the core selection contract before using this manifest.")
     if (selection or chat) and not {

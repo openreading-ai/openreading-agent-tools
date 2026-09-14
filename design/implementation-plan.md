@@ -323,9 +323,13 @@ No release or merge occurs automatically when tests pass.
 - [x] Package core background start/status/cancel and expose all eight tools.
 - [x] Remove the prototype file/page/extraction/storage ceilings; preserve selected-file access and atomic publication.
 - [x] Verify reconnect, queued cancellation and intact full normalized results in a frozen runtime.
-- [x] Verify interruption during an active frozen parse and a parser crash, then recovery.
-- [x] Run the complete 251-page owner document locally in a source-runtime diagnostic. It completed with caps disabled; this is not frozen or accuracy acceptance.
+- [x] Observe active frozen cancellation, failed parser state and subsequent recovery.
+- [x] Rebuild at core `4f4351a` and assert exact SIGTERM/SIGKILL errors are `parse_failed`; delivered cancellation remains `cancelled`. Source tests retain `storage_limit` for actual storage failures.
+- [x] Complete the 251-page owner document through frozen background processing at core `56c1a6f`; `hard-document/report.json` records completion and the first retrieval reply only. That historical record establishes neither accuracy nor complete retrieval. Later isolated checks reconstruct all retained content; document accuracy remains unverified.
 - [x] Remove the local memory cutoff and chooser-copy deadline following the explicit owner decision.
+- [x] Verify grant-scoped job listing after reconnecting without a saved ID, then cancel the discovered job in the frozen candidate.
+- [x] Refresh both pins to `4f4351a`, the nine-tool catalogs, package, and frozen functional checks after the owner completes testing.
+- [x] Measure server memory through all continuations at `e0061a6`, then focused retrieval at `4f4351a`. Retrieval code is unchanged between those pins. Streaming passage checks still materialize normalized content; this does not establish constant memory at larger sizes.
 - [ ] Check named-host stage reporting and cancellation. Do not assume a native progress bar or infer large-document accuracy from completion.
 
 These tasks change processing lifecycle, not parser semantics. No neighboring-block inference is added.

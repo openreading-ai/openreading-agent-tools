@@ -74,6 +74,10 @@
     {
       "name": "openreading_cancel_import",
       "description": "Cancel a pending document import."
+    },
+    {
+      "name": "openreading_list_imports",
+      "description": "Discover retained import jobs after reconnecting, then check or cancel them by job ID."
     }
   ]
 }

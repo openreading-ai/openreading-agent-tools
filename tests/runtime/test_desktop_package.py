@@ -35,6 +35,9 @@ class DesktopPackageTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"synthetic identity input")
         (release.root / name).chmod(0o755)
+        schema = release.root / "_internal/openreading/schemas/import-job.v0.1.json"
+        schema.parent.mkdir(parents=True, exist_ok=True)
+        schema.write_text(json.dumps({"$defs": {"ListRequest": {}}}))
         release.metadata.update(
             format_version="2",
             profile="local-document-proof-v2",
@@ -83,6 +86,7 @@ class DesktopPackageTests(unittest.TestCase):
             self.assertEqual(record["workflow_sha256"], sha256(target / "WORKFLOW.md"))
             self.assertEqual(record["distribution"], "development-only")
             self.assertIn("openreading_get_document", [tool["name"] for tool in manifest["tools"]])
+            self.assertIn("openreading_list_imports", [tool["name"] for tool in manifest["tools"]])
             self.assertIn("openreading_get_document", (target / "WORKFLOW.md").read_text())
             with self.assertRaises(ValueError):
                 self.operation()(source.root, target)
@@ -108,6 +112,23 @@ class DesktopPackageTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "background import"):
                 self.operation()(source.root, target)
             self.assertFalse(target.exists())
+
+    def test_job_listing_manifest_refuses_older_or_invalid_contract(self):
+        for contents in (None, b"{}", b"[]", b"invalid", b'{"$defs":[]}'):
+            with self.subTest(contents=contents):
+                source = self.fixture()
+                schema = source.root / "_internal/openreading/schemas/import-job.v0.1.json"
+                if contents is None:
+                    schema.unlink()
+                else:
+                    schema.write_bytes(contents)
+                source.metadata["files"] = inventory(source.root)
+                source.write_metadata()
+                with tempfile.TemporaryDirectory() as temp:
+                    target = Path(temp) / "candidate"
+                    with self.assertRaisesRegex(ValueError, "job discovery"):
+                        self.operation()(source.root, target)
+                    self.assertFalse(target.exists())
 
     def test_historical_invalid_and_tampered_candidates_create_no_output(self):
         source = self.fixture()

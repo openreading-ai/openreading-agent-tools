@@ -2,6 +2,11 @@
 
 ## Native evidence review
 
+- Pin core `4f4351a` and require grant-scoped import-job discovery in the manifest and package.
+  Earlier eight-tool runtimes are refused before package output is written.
+- Require exact parser-crash error checks and large-artifact retrieval memory measurements.
+  Document detached-job uninstall behavior and unreachable-chooser recovery.
+
 - Package background import dispatch and all core job tools. Remove the prototype input, page, extraction, storage and elapsed-time ceilings while retaining selected-file access. Remove the local memory cutoff and chooser-copy deadline; explicit cancellation and actual OS failures still apply.
 
 - Update the Docling candidate to core `25c15c4` and expose complete normalized document retrieval.

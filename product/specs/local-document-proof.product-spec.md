@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 13
+spec_revision: 14
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-14T00:00:00Z"
@@ -101,7 +101,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `56c1a6f` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read and local selection.
+The candidate pin `4f4351a` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -128,10 +128,10 @@ in:
   - Disclose the bundled local vision model and automatic local OCR, preserve usable native text, and label OCR-derived evidence without requiring users to choose a mode.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Require no directory-path configuration in public installation; accept one explicitly user-selected local PDF through a verified file picker or handoff per import.
-  - Expose the complete implemented MCP tool catalog of the pinned core release; currently import, complete normalized retrieval, search, read and local selection, with bounded replies.
+  - Expose the complete implemented MCP tool catalog of the pinned core release; including import, complete normalized retrieval, search, read, local selection and background start/status/list/cancel, with bounded replies.
   - Include only a static OpenReading Managed Coming soon visual for the future product; build no managed components.
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
-  - Refuse unreadable, oversized, unsupported, or disallowed inputs with explicit errors and no hosted fallback.
+  - Refuse unreadable, unsupported, or disallowed inputs with explicit errors and no hosted fallback.
   - Package the same runtime for Claude Code and Codex, with separate installation evidence for each supported host version.
   - Test the actual Claude and ChatGPT Desktop workflows independently, including large documents, exact citations, explicit limitations, and setup.
   - Record document byte size, physical pages, extracted characters, native upload outcomes, and local resource costs without inventing token counts.
@@ -147,7 +147,7 @@ out:
   - Do not make an embedding service, vector database, semantic summarizer, or answer-generating model part of this runtime.
 cut:
   - Cut folder import, recursive discovery, and a multi-file upload tool from the first proof.
-  - Cut durable background jobs, reconnectable progress, automatic retries, and a job management interface.
+  - Cut automatic retries and a separate job-management UI; background jobs and MCP discovery remain in scope.
   - Cut a thousand-page acceptance claim until a separate resource and retrieval study passes.
   - Cut model-controlled OCR settings and silent hosted retries; automatic local OCR stays within the verified bundled pipeline and measured import limits.
   - Cut full-document summaries as a token-saving demonstration because reading every passage can erase the proposed savings.
@@ -251,7 +251,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-8
   criterion: A successful artifact remains readable after process restart, while incomplete or corrupted artifacts are refused and a source change produces a different document identity.
 - id: AC-9
-  criterion: Background import returns a job reference promptly and continues across host tool deadlines and disconnects. Status reports observed processing stages and elapsed time; explicit job cancellation stops the owned parser before terminal cancellation is reported. File size, physical pages, extraction size and retained-byte quotas do not reject otherwise eligible documents. The shipped local profile imposes no memory cutoff. Actual OS failures are reported honestly. Response payloads remain bounded. Startup still fits the observed registration deadline, and incomplete work never publishes a successful artifact. Host Stop alone is not job cancellation.
+  criterion: Background import returns a job reference promptly and continues across host tool deadlines and disconnects. Status reports observed processing stages and elapsed time; explicit job cancellation stops the owned parser before terminal cancellation is reported. File size, physical pages, extraction size and retained-byte quotas do not reject otherwise eligible documents. The shipped local profile imposes no memory cutoff. Actual OS failures are reported honestly; a parser process exit never claims the disk is full. Reconnecting with the same grant allows job discovery without a saved ID and explicit cancellation. Uninstall documentation explains detached work and cancellation before removal. Response payloads remain bounded. Startup still fits the observed registration deadline, and incomplete work never publishes a successful artifact. Host Stop alone is not job cancellation.
 - id: AC-10
   criterion: Unsupported formats, encrypted files, empty text, parser failures, cancellation, full disks, and unavailable artifacts produce sanitized errors with no planted document secrets or credentials.
 - id: AC-11
@@ -464,9 +464,13 @@ The [OSS launch design](../../design/oss-launch.md) specifies AC-27 through AC-2
 Local processing must not impose the prototype 25 MiB, 100-page, 64 MiB extraction or 512 MiB retention ceilings.
 The whole selected input reaches the configured parser; there is no silent truncation or page splitting.
 The 10,000-page and roughly 1 GB cases are target workloads, not measured support claims.
-Core owns persistent start/status/cancel tools and existing normalized artifacts. Agent Tools packages them.
+Core owns persistent start/status/list/cancel tools and existing normalized artifacts. Agent Tools packages them.
 Status carries actual stages and elapsed time. A host may render progress visually; a progress bar is not assumed.
-A job can outlive the chat connection. Explicit cancellation remains available after reconnecting.
+A job can outlive the chat connection. Grant-scoped job discovery must recover IDs after reconnecting.
+Status and explicit cancellation then operate on the recovered ID.
+Before uninstalling, cancel unwanted jobs and wait for terminal states; uninstalling has no automatic cancellation hook.
 Automatic full retrieval of a large result is separate from local parsing and remains governed by requested scope.
 The local profile imposes no memory or chooser-copy timeout cutoff. Host-delivered cancellation and actual OS failures remain explicit outcomes.
-Public acceptance requires a complete large-document run, status after reconnect, explicit cancellation and truthful failure reporting through the frozen runtime.
+Public acceptance requires a complete large-document run, discovery after reconnect, explicit cancellation and truthful failure reporting through the frozen runtime.
+Retrieval acceptance also measures server memory during full continuation, search and exact reads over a large retained artifact.
+The import-only memory sample does not establish retrieval memory behavior. No resource cutoff is reintroduced.

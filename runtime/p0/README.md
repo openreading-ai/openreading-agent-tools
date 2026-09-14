@@ -85,7 +85,7 @@ The process-exit observation lacked a retained PID capture and cannot establish 
 Successful user selection remains unverified.
 These results do not replace named-host interaction or clean-machine acceptance.
 
-The current candidate pins core `56c1a6fc7df86f905a0ebbf3edd6d7195abfd5a6`, with explicit provider cleanup responsibilities.
+The current candidate pins core `4f4351afd4168ba7bcbcc4bd716a24e35cd45cd9`, with explicit provider cleanup responsibilities.
 The format 2 launcher sets `ORT_DISABLE_TELEMETRY=1` before core or native parser imports, including worker dispatch.
 ONNX Runtime's later Python API opt-out alone does not prevent its device identifier and telemetry database initialization.
 See the pinned [upstream privacy contract](https://github.com/microsoft/onnxruntime/blob/v1.30.0/docs/Privacy.md).
@@ -107,6 +107,8 @@ The complete response, evidence, page origins and warnings match retained record
 Catalog parity passes in four frozen processes. Native continuation and answer acceptance remain pending.
 
 Background imports use `openreading_start_import`, `openreading_get_import`, and `openreading_cancel_import`.
+The package also requires `openreading_list_imports` from the pinned core.
+The earlier `56c1a6f` build has eight tools and cannot satisfy the current manifest.
 The job survives a chat disconnect and exposes actual stage, elapsed time and its final artifact receipt.
 Use explicit job cancellation to stop processing; host Stop alone does not cancel it.
 This candidate removes prototype document-size, page-count, extraction-size, storage and elapsed-time caps.
