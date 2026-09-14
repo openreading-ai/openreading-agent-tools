@@ -323,7 +323,7 @@ No release or merge occurs automatically when tests pass.
 - [x] Package core background start/status/cancel and expose all eight tools.
 - [x] Remove the prototype file/page/extraction/storage ceilings; preserve selected-file access and atomic publication.
 - [x] Verify reconnect, queued cancellation and intact full normalized results in a frozen runtime.
-- [ ] Verify interruption during an active frozen parse and a parser crash, then recovery.
+- [x] Verify interruption during an active frozen parse and a parser crash, then recovery.
 - [x] Run the complete 251-page owner document locally in a source-runtime diagnostic. It completed with caps disabled; this is not frozen or accuracy acceptance.
 - [ ] Confirm the memory policy separately; the development cutoff remains until resolved.
 - [ ] Check named-host stage reporting and cancellation. Do not assume a native progress bar or infer large-document accuracy from completion.
