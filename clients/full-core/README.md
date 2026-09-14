@@ -4,7 +4,7 @@ This is the power-user route for managing your own OpenReading installation and 
 It does not use the Agent Tools bundle or add settings to that bundle.
 You manage Python, dependencies, model assets and updates yourself.
 
-Status: configuration below is checked against the current candidate contract at core `b03a6606ae8a8afd1d16d867e42ffbbf97bee774`.
+Status: configuration below is checked against the current candidate contract at core `25c15c42365af491f83e098856756076e270bc10`.
 The released-version installation and native walkthrough remain R1 acceptance work in the [implementation plan](../../design/implementation-plan.md).
 Replace `<released-version>` with the merged core release selected by R0 before running the installation recipe or publishing it as release instructions.
 This guide does not imply that the candidate's MCP features are already on PyPI.
@@ -128,3 +128,8 @@ Delete its separate artifact directory if you want to remove retained source cop
 Removing the host entry does not delete those files automatically.
 
 R1 must record the released version, lock, host/version/mode, profile, discovery, cited answer and refusal before calling this a verified release walkthrough.
+
+The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
+The profile still controls available channels, including its table limitations.
+Updated frozen and native checks remain separate from the historical observations above.

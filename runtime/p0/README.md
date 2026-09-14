@@ -85,8 +85,18 @@ The process-exit observation lacked a retained PID capture and cannot establish 
 Successful user selection remains unverified.
 These results do not replace named-host interaction or clean-machine acceptance.
 
-The current candidate pins core `b03a6606ae8a8afd1d16d867e42ffbbf97bee774`, with explicit provider cleanup responsibilities.
+The current candidate pins core `25c15c42365af491f83e098856756076e270bc10`, with explicit provider cleanup responsibilities.
 The format 2 launcher sets `ORT_DISABLE_TELEMETRY=1` before core or native parser imports, including worker dispatch.
 ONNX Runtime's later Python API opt-out alone does not prevent its device identifier and telemetry database initialization.
 See the pinned [upstream privacy contract](https://github.com/microsoft/onnxruntime/blob/v1.30.0/docs/Privacy.md).
 Fresh-home frozen checks remain distinct from installed-host traffic observation; old shared telemetry files are not deleted.
+
+The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
+The profile still controls available channels, including its table limitations.
+Updated frozen and native checks remain separate from the historical observations above.
+
+The September 14 rebuild at core `25c15c4` passed five-tool parity in four frozen processes, including both OCR profiles and restart.
+A separate frozen chat-mode check preserved the image-only code and reconstructed a multi-reply 1040 result exactly.
+The refreshed retrieval gate retained nine passing tasks and three human-review cases; both restart processes reproduced 51 exact reads.
+These checks used synthetic inputs with OS network denial and temporary homes. They did not install an extension or invoke a model.

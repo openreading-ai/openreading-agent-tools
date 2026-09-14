@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 9
+spec_revision: 10
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-12T00:00:00Z"
+updated_at: "2026-09-14T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -59,11 +59,13 @@ It does not infer one outcome from another.
 You install an OpenReading bundle without configuring a directory or typing a filesystem path.
 You explicitly select each document through a tested local file-selection interface.
 Each client connects to the same runtime through its tested local MCP interface.
-Setup discloses local retention, automatic local OCR and shared excerpts without asking for a directory or OCR choice.
+Setup discloses local retention, automatic local OCR and shared document content without asking for a directory or OCR choice.
 A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
 You ask to open a local document, select it, and receive its reference in chat without copying a path or prompt.
 OpenReading parses the file locally, keeps the extraction on disk, and returns a short receipt.
-The assistant searches that extraction, reads bounded passages, and answers with source references.
+The assistant can read the complete normalized result through bounded continuation or use optional search and passage reads.
+Requested content enters the assistant context; full retrieval can include all retained extracted text.
+Neither route changes the configured parser or infers document relationships.
 
 A receipt is a small record identifying the extracted document and its available evidence.
 Provenance is the information connecting that evidence to the exact source bytes and physical page.
@@ -80,7 +82,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 9 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 10 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -99,7 +101,8 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The reviewed candidate core `b03a6606` exposes `openreading_import`, `openreading_search`, `openreading_read`, and `openreading_select_document`.
+The candidate pin `25c15c4` adds `openreading_get_document` alongside import, search, read and local selection.
+Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
 The launch must verify the complete tool catalog using existing frozen/native checks and the client manifest declarations.
@@ -125,7 +128,7 @@ in:
   - Disclose the bundled local vision model and automatic local OCR, preserve usable native text, and label OCR-derived evidence without requiring users to choose a mode.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Require no directory-path configuration in public installation; accept one explicitly user-selected local PDF through a verified file picker or handoff per import.
-  - Expose the complete implemented MCP tool catalog of the pinned core release; currently import, search, read and local selection, with bounded retained evidence.
+  - Expose the complete implemented MCP tool catalog of the pinned core release; currently import, complete normalized retrieval, search, read and local selection, with bounded replies.
   - Include only a static OpenReading Managed Coming soon visual for the future product; build no managed components.
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
   - Refuse unreadable, oversized, unsupported, or disallowed inputs with explicit errors and no hosted fallback.
@@ -215,7 +218,7 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 9 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 10 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
@@ -289,6 +292,8 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: The OSS launch includes a static OpenReading Managed Coming soon visual in the README and release presentation; it promises no date or supported scale, offers no signup or processing action, and rendering it causes no network request, credential read, upload, service registration, or change to local tool results.
 - id: AC-29
   criterion: OSS launch v1 works with no OpenReading account, service configuration or managed component; its bundle contains no managed endpoint, stub, authentication, upload, billing, polling or dormant managed tools, while a separately installed full core remains usable through the assistant's own MCP configuration and no alternative local backend manager is added.
+- id: AC-30
+  criterion: The frozen runtime exposes core complete-document retrieval without raw provider payloads or mandatory search; continuation preserves every retained normalized value, warning, origin and citation reference, and a named native-host check follows all continuations and cites the image-only verification code without claiming perfect OCR or token savings.
 ~~~
 
 ~~~productspec-ai-evals
@@ -308,6 +313,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
     - Preserve measurement/corpus.json and its hashes; expected answers and pages come from frozen task IDs.
     - The offline citation checker binds identifiers, pages, exact quotes, and observed tool calls; human review judges semantic support.
     - Search absence is not presented as proof that the complete document lacks a fact.
+    - For AC-30, use a separately registered synthetic OCR-code fixture and capture selection, import, complete normalized retrieval and exact citation read. Bind the printed code and source hash before the run. A source or frozen stdio check cannot substitute for the native answer.
 - id: EVAL-2
   type: human_review
   evaluator: human

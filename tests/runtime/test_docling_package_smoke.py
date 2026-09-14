@@ -1,6 +1,7 @@
 """A frozen Docling smoke cannot pass incorrect OCR, provenance or restart receipts."""
 
 import asyncio
+import hashlib
 import importlib
 import importlib.util
 import json
@@ -47,6 +48,11 @@ class DoclingSmokeTests(unittest.TestCase):
             "memory",
             "refusal",
             "error",
+            "document_raw",
+            "document_ocr",
+            "document_digest",
+            "document_cursor",
+            "document_artifact",
         ):
             with self.subTest(fault=fault):
                 self.exercise(fault)
@@ -92,12 +98,16 @@ class DoclingSmokeTests(unittest.TestCase):
                                 "openreading_import",
                                 "openreading_search",
                                 "openreading_read",
+                                "openreading_get_document",
+                                "openreading_select_document",
                             ]
                         )
                     ]
                 )
 
             async def call_tool(self, name, args, **kwargs):
+                if name == "openreading_read":
+                    assert set(args) == {"artifact_id", "evidence_ids"}
                 calls.append((name, args))
                 ocr = states[-1]
                 if args.get("path", "").startswith(".."):
@@ -114,6 +124,47 @@ class DoclingSmokeTests(unittest.TestCase):
                     }
                     if fault == "restart" and len(states) % 2 == 0:
                         value["artifact_id"] = "wrong"
+                elif name == "openreading_get_document":
+                    pages = [
+                        {
+                            "page_number": number,
+                            "text": "30 days"
+                            if number == 1
+                            else (
+                                "45 days" if number == 2 and ocr and fault != "document_ocr" else ""
+                            ),
+                        }
+                        for number in range(1, 7)
+                    ]
+                    content = {
+                        "response": {"document": {"page_count": 6, "pages": pages}},
+                        "page_origins": {"1": "native", "2": "ocr" if ocr else "none"},
+                        "evidence": [{"evidence_id": "1", "page": 1}],
+                        "warnings": [],
+                    }
+                    if fault == "document_raw":
+                        content["response"]["backend_raw"] = {"private": "provider bytes"}
+                    encoded = json.dumps(
+                        content,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                        ensure_ascii=False,
+                        allow_nan=False,
+                    ).encode()
+                    value = {
+                        "schema_version": "0.1",
+                        "scope": "retained_normalized_response",
+                        "artifact_id": "wrong"
+                        if fault == "document_artifact"
+                        else args["artifact_id"],
+                        "content_sha256": "wrong"
+                        if fault == "document_digest"
+                        else hashlib.sha256(encoded).hexdigest(),
+                        "fragment_start": 0,
+                        "fragment_count": 1,
+                        "fragments": [{"path": "", "value": content}],
+                        "next_cursor": "more" if fault == "document_cursor" else None,
+                    }
                 elif name == "openreading_search":
                     page = 1 if args["query"] == "30 days" else 2
                     value = {
@@ -149,11 +200,15 @@ class DoclingSmokeTests(unittest.TestCase):
                 else "Use returned IDs.",
                 "tools": [
                     {"name": name, "inputSchema": {"type": "object"}}
-                    for name in [
-                        "openreading_import",
-                        "openreading_read",
-                        "openreading_search",
-                    ]
+                    for name in sorted(
+                        [
+                            "openreading_import",
+                            "openreading_read",
+                            "openreading_search",
+                            "openreading_get_document",
+                            "openreading_select_document",
+                        ]
+                    )
                 ],
             }
             reference = root / "reference.json"
@@ -235,6 +290,9 @@ class DoclingSmokeTests(unittest.TestCase):
                         "not_checked" if fault == "no_reference" else "passed",
                     )
                     self.assertTrue(report["passed"])
+                    self.assertEqual(
+                        sum(name == "openreading_get_document" for name, _ in calls), 4
+                    )
                     self.assertEqual(len(report["processes"]), 4)
                     self.assertEqual(report["sampled_peak_tree_rss_including_driver"], 100)
                     self.assertTrue(any(row["progress"] for row in report["processes"]))

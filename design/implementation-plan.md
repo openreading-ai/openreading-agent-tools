@@ -1,7 +1,7 @@
-# Revision 9 implementation plan
+# Revision 10 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 9](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 10](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
@@ -94,6 +94,18 @@ Do not write shared TOML or substitute Codex-mode evidence for the Chat conversa
 Stop ChatGPT-specific N2 if E1 cannot establish that mode and setup route; Claude Desktop remains independently releasable.
 Other common implementation work can continue without that unsupported claim.
 
+## D0. Complete normalized result acceptance
+
+Core commit `25c15c4` implements complete retained normalized retrieval. Search remains optional.
+
+- [x] Refresh the Docling candidate and P0 pins together, retaining historical revision 1.
+- [x] Rebuild and validate all five tools against the same-profile core catalog.
+- [x] Verify whole-result reconstruction, OCR origins and exact code preservation through the frozen runtime.
+- [x] Rerun retrieval and restart checks on the new pin.
+- [ ] Capture a native Claude conversation that reads the complete result and cites the synthetic image-only code.
+
+These tasks implement AC-30. Parser omissions remain visible; no neighboring-block inference or parser switch is added.
+
 ## C0. Complete pinned-core MCP catalog
 
 Acceptance: AC-27 and AC-29. Owners: core owns tool implementation; Agent Tools owns wrapper parity.
@@ -106,7 +118,7 @@ Contract: [OSS launch design](oss-launch.md). This is proposed release verificat
 - [ ] Add focused regressions for omitted tools, changed schemas, wrong profile prose and missing instructions.
 - [ ] Check the final package after R0/P1. A pin-update check is necessary for the first release too; it is not a separate prerequisite for beginning N2.
 
-The current core catalog is import, search, read and local selection. There is no duplicate engine contract to implement in wrappers.
+The current core catalog is import, complete normalized retrieval, search, read and local selection. There is no duplicate engine contract to implement in wrappers.
 The [launch design](oss-launch.md) defines strict fields and permitted profile/presentation differences.
 
 ## N1. Common configuration and launcher migration

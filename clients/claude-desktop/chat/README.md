@@ -47,3 +47,13 @@ Earlier development builds could create a device identifier and telemetry databa
 The launcher now sets the pinned runtime's startup opt-out; it does not delete existing shared Microsoft data.
 The frozen smoke checks a fresh home for unexpected persistence, with network access denied.
 This check does not establish whether earlier builds transmitted events or prove installed-host network behavior.
+
+The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
+The profile still controls available channels, including its table limitations.
+Updated frozen and native checks remain separate from the historical observations above.
+
+The September 14 frozen check reconstructed the synthetic OCR-code result and preserved its exact page-2 citation.
+The larger two-page synthetic 1040 required 66 replies and reconstructed all 549,055 bytes of retained normalized content.
+Both page-2 amounts survived. This is direct MCP with staged intake, not a native chooser or Claude answer.
+The repeated-call cost in native chat remains unmeasured. Complete transport is not complete host acceptance.

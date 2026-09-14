@@ -6,8 +6,8 @@ The historical revision 1 bundle and measurement runtime remain separate.
 
 ## Run
 
-The current candidate pins core `b03a6606ae8a8afd1d16d867e42ffbbf97bee774` with Docling integration v5 and updated bounded-evidence instructions.
-Only the core pin changes from the previous candidate; dependency versions and extraction integration remain unchanged.
+The current candidate pins core `25c15c42365af491f83e098856756076e270bc10` with Docling integration v5 and updated bounded-evidence instructions.
+Dependency versions remain unchanged. The core update includes picture-child text preservation and complete normalized-document retrieval.
 
 `make verify` checks this lock against its declared inputs without network access or installing the candidate.
 It also refuses prohibited packages in the lock and requires this guide to name the locked core and engine versions.
@@ -142,3 +142,8 @@ The first stricter attempt failed its 100-page non-OCR cell because the monitor 
 The corrected monitor passed a full rerun; that earlier attempt remains a failed measurement.
 These remain developer observations with one first and two warm conversions per cell, not release limits or p95 evidence.
 Orientation, cross-page items, passage-level retrieval, host deadlines, and artifact commit timing remain separate checks.
+
+The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
+The profile still controls available channels, including its table limitations.
+Updated frozen and native checks remain separate from the historical observations above.

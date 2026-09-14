@@ -102,6 +102,8 @@ def package_docling_desktop(
         raise ValueError("The Desktop development candidate requires a Docling runtime.")
     if output.exists():
         raise ValueError("Choose a new package output directory.")
+    if "_internal/openreading/artifacts/document.py" not in metadata["files"]:
+        raise ValueError("Rebuild with full normalized document access before using this manifest.")
     if "_internal/openreading/mcp_server/selection.py" not in metadata["files"]:
         raise ValueError("Rebuild with the core selection contract before using this manifest.")
     if (selection or chat) and not {
@@ -128,7 +130,7 @@ def package_docling_desktop(
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "
             "Local file-selection development preview. Use the included OpenReading Choose Document app "
             "to select a PDF, then copy its reference into chat. No directory configuration is required. "
-            "Selected source copies and evidence stay locally until removed. Retrieved evidence enters "
+            "Selected source copies and evidence stay locally until removed. Requested document content enters "
             "your assistant context. OCR is optional and can misread printed text; verify important quotes "
             "against the source page. This unsigned candidate does not establish public installation or token savings."
             "\n\nOpenReading Managed: Coming soon\nDocument processing on OpenReading's servers, without managing local compute. Planned after the public OSS launch."
@@ -177,7 +179,7 @@ def package_docling_desktop(
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "
             "Ask OpenReading to choose a local PDF. Choose your document in its OS file dialog, "
             "then ask a question in chat. OpenReading processes it locally with automatic OCR. "
-            "Selected copies and evidence remain locally until removed; retrieved excerpts enter "
+            "Selected copies and evidence remain locally until removed; requested document content enters "
             "your assistant context. OCR can misread words and identifiers. Verify important "
             "quotes against the printed page. Use Cancel in the file dialog to dismiss it; "
             "the chat Stop button may not cancel local work. This unsigned development candidate "

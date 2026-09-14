@@ -75,7 +75,7 @@ def launch(args, bundle: Path, *, selection_provider=None) -> int:
             raise ValueError("configuration_required: Setup needs a document directory.")
         configure_v2(args.client, args.input_root, ocr_value(args.ocr))
         print(
-            "Directory configured. Retained source copies stay locally; retrieved excerpts enter the assistant context. This grant limits OpenReading tools only."
+            "Directory configured. Retained source copies stay locally; requested document content enters the assistant context. This grant limits OpenReading tools only."
         )
         return 0
     settings = select_settings(args.client, args.input_root, args.ocr)

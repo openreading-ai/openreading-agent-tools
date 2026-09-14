@@ -12,6 +12,8 @@ Its core commit must match the bundle; both OCR modes require an independently c
 reference. A smoke without these inputs reports catalog_parity=not_checked.
 The CLI exits 2 for invalid input or filesystem errors and prints only the exception type.
 Manifest descriptions are installation summaries; only their tool names enter parity.
+The small functional fixture must fit one complete normalized reply with its OCR text.
+This check does not substitute for large-document pagination or native-host acceptance.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import contextlib
+import hashlib
 import json
 import os
 import re
@@ -58,6 +61,46 @@ def check_catalog(expected, actual, manifest):
         or sorted(names) != [tool["name"] for tool in actual["tools"]]
     ):
         raise ValueError("The frozen catalog, profile instructions or manifest differs from core.")
+
+
+def check_document(result, identifier, ocr):
+    # A single root value is expected only for this fixed, small functional fixture.
+    # Requiring the terminator avoids silently accepting a partial document as complete.
+    if (
+        result.get("schema_version") != "0.1"
+        or result.get("scope") != "retained_normalized_response"
+        or result.get("artifact_id") != identifier
+        or result.get("next_cursor") is not None
+        or result.get("fragment_start") != 0
+        or result.get("fragment_count") != 1
+        or len(result.get("fragments", [])) != 1
+    ):
+        raise ValueError("The normalized document reply is incomplete or incorrectly bound.")
+    fragment = result["fragments"][0]
+    if set(fragment) != {"path", "value"} or fragment.get("path") != "":
+        raise ValueError("The functional document must fit one root value.")
+    content = fragment["value"]
+    encoded = json.dumps(
+        content, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode()
+    if hashlib.sha256(encoded).hexdigest() != result.get("content_sha256"):
+        raise ValueError("The complete normalized content digest differs.")
+    response = content["response"]
+    pages = response["document"]["pages"]
+    texts = {page["page_number"]: page.get("text") or "" for page in pages}
+    if (
+        "backend_raw" in response
+        or response["document"]["page_count"] != 6
+        or list(texts) != list(range(1, 7))
+        or "30 days" not in texts[1]
+        or ("45 days" in texts[2]) is not ocr
+        or content["page_origins"]["1"] != "native"
+        or content["page_origins"]["2"] != ("ocr" if ocr else "none")
+        or not content["evidence"]
+        or "warnings" not in content
+    ):
+        raise ValueError("Full normalized text, OCR origin or raw exclusion differs.")
+    return result["content_sha256"]
 
 
 def loaded_libraries(runtime):
@@ -215,6 +258,8 @@ async def smoke(
                             "openreading_import",
                             "openreading_read",
                             "openreading_search",
+                            "openreading_get_document",
+                            "openreading_select_document",
                         }.issubset(tool.name for tool in tools):
                             raise ValueError("The frozen runtime exposes a different tool catalog.")
                         before = time.monotonic()
@@ -236,6 +281,15 @@ async def smoke(
                                 "The import or restart receipt differs from the frozen source."
                             )
                         identifier = receipt["artifact_id"]
+                        normalized_sha256 = check_document(
+                            payload(
+                                await client.call_tool(
+                                    "openreading_get_document", {"artifact_id": identifier}
+                                )
+                            ),
+                            identifier,
+                            ocr,
+                        )
                         for page, query in ((1, "30 days"), (2, "45 days")):
                             found = payload(
                                 await client.call_tool(
@@ -301,6 +355,7 @@ async def smoke(
                             "warm_conversion_seconds": warm_seconds,
                             "progress": progress,
                             "artifact_id": identifier,
+                            "normalized_content_sha256": normalized_sha256,
                         }
                     )
     finally:

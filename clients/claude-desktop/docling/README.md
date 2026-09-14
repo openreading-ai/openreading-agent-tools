@@ -33,3 +33,8 @@ Do not delete that directory while another OpenReading Desktop connector uses it
 > Planned after the public OSS launch.
 
 This is static presentation only. No managed connection or signup flow is included.
+
+The `25c15c4` candidate adds `openreading_get_document` for the complete retained normalized result, excluding raw provider payloads.
+Search remains optional. Requested document content enters the assistant context; full retrieval can include all extracted text.
+The profile still controls available channels, including its table limitations.
+Updated frozen and native checks remain separate from the historical observations above.

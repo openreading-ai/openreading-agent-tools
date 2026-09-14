@@ -81,11 +81,12 @@ async def check(args):
         ):
             initialized = await session.initialize()
             tools = (await session.list_tools()).tools
-            if len(tools) != 4 or {tool.name for tool in tools} != {
+            if len(tools) != 5 or {tool.name for tool in tools} != {
                 "openreading_import",
                 "openreading_search",
                 "openreading_read",
                 "openreading_select_document",
+                "openreading_get_document",
             }:
                 raise ValueError("The selected MCP tool catalog is not available.")
             contract = [

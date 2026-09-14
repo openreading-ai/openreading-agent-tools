@@ -2,6 +2,10 @@
 
 ## Native evidence review
 
+- Update the Docling candidate to core `25c15c4` and expose complete normalized document retrieval.
+  Search is optional; full results keep existing structure, warnings, origins and citation references.
+  Reject older runtimes before packaging a manifest that advertises the new tool.
+
 - Present the chat chooser without attaching a macOS sheet to its hidden Tk owner.
 
 - Keep selection and clearing usable when rollback revokes entries during directory scans.

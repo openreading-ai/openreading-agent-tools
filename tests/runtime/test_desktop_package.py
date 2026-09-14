@@ -22,6 +22,7 @@ class DesktopPackageTests(unittest.TestCase):
         self.addCleanup(release.doCleanups)
         for name in [
             "_internal/openreading/mcp_server/selection.py",
+            "_internal/openreading/artifacts/document.py",
             "resources/docling-runtime.uv.lock",
             "resources/models/docling-project--docling-layout-heron-onnx/model.onnx",
             "resources/tessdata/eng.traineddata",
@@ -80,8 +81,21 @@ class DesktopPackageTests(unittest.TestCase):
             self.assertEqual(record["manifest_sha256"], sha256(target / "manifest.json"))
             self.assertEqual(record["workflow_sha256"], sha256(target / "WORKFLOW.md"))
             self.assertEqual(record["distribution"], "development-only")
+            self.assertIn("openreading_get_document", [tool["name"] for tool in manifest["tools"]])
+            self.assertIn("openreading_get_document", (target / "WORKFLOW.md").read_text())
             with self.assertRaises(ValueError):
                 self.operation()(source.root, target)
+
+    def test_full_document_manifest_refuses_an_older_runtime(self):
+        source = self.fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "candidate"
+            (source.root / "_internal/openreading/artifacts/document.py").unlink()
+            source.metadata["files"] = inventory(source.root)
+            source.write_metadata()
+            with self.assertRaisesRegex(ValueError, "full normalized"):
+                self.operation()(source.root, target)
+            self.assertFalse(target.exists())
 
     def test_historical_invalid_and_tampered_candidates_create_no_output(self):
         source = self.fixture()

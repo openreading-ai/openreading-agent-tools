@@ -66,7 +66,7 @@ class Picker:
         )
         ttk.Label(
             frame,
-            text="Choose one PDF. OpenReading keeps a local copy; only retrieved evidence enters your assistant's context.\nYour source folder is not granted. OCR uses your connector setting and can misread printed text.",
+            text="Choose one PDF. OpenReading keeps a local copy; requested document content enters your assistant's context.\nYour source folder is not granted. OCR uses your connector setting and can misread printed text.",
             wraplength=640,
             justify="left",
         ).pack(anchor="w", pady=(12, 16))

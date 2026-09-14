@@ -44,7 +44,7 @@ class Session:
             tools=[
                 Box(name=f"openreading_{name}", inputSchema={"type": "object"}, outputSchema=None)
                 for name in (
-                    ("import", "search", "read", "select_document")
+                    ("import", "search", "read", "select_document", "get_document")
                     if self.selection
                     else ("import", "search", "read")
                 )
