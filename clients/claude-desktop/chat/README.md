@@ -98,3 +98,12 @@ A saved local path does not give Claude's cloud sandbox access. Attach that expo
 Attaching the export sends its content to the assistant host. Cowork is optional; this connector adds no execution environment.
 Exports remain until removed separately, including after artifact removal. Default runtime telemetry remains disabled.
 Source checks and earlier synthetic host probes do not establish native acceptance of this rebuilt candidate.
+
+The advanced budget accepts whole numbers of at least 4096. The manifest exposes that minimum;
+the host's manifest format cannot enforce integers, so invalid values still fail launcher validation.
+macOS may request Downloads permission, or deny exports if that permission is unavailable.
+Native and clean-machine checks must record the prompt, its application attribution, and denial behavior.
+Exports contain complete extracted text. Depending on system settings, indexing, backup or sync may include them.
+A process crash can leave a hidden temporary export file. Automatic cleanup of abandoned exports is not implemented.
+The retrieval tool can write exports, so its write annotation also applies to inline and fragment requests.
+Measure actual approval prompts for every route rather than assuming read-only approval behavior.

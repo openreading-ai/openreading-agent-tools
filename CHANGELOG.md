@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Expose the supported minimum for the advanced response budget and strengthen complete-delivery packaging guards.
+- Add native export permission and approval checks, with local export retention and indexing disclosure.
+
 - Add complete-result delivery configuration and Downloads/OpenReading exports without adding processing cutoffs or an execution environment.
 - Update public-v1 acceptance for native file access, parser quality, folder snapshots and explicit analytics.
 

@@ -119,6 +119,8 @@ Core commit `e795234` implements complete retained normalized retrieval. Search 
 - [x] Rerun retrieval and restart checks on the new pin.
 - [ ] Capture the small native Claude OCR-code case with an exact citation.
 - [ ] Capture native intact small delivery, host-created file access and oversized local-export access separately. Record hashes, warning details, origins, reply and approval counts, and exact citations.
+- [ ] On the native and clean-machine candidates, record Downloads permission prompts and application attribution. Test denied access and a trusted symlinked Downloads destination without silently changing destinations.
+- [ ] Record approval prompts separately for fragment, inline auto and file export modes because the shared tool carries a write annotation.
 - [ ] Capture core retrieval-scope guidance in native initialization and run a separately registered focused-question case.
 - [ ] Check retrieval choice: focused questions avoid unrequested full reconstruction; complete-result tasks use automatic delivery and disclose the actual access route.
 

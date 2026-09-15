@@ -222,8 +222,9 @@ def package_docling_desktop(
             "document_response_bytes": {
                 "type": "number",
                 "title": "Complete result response budget (bytes)",
-                "description": "Advanced delivery setting. Default 1000000 counts the serialized MCP response. Larger results are saved under Downloads/OpenReading; document processing is not limited.",
+                "description": "Advanced delivery setting. Enter a whole number of at least 4096. Default 1000000 counts the serialized MCP response. Larger results are saved under Downloads/OpenReading; document processing is not limited.",
                 "default": 1_000_000,
+                "min": 4096,
                 "required": False,
             }
         }

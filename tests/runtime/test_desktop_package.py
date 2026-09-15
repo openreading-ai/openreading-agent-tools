@@ -290,6 +290,7 @@ console.log(JSON.stringify(results));
             self.assertEqual(set(manifest["user_config"]), {"document_response_bytes"})
             self.assertEqual(manifest["user_config"]["document_response_bytes"]["default"], 1000000)
             self.assertFalse(manifest["user_config"]["document_response_bytes"]["required"])
+            self.assertEqual(manifest["user_config"]["document_response_bytes"]["min"], 4096)
             self.assertEqual(
                 manifest["server"]["mcp_config"]["args"],
                 [
@@ -340,6 +341,33 @@ console.log(JSON.stringify(results));
     def test_candidate_refuses_missing_complete_delivery_contract_before_output(self):
         source = self.fixture()
         (source.root / "_internal/openreading/schemas/document-tool.v0.2.json").unlink()
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "candidate"
+            with self.assertRaisesRegex(ValueError, "complete delivery"):
+                package.package_docling_desktop(source.root, output)
+            self.assertFalse(output.exists())
+
+    def test_candidate_refuses_each_missing_delivery_module(self):
+        for module in ("artifacts", "mcp_server"):
+            with self.subTest(module=module):
+                source = self.fixture()
+                (source.root / f"_internal/openreading/{module}/delivery.py").unlink()
+                source.metadata["files"] = inventory(source.root)
+                source.write_metadata()
+                with tempfile.TemporaryDirectory() as temp:
+                    output = Path(temp) / "candidate"
+                    with self.assertRaisesRegex(ValueError, "complete delivery"):
+                        package.package_docling_desktop(source.root, output)
+                    self.assertFalse(output.exists())
+
+    def test_candidate_refuses_wrong_delivery_enum(self):
+        source = self.fixture()
+        path = source.root / "_internal/openreading/schemas/document-tool.v0.2.json"
+        schema = json.loads(path.read_text())
+        schema["$defs"]["DeliveryRequest"]["properties"]["delivery"]["enum"] = ["fragments"]
+        path.write_text(json.dumps(schema))
         source.metadata["files"] = inventory(source.root)
         source.write_metadata()
         with tempfile.TemporaryDirectory() as temp:
