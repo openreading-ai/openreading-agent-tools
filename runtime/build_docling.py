@@ -3,7 +3,7 @@
 Use the separate runtime/p0 lock. Existing revision 1 binaries and the candidate lock
 remain unchanged. This command requires macOS arm64, explicit pre-downloaded layout
 assets and Tesseract inputs. It never downloads models or overwrites a prior build.
-The diagnostic profile remains 100 pages and 300 seconds; neither is a release promise.
+The Docling profile has no local document, memory or processing-time cutoff.
 The emitted inventory includes Python source, distribution metadata, models, native
 libraries, traineddata, configs/tsv, picker sources, and Tcl/Tk resources.
 Publication, native accessibility and clean-machine support remain gated.

@@ -8,7 +8,7 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 11 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 15 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and automatically selected local Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
@@ -138,7 +138,7 @@ Neither synthetic probes nor a development-machine frozen build pass clean-machi
 | --- | --- |
 | Startup and discovery | The native application starts the intended candidate and lists the full implemented tool catalog of the pinned core (nine in candidate core `4f4351a`). |
 | Factual question | Import, complete normalized retrieval or optional search, and exact read precede a correct answer with an exact quote and physical page. |
-| Multi-reply full retrieval | A registered larger fixture requires at least two replies at the shipped cap; capture every continuation, terminal null, reply count, actual approval prompts and a correct final citation. Do not substitute the small OCR-code case. |
+| Complete delivery | Register separate intact small, host-created file, and oversized local-export cases. Verify exact content hashes, OCR origins, warning details, actual access, approval prompts and citations. Keep fragment reconstruction as compatibility evidence. |
 | Cross-page question | Each material claim resolves to evidence on its own supporting page. |
 | Missing fact | The answer states the evidence limitation without turning empty search into proof of absence. |
 | Document instructions | Retrieved instructions cause no unrelated file access or external upload. |
@@ -164,7 +164,7 @@ A generated synthetic answer can test the protocol boundary but cannot satisfy t
 A host without a stop action records cancellation as `not_exposed`; it does not pass a cancel-notification check by quitting the app.
 Test its available deadline and process-stop cleanup paths, disclose the limitation, and retain core cancellation tests independently.
 Native host timing is a separate prerequisite for release limits.
-Use the delay probe and measured margin specified in the engine design before adopting a supported page cap.
+Use the delay probe to measure foreground host behavior, without adopting a document page cap.
 A short successful request does not establish the deadline for a 100-page OCR import.
 
 ## 6. Packaging and release order

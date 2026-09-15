@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 14
+spec_revision: 15
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-14T00:00:00Z"
+updated_at: "2026-09-15T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -63,7 +63,13 @@ Setup discloses local retention, automatic local OCR and shared document content
 A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
 You ask to open a local document, select it, and receive its reference in chat without copying a path or prompt.
 OpenReading parses the file locally, keeps the extraction on disk, and returns a short receipt.
-The assistant can read the complete normalized result through bounded continuation or use optional search and passage reads.
+The assistant requests complete normalized content with automatic delivery or uses optional search and exact reads.
+A 1,000,000-byte configurable budget measures the entire serialized MCP response, including escaping and request ID.
+A fitting result is sent intact. The host may present it inline or save it into a file accessible through its existing tools.
+A larger result is saved as complete JSON under Downloads/OpenReading, with its byte count, hash and warning summary.
+The host's local-file capability or an explicit user attachment supplies access; a local path alone does not.
+Manual attachment sends exported content to the assistant host. Cowork is optional, and no execution environment is bundled.
+This delivery budget never limits document processing and never silently truncates normalized content.
 Requested content enters the assistant context; full retrieval can include all retained extracted text.
 Neither route changes the configured parser or infers document relationships.
 
@@ -82,7 +88,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 11 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 15 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -101,7 +107,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `4f4351a` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
+The candidate pin `685202f` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -146,7 +152,7 @@ out:
   - Do not offer alternate backends, endpoint configuration, or credential setup in the first assistant profile.
   - Do not make an embedding service, vector database, semantic summarizer, or answer-generating model part of this runtime.
 cut:
-  - Cut folder import, recursive discovery, and a multi-file upload tool from the first proof.
+  - Keep the current proof single-file. Public v1 still needs explicit multi-file and folder snapshot selection, bounded traversal semantics and per-document job access; this is not implemented.
   - Cut automatic retries and a separate job-management UI; background jobs and MCP discovery remain in scope.
   - Cut a thousand-page acceptance claim until a separate resource and retrieval study passes.
   - Cut model-controlled OCR settings and silent hosted retries; automatic local OCR stays within the verified bundled pipeline and measured import limits.
@@ -293,7 +299,14 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-29
   criterion: OSS launch v1 works with no OpenReading account, service configuration or managed component; its bundle contains no managed endpoint, stub, authentication, upload, billing, polling or dormant managed tools, while a separately installed full core remains usable through the assistant's own MCP configuration and no alternative local backend manager is added.
 - id: AC-30
-  criterion: The frozen runtime exposes core complete-document retrieval without raw provider payloads or mandatory search; continuation preserves every retained normalized value, warning, origin and citation reference, and named native-host checks separately cite the image-only verification code and complete a registered larger result requiring multiple replies at the shipped cap, recording all continuations, terminal null, actual reply counts and approval prompts without claiming perfect OCR or token savings.
+  criterion: Complete delivery preserves every retained normalized value, warning, origin and citation reference without the top-level raw provider payload; actual serialized MCP response bytes select intact delivery or complete local export, never truncation; native checks verify small OCR content, a host-created result file and a large exported-file route independently, retaining hashes and recording actual host access without claiming perfect OCR, full model comprehension or token savings.
+- id: AC-31
+  criterion: Before public v1, representative difficult pages have source-level expected facts compared against the provider export and normalized result; missing text, wrong OCR, ordering and unsupported tables are separate findings; fixes use provider-supported configuration or literal adapter projection, and the final frozen profile repeats those checks without neighboring-block, form-specific or inferred OCR corrections.
+- id: AC-32
+  criterion: Public v1 supports explicit multi-file and folder snapshot selection without granting live directory access; the user controls selection, each selected eligible file has a distinct result and discoverable job, and unimplemented traversal or cancellation semantics block that feature's acceptance.
+- id: AC-33
+  criterion: Analytics distinguish server-observed downloads, marketplace-reported installs and explicitly opted-in client events; default clients send no telemetry, local processing timings remain local, diagnostic sharing is explicit, and any future managed-service usage measurement belongs to separate service terms.
+
 ~~~
 
 ~~~productspec-ai-evals
@@ -314,8 +327,9 @@ The runtime evidence table describes historical revision 1 checks only; changed 
     - The offline citation checker binds identifiers, pages, exact quotes, and observed tool calls; human review judges semantic support.
     - Search absence is not presented as proof that the complete document lacks a fact.
     - Capture the pinned core scope guidance in initialize.instructions. Register a focused-question case separately from the explicit complete-read cases.
-    - A focused task does not silently start an unrequested full continuation; an explicit complete-read request continues without repeated scope confirmation. Page/passage counts are rough signals only, and no model-token estimate is claimed from them.
-    - For AC-30, register two cases before the native run: the small synthetic OCR-code PDF and a larger synthetic result verified to need at least two replies at the shipped byte cap. Bind source hashes, expected page facts and the printed code. Capture selection, import, every full-result reply, final null cursor, exact read and the native answer. Record reply counts and actual approval prompts separately; a source or frozen stdio run and a one-reply result cannot substitute for native continuation acceptance.
+    - A focused task does not start unrequested full reconstruction. A complete-result task uses automatic delivery and the actual access route; it does not keep paging after reporting a complete local export. Byte counts do not establish token counts.
+    - For AC-30, register a small synthetic OCR-code PDF, an accepted large tool result that the host saves to a file, and a result exceeding the configured response budget. Verify intact content hashes, printed code, origins, warnings and exact citations. Record actual host-created file access, local export fallback, replies and approvals separately. Native behavior cannot be inferred from source or frozen stdio checks.
+
 - id: EVAL-2
   type: human_review
   evaluator: human

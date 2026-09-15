@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Add complete-result delivery configuration and Downloads/OpenReading exports without adding processing cutoffs or an execution environment.
+- Update public-v1 acceptance for native file access, parser quality, folder snapshots and explicit analytics.
+
 - Pin core `4f4351a` and require grant-scoped import-job discovery in the manifest and package.
   Earlier eight-tool runtimes are refused before package output is written.
 - Require exact parser-crash error checks and large-artifact retrieval memory measurements.

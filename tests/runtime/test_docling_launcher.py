@@ -225,6 +225,11 @@ class DoclingLaunchTests(unittest.TestCase):
         from runtime.chat_selection import LocalSelectionProvider
 
         def core_boundary(args, *, selection_provider=None, selection_timeout_seconds=120):
+            self.assertEqual(args[args.index("--document-response-bytes") + 1], "1000000")
+            self.assertEqual(
+                Path(args[args.index("--document-export-root") + 1]),
+                self.home / "Downloads" / "OpenReading",
+            )
             self.assertIsNone(selection_timeout_seconds)
             self.assertIsInstance(selection_provider, LocalSelectionProvider)
             self.assertEqual(
@@ -261,3 +266,52 @@ class DoclingLaunchTests(unittest.TestCase):
         ):
             self.assertEqual(main(["--internal-artifact-worker"]), 0)
         self.assertEqual(observed, ["openreading.artifacts.worker"])
+
+    def test_delivery_budget_override_reaches_core_without_changing_parse_limits(self):
+        def boundary(args, **kwargs):
+            self.assertEqual(args[args.index("--document-response-bytes") + 1], "750000")
+            profile = json.loads(Path(args[args.index("--profile-config") + 1]).read_text())
+            for key in (
+                "pages",
+                "source_bytes",
+                "extraction_bytes",
+                "store_bytes",
+                "deadline_seconds",
+                "worker_memory_bytes",
+            ):
+                self.assertIsNone(profile[key])
+            return 0
+
+        with patch("openreading.mcp_server.main.main", side_effect=boundary):
+            self.assertEqual(
+                main(
+                    [
+                        "--client",
+                        "claude-desktop",
+                        "--chat-documents",
+                        "--document-response-bytes",
+                        "750000",
+                    ]
+                ),
+                0,
+            )
+
+    def test_bad_delivery_budget_is_refused_before_private_profile_creation(self):
+        with (
+            patch("runtime.docling_profile.profile_file") as profile,
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            for value in ("0", "4095", "-1"):
+                self.assertEqual(
+                    main(
+                        [
+                            "--client",
+                            "claude-desktop",
+                            "--chat-documents",
+                            "--document-response-bytes",
+                            value,
+                        ]
+                    ),
+                    2,
+                )
+            profile.assert_not_called()

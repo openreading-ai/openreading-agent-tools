@@ -104,6 +104,23 @@ def package_docling_desktop(
         raise ValueError("Choose a new package output directory.")
     if "_internal/openreading/artifacts/document.py" not in metadata["files"]:
         raise ValueError("Rebuild with full normalized document access before using this manifest.")
+    delivery_schema = "_internal/openreading/schemas/document-tool.v0.2.json"
+    try:
+        if not {
+            delivery_schema,
+            "_internal/openreading/artifacts/delivery.py",
+            "_internal/openreading/mcp_server/delivery.py",
+        }.issubset(metadata["files"]):
+            raise ValueError
+        delivery = json.loads((runtime / delivery_schema).read_text())
+        if set(delivery["$defs"]["DeliveryRequest"]["properties"]["delivery"]["enum"]) != {
+            "fragments",
+            "auto",
+            "file",
+        }:
+            raise ValueError
+    except (OSError, ValueError, KeyError, TypeError):
+        raise ValueError("Rebuild with complete delivery before using this manifest.") from None
     if "_internal/openreading/artifacts/jobs.py" not in metadata["files"]:
         raise ValueError("Rebuild with background import support before using this manifest.")
     job_schema = "_internal/openreading/schemas/import-job.v0.1.json"
@@ -201,11 +218,21 @@ def package_docling_desktop(
             "does not establish public installation or measured token savings."
             "\n\nOpenReading Managed: Coming soon"
         )
-        manifest.pop("user_config", None)
+        manifest["user_config"] = {
+            "document_response_bytes": {
+                "type": "number",
+                "title": "Complete result response budget (bytes)",
+                "description": "Advanced delivery setting. Default 1000000 counts the serialized MCP response. Larger results are saved under Downloads/OpenReading; document processing is not limited.",
+                "default": 1_000_000,
+                "required": False,
+            }
+        }
         manifest["server"]["mcp_config"]["args"] = [
             "--client",
             "claude-desktop",
             "--chat-documents",
+            "--document-response-bytes",
+            "${user_config.document_response_bytes}",
         ]
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")

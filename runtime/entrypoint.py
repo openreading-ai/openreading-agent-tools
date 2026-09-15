@@ -77,6 +77,12 @@ def main(argv: list[str] | None = None) -> int:
     clients = ["claude-desktop", "claude-code", "codex"] + (["chatgpt"] if docling else [])
     parser.add_argument("--client", required=True, choices=clients)
     if docling:
+        parser.add_argument(
+            "--document-response-bytes",
+            type=int,
+            default=1_000_000,
+            help="advanced complete-result delivery budget in serialized MCP bytes; default 1000000",
+        )
         parser.add_argument("--ocr", help="setup-only OCR: on/true or off/false; default off")
         selection = parser.add_mutually_exclusive_group()
         selection.add_argument(
@@ -103,6 +109,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if docling:
+            if args.document_response_bytes < 4096:
+                raise ValueError("Document response bytes must be at least 4096.")
             from runtime.docling_profile import launch
 
             if args.selected_documents or args.select_document or args.chat_documents:

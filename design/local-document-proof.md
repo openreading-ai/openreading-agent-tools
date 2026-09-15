@@ -1,7 +1,7 @@
 # Docling local proof migration design
 
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
-**Intent:** [ProductSpec revision 11](../product/specs/local-document-proof.product-spec.md).
+**Intent:** [ProductSpec revision 15](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.
 
 OSS product v1 launches before managed product v2. The [launch design](oss-launch.md) requires complete pinned-core MCP coverage and a static Coming soon visual only; no managed components are part of this work. Internal v2 profiles and settings keep their existing local meaning.
@@ -102,7 +102,7 @@ Do not assume progress extends an absolute deadline or that a server absent from
 Keep revision 1 compatibility limits unchanged. The Docling candidate removes prototype source, page, extraction, store and elapsed-time ceilings.
 Response payload caps remain necessary for continuation; a local import job is separate from full-result transfer to chat.
 The revision 1 values are documented beside [the current implementation](../runtime/README.md); they are not Docling throughput promises.
-Page count, import deadline, worker RSS ceiling, and idle policy require a measured revision 2 profile before release.
+The owner-selected Docling profile has no page, import-time or worker-memory cutoff. Measure those quantities without turning measurements into refusal thresholds.
 No missing profile field may silently inherit the old 100-page/45-second combination.
 
 The feasibility harness explores first and warm 1-, 10-, 30-, and 100-page inputs, with OCR off and on.
@@ -116,9 +116,9 @@ Progress is emitted only when the caller supplies a progress token, at meaningfu
 Use monotonically increasing progress values and do not invent page completion percentages during model initialization.
 Progress is user feedback, not an assumption that the host extends its deadline.
 
-Choose the largest page cap whose measured cold and warm p95 fits the strictest measured timeout among release-included modes with at least 20% margin.
+Measure foreground tool latency separately from detached parsing; long imports do not need to fit a host tool deadline.
 Adding a later mode requires revalidating the shared profile; an untested mode cannot block a truthful narrower release or inherit its evidence.
-The application deadline cannot exceed that host budget, and the SDK trial timeout must allow the frozen retrieval workflow to finish.
+Host tool deadlines remain external constraints. Background parsing has no local deadline, and delivery must disclose actual failures.
 If the minimum useful document size cannot fit, stop and review a smaller cap or a separately scoped fast profile.
 Do not introduce asynchronous jobs to hide an incompatible timeout.
 If the accepted cap excludes a document, record the refusal and do not claim support for its size.

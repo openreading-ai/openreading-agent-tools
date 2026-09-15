@@ -1,6 +1,6 @@
 # Public document selection and automatic OCR
 
-**Status:** production intent with an implemented development candidate for [ProductSpec revision 11](../product/specs/local-document-proof.product-spec.md).
+**Status:** production intent with an implemented development candidate for [ProductSpec revision 15](../product/specs/local-document-proof.product-spec.md).
 The existing picker, copyable reference and OCR switch remain development mechanisms.
 This design supersedes their use as the public walkthrough, not their retained evidence or settings.
 A1 in the [implementation plan](implementation-plan.md) owns implementation and native proof.
@@ -149,3 +149,15 @@ Show actual stage and elapsed time through status requests. Percentage, ETA and 
 Explicit job cancellation stops processing; closing the chat or clicking host Stop does not imply cancellation.
 The selected whole document is not rejected by prototype file/page quotas or silently split to fit them.
 The native host can still cancel an interactive chooser request. Background parsing does not establish new chooser acceptance.
+
+## Complete result delivery
+
+Core owns document-tool v0.2 and its exact serialization budget. The default is 1,000,000 bytes including the MCP envelope.
+Agent Tools exposes an optional advanced response budget and selects Downloads/OpenReading for exports without a setup question.
+Small results return intact normalized content, origins, citations and warning details. Hosts may save accepted results into files.
+Oversized results return complete local exports and honest access instructions; no upload or execution service is added.
+Claude Chat, Cowork and coding modes require separate observations of their existing file access. No mode switch is required.
+Files and verified hashes prove delivery, not that a model read every value or that OCR is accurate.
+
+The current single-file chooser remains a proof. Folder and multiple-file snapshots are remaining public-v1 work under AC-32.
+Parsing-quality acceptance precedes that expansion. Local timing and explicit diagnostic sharing follow AC-33 without silent telemetry.

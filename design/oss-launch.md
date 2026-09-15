@@ -1,6 +1,6 @@
 # OSS launch v1 and the Coming soon boundary
 
-Status: ProductSpec revision 11 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
+Status: ProductSpec revision 15 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-30.
 Execution order: A1, D0, C0 and N3 in the [implementation plan](implementation-plan.md).
 
@@ -20,7 +20,7 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `4f4351a` implements:
+The current candidate `685202f` implements:
 
 | Tool | Required behavior |
 | --- | --- |
@@ -29,7 +29,7 @@ The current candidate `4f4351a` implements:
 | `openreading_list_imports` | Discover grant-scoped retained jobs after reconnecting, without a saved job ID. |
 | `openreading_cancel_import` | Cancel one pending import without deleting a completed artifact. |
 | `openreading_import` | Retain the requested granted document, return a bounded receipt, and preserve explicit core refusals. |
-| `openreading_get_document` | Return the complete retained normalized result through byte-bounded continuation, excluding the raw provider envelope. |
+| `openreading_get_document` | Return complete normalized content through measured automatic delivery or a local file export, excluding the raw provider envelope; retain explicit fragment compatibility. |
 | `openreading_search` | Search retained evidence with the documented literal retrieval contract, exact excerpts and cursors. |
 | `openreading_read` | Resolve returned evidence identifiers to bounded exact passages and source provenance. |
 | `openreading_select_document` | Return a locally selected reference through a trusted provider, or explicitly refuse when absent. |

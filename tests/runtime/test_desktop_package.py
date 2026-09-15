@@ -23,6 +23,8 @@ class DesktopPackageTests(unittest.TestCase):
         for name in [
             "_internal/openreading/mcp_server/selection.py",
             "_internal/openreading/artifacts/document.py",
+            "_internal/openreading/artifacts/delivery.py",
+            "_internal/openreading/mcp_server/delivery.py",
             "_internal/openreading/artifacts/jobs.py",
             "resources/docling-runtime.uv.lock",
             "resources/models/docling-project--docling-layout-heron-onnx/model.onnx",
@@ -38,6 +40,17 @@ class DesktopPackageTests(unittest.TestCase):
         schema = release.root / "_internal/openreading/schemas/import-job.v0.1.json"
         schema.parent.mkdir(parents=True, exist_ok=True)
         schema.write_text(json.dumps({"$defs": {"ListRequest": {}}}))
+        (schema.parent / "document-tool.v0.2.json").write_text(
+            json.dumps(
+                {
+                    "$defs": {
+                        "DeliveryRequest": {
+                            "properties": {"delivery": {"enum": ["fragments", "auto", "file"]}}
+                        }
+                    }
+                }
+            )
+        )
         release.metadata.update(
             format_version="2",
             profile="local-document-proof-v2",
@@ -253,7 +266,7 @@ console.log(JSON.stringify(results));
             package.main()
         self.assertEqual(error.exception.code, 2)
 
-    def test_chat_package_requires_provider_and_has_no_configuration_or_helper(self):
+    def test_chat_package_requires_provider_and_only_optional_delivery_setting(self):
         source = self.fixture()
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "chat"
@@ -274,10 +287,18 @@ console.log(JSON.stringify(results));
             source.write_metadata()
             package.package_docling_desktop(source.root, target, chat=True)
             manifest = json.loads((target / "manifest.json").read_text())
-            self.assertEqual(manifest.get("user_config", {}), {})
+            self.assertEqual(set(manifest["user_config"]), {"document_response_bytes"})
+            self.assertEqual(manifest["user_config"]["document_response_bytes"]["default"], 1000000)
+            self.assertFalse(manifest["user_config"]["document_response_bytes"]["required"])
             self.assertEqual(
                 manifest["server"]["mcp_config"]["args"],
-                ["--client", "claude-desktop", "--chat-documents"],
+                [
+                    "--client",
+                    "claude-desktop",
+                    "--chat-documents",
+                    "--document-response-bytes",
+                    "${user_config.document_response_bytes}",
+                ],
             )
             self.assertEqual(manifest["name"], "openreading-chat-selection-preview")
             self.assertIn(
@@ -315,3 +336,14 @@ console.log(JSON.stringify(results));
             with self.assertRaisesRegex(ValueError, "selection contract"):
                 package.package_docling_desktop(source.root, target)
             self.assertFalse(target.exists())
+
+    def test_candidate_refuses_missing_complete_delivery_contract_before_output(self):
+        source = self.fixture()
+        (source.root / "_internal/openreading/schemas/document-tool.v0.2.json").unlink()
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "candidate"
+            with self.assertRaisesRegex(ValueError, "complete delivery"):
+                package.package_docling_desktop(source.root, output)
+            self.assertFalse(output.exists())

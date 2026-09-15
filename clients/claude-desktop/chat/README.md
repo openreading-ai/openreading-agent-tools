@@ -86,3 +86,15 @@ The verifier removes redundant response decoding and streams passage verificatio
 Complete frozen retrieval was measured on a retained large artifact, with every continuation matching stored content.
 Memory still grows with the normalized document. This direct-protocol check does not establish native Claude delivery or document accuracy.
 When a host reports a timeout, check whether its local MCP log recorded the request before attributing it to parser or retrieval performance.
+
+## Complete delivery candidate
+
+Complete-result requests use `openreading_get_document` with `delivery: "auto"`.
+The optional advanced response budget defaults to 1000000 serialized MCP bytes, including escaping; it never limits parsing.
+A fitting response contains intact normalized content, parser warnings, page origins and citation mappings.
+The host can display it inline or save a tool-result file; existing host tools must establish actual access.
+Oversized content is saved intact under `~/Downloads/OpenReading`, separated by the input grant, with a byte count and SHA-256.
+A saved local path does not give Claude's cloud sandbox access. Attach that export, or use a mode with already-authorized local access.
+Attaching the export sends its content to the assistant host. Cowork is optional; this connector adds no execution environment.
+Exports remain until removed separately, including after artifact removal. Default runtime telemetry remains disabled.
+Source checks and earlier synthetic host probes do not establish native acceptance of this rebuilt candidate.

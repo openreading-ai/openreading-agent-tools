@@ -1,7 +1,22 @@
-# Revision 11 implementation plan
+# Revision 15 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 11](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 15](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+
+## Current launch sequence
+
+This sequence supersedes historical continuation-only and resource-ceiling tasks below. Historical evidence keeps its original scope.
+
+- [ ] Finish complete MCP delivery: measured serialized budget, intact content or private JSON export, configuration, regression checks and frozen identity.
+- [ ] Verify the production connector in the named native host: small OCR result, host-created result file, and oversized local export with actual access.
+- [ ] Resolve parsing-quality findings using source/provider/normalized comparisons, compatible OCR/table settings and the packaged runtime (AC-31).
+- [ ] Add multi-file and folder snapshot selection with per-document results and discoverable background work (AC-32).
+- [ ] Complete native progress, reconnect/cancellation, removal, retention, retrieval reliability and representative scale measurements.
+- [ ] Implement honest analytics: downloads versus installs, local timing, explicit sharing; no silent client telemetry (AC-33).
+- [ ] Complete signing, notarization, clean-machine install/update/uninstall, per-mode acceptance and pilot review.
+- [ ] Merge and release only after owner approval; pin released core before public Agent Tools distribution.
+
+The current delivery experiment does not establish extraction accuracy or 10,000-page/1 GB acceptance.
 
 Continue on the existing feature branches and preserve unrelated work.
 Never merge either repository's PR automatically.
@@ -103,9 +118,9 @@ Core commit `e795234` implements complete retained normalized retrieval. Search 
 - [x] Verify whole-result reconstruction, OCR origins and exact code preservation through the frozen runtime.
 - [x] Rerun retrieval and restart checks on the new pin.
 - [ ] Capture the small native Claude OCR-code case with an exact citation.
-- [ ] Separately capture a larger native result requiring multiple replies at the shipped cap. Record every continuation, terminal null, reply count, actual approval prompts, complete answer and exact citations.
+- [ ] Capture native intact small delivery, host-created file access and oversized local-export access separately. Record hashes, warning details, origins, reply and approval counts, and exact citations.
 - [ ] Capture core retrieval-scope guidance in native initialization and run a separately registered focused-question case.
-- [ ] Check retrieval choice in native conversations: focused questions avoid an unrequested full continuation; explicit whole-document tasks continue without repeated scope confirmation.
+- [ ] Check retrieval choice: focused questions avoid unrequested full reconstruction; complete-result tasks use automatic delivery and disclose the actual access route.
 
 These tasks implement AC-30. Parser omissions remain visible; no neighboring-block inference or parser switch is added.
 
@@ -222,7 +237,7 @@ Acceptance: AC-4, AC-9, AC-21, AC-22. Owners: candidate harness, core tests, and
 - [ ] Add base M-series measurements, independent cold/warm repetitions, and staging/preflight/commit timing.
 - [ ] E2: measure startup, initial catalog grace, eventual discovery, absolute/inactivity tool budgets, and progress behavior for the actual setup route.
 - [ ] Include full frozen inventory verification on parent startup and worker spawn; derive separate startup and import margins.
-- [ ] Select page cap, deadline, sampled RSS ceiling, idle policy, and trial timeout using the engine design's p95 margin rule.
+- [ ] Measure cold/warm latency, idle behavior and peak memory with the uncapped Docling profile. Do not derive or reintroduce processing cutoffs.
 - [ ] Stop release when useful imports cannot fit; do not introduce asynchronous jobs or an unapproved fallback profile.
 
 The developer harness's 300-second/4-GiB limits are diagnostic safeguards, not release defaults.

@@ -5,6 +5,8 @@ Memory use is not capped by this launcher. Explicit cancellation and OS failures
 Background imports retain their own profile after the launcher exits.
 Each invocation writes its own private profile until core has closed its owned workers.
 No model tool or environment variable selects the backend, resources, or input grant.
+Chat exports use the trusted Downloads/OpenReading directory, with grant separation owned by core.
+The optional document-response-bytes argument controls delivery only; it never caps parsing.
 HF_HUB_OFFLINE and TRANSFORMERS_OFFLINE are set for launch and restored on exit.
 """
 
@@ -100,6 +102,13 @@ def launch(args, bundle: Path, *, selection_provider=None) -> int:
                     str(settings.input_root),
                     "--artifact-root",
                     str(store),
+                    "--document-response-bytes",
+                    str(getattr(args, "document_response_bytes", 1_000_000)),
+                    *(
+                        ["--document-export-root", str(Path.home() / "Downloads" / "OpenReading")]
+                        if selection_provider is not None
+                        else []
+                    ),
                 ],
                 **(
                     {"selection_provider": selection_provider, "selection_timeout_seconds": None}
