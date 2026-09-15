@@ -107,3 +107,7 @@ Exports contain complete extracted text. Depending on system settings, indexing,
 A process crash can leave a hidden temporary export file. Automatic cleanup of abandoned exports is not implemented.
 The retrieval tool can write exports, so its write annotation also applies to inline and fragment requests.
 Measure actual approval prompts for every route rather than assuming read-only approval behavior.
+
+The candidate core pin retains provider-original list markers with their original page spans.
+Reimport older documents to recover omitted list items; retained artifacts are not rewritten.
+The bundled OCR engine remains Tesseract. Alternative OCR and table-stage experiments do not establish a new release default.

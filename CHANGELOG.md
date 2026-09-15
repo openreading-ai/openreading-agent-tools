@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Pin the literal Docling list-provenance repair and reviewed complete-export fixes.
+  Existing artifacts require reimport to recover omitted list text. The bundled OCR engine remains unchanged.
+
 - Expose the supported minimum for the advanced response budget and strengthen complete-delivery packaging guards.
 - Add native export permission and approval checks, with local export retention and indexing disclosure.
 
