@@ -1,7 +1,7 @@
-# Revision 16 implementation plan
+# Revision 17 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 16](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 17](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 ## Current launch sequence
 
@@ -10,7 +10,9 @@ This sequence supersedes historical continuation-only and resource-ceiling tasks
 - [ ] Finish complete MCP delivery: measured serialized budget, intact content or private JSON export, configuration, regression checks and frozen identity.
 - [ ] Verify the production connector in the named native host: small OCR result, host-created result file, and oversized local export with actual access.
 - [ ] Resolve parsing-quality findings using source/provider/normalized comparisons, compatible OCR/table settings and the packaged runtime (AC-31).
+- [ ] Verify adapter-driven mixed-format selection, complete normalized output, native table cells and pageless citations in the frozen candidate (AC-32).
 - [ ] Complete native acceptance of multi-file and folder snapshot selection with per-document results and discoverable background work (AC-32). Source and frozen checks do not establish chooser acceptance.
+- [ ] After mixed-file and folder acceptance, test Codex and Claude Code separately using their existing file tools. Desktop success does not establish either host.
 - [ ] Complete native progress, reconnect/cancellation, removal, retention, retrieval reliability and representative scale measurements.
 - [ ] Implement honest analytics: downloads versus installs, local timing, explicit sharing; no silent client telemetry (AC-33).
 - [ ] Complete signing, notarization, clean-machine install/update/uninstall, per-mode acceptance and pilot review.

@@ -8,8 +8,12 @@ Native focus, accessibility, installation and cancellation acceptance remain to 
 ## Try the candidate
 
 Ask: "Use OpenReading to choose a local document, then find its totals."
-Approve the selection tool if your host asks. Choose one PDF in "OpenReading: Choose one PDF".
-The assistant imports the reference, retrieves requested content, and reads exact passages for physical page citations.
+Approve the selection tool if your host asks. Choose supported documents or folders in "OpenReading: Choose documents or folders".
+The configured [core adapter](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md) supplies the format filter.
+Folder snapshots skip unsupported entries, hidden descendants, packages and symlinks, and report those counts.
+An explicitly selected hidden file is eligible. Duplicate basenames retain separate copied references and artifacts.
+The assistant imports the reference, retrieves requested content, and reads exact passages with artifact-bound citations.
+Use physical pages when supplied; unpaginated content instead carries a JSON location and exact character span.
 Ordinary chat attachments still follow the host's upload path; this tool does not intercept them.
 
 Use **Cancel** in the OS dialog for the cancellation check. Selection and copying have no local elapsed-time cutoff; the host can still cancel the request.
@@ -20,7 +24,7 @@ Source tests verify child reaping on delivered cancellation.
 In Claude Desktop 1.52386.3, one chooser returned `selection_cancelled` and its recorded child exited.
 The dismissing action was not recorded, so this does not verify the Cancel button.
 The intake stayed unchanged, but the owner reported an incorrectly positioned, immovable dialog.
-The chooser now omits the hidden parent that makes Tk attach a macOS sheet.
+That historical single-file chooser omitted the hidden Tk parent. The current candidate uses the native multiple-selection panel.
 Positioning, focus and successful file selection still require a native check of the rebuilt candidate.
 Failed handoffs revoke their published copy without waiting for another publisher.
 Deletion failures leave a private discarded copy for the next publisher sweep and preserve the original tool error.

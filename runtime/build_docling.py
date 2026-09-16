@@ -32,6 +32,7 @@ LOCK = HERE / "p0/uv.lock"
 def spec_text() -> str:
     # Frozen imports need both runnable bytecode and source files for core's fingerprint.
     # Metadata is runtime input: engine identity traverses all installed dependency edges.
+    # python-docx reads parts/../templates, so its module directories must exist on disk.
     return f"""
 from importlib import metadata
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata, collect_entry_point
@@ -49,7 +50,7 @@ for name in ['openreading.adapters.docling_local', 'docling.datamodel', 'docling
 a = Analysis([{str(HERE / "entrypoint.py")!r}], pathex=[{str(HERE.parent)!r}],
     binaries=[], datas=datas, hiddenimports=hidden,
     excludes=['torch', 'torchvision', 'docling_ibm_models', 'pymupdf', 'fitz'],
-    module_collection_mode={{'runtime': 'pyz+py', 'openreading': 'pyz+py', 'docling': 'pyz+py', 'docling_core': 'pyz+py'}})
+    module_collection_mode={{'runtime': 'pyz+py', 'openreading': 'pyz+py', 'docling': 'pyz+py', 'docling_core': 'pyz+py', 'docx': 'pyz+py'}})
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='openreading-worker', console=True, upx=False)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='openreading-worker')

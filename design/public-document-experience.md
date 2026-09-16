@@ -1,6 +1,6 @@
 # Public document selection and automatic OCR
 
-**Status:** production intent with an implemented development candidate for [ProductSpec revision 16](../product/specs/local-document-proof.product-spec.md).
+**Status:** production intent with an implemented development candidate for [ProductSpec revision 17](../product/specs/local-document-proof.product-spec.md).
 The existing picker, copyable reference and OCR switch remain development mechanisms.
 This design supersedes their use as the public walkthrough, not their retained evidence or settings.
 A1 in the [implementation plan](implementation-plan.md) owns implementation and native proof.
@@ -8,8 +8,8 @@ A1 in the [implementation plan](implementation-plan.md) owns implementation and 
 ## User outcome
 
 You ask your assistant to open a local document with OpenReading.
-A local file picker opens, you choose one document, and the selected reference returns to the conversation automatically.
-You ask your question and receive an answer with physical pages and evidence identifiers.
+A local file picker opens, you choose documents or folders, and the selected reference returns to the conversation automatically.
+You ask your question and receive artifact-bound citations, with physical pages or exact normalized JSON locations.
 You do not type a directory, copy a path, paste a generated prompt or decide whether the file needs OCR.
 The ordinary chat attachment button remains a preferred possible entry point only if the host proves the required local handoff.
 
@@ -54,17 +54,19 @@ The reviewed contract is implemented in core; each packaged pin still requires c
 
 The core provider mechanism and empty-input selection contract are implemented at the pinned candidate commit.
 Core's `openreading.mcp_server.selection` documents admission, deadlines, validation and cleanup responsibilities.
-Agent Tools implements the fixed OS chooser and transactional copy handoff in `runtime.chat_selection`.
+Agent Tools implements the OS chooser in `runtime.native_selection` and transactional copies in `runtime.snapshot_selection`.
 The [candidate walkthrough](../clients/claude-desktop/chat/README.md) documents the separate launcher and package.
 Core remains headless without a provider; installed development extensions are unchanged.
 These mechanisms do not establish native host focus, accessible interaction or successful in-chat selection.
 
-The selection tool accepts exactly an empty object, with additionalProperties false.
+A new selection accepts an empty object. Receipt continuation accepts only the core cursor and never reopens a chooser.
 No model argument controls dialog text, starting directory, suggested filename, file-type filter, source path, executable, callback URL or folder grant.
-OpenReading supplies the fixed title "OpenReading: Choose one PDF" and a PDF-only filter.
+OpenReading supplies the fixed title "OpenReading: Choose documents or folders".
+Its filter comes from the pinned adapter formats through a trusted launcher, never model arguments.
+The snapshot uses that same filter. Explicit hidden-file choices are accepted; hidden descendants remain skipped.
 The picker never derives dialog text or its starting location from retrieved document contents.
 The filter is a convenience, not validation: the existing source validation still checks the selected file.
-The user chooses the file through the local OS dialog. Only that chosen file enters private intake.
+The user chooses the file through the local OS dialog. Only selected eligible files and eligible snapshot descendants enter private intake.
 The selected reference then uses the existing import/search/read contract; source identity remains core-owned.
 Allow one pending selection per server process. A concurrent call receives busy without focusing, adopting or receiving another call's dialog.
 MCP provides no conversation identity on which to base cross-chat dialog reuse.
@@ -152,12 +154,14 @@ The native host can still cancel an interactive chooser request. Background pars
 
 ## Complete result delivery
 
-Core owns document-tool v0.2 and its exact serialization budget. The default is 1,000,000 bytes including the MCP envelope.
+Core owns document-tool v0.4 and its exact serialization budget. The default is 1,000,000 bytes including the MCP envelope.
 Agent Tools exposes an optional advanced response budget and selects Downloads/OpenReading for exports without a setup question.
 Small results return intact normalized content, origins, citations and warning details. Hosts may save accepted results into files.
 Oversized results return complete local exports and honest access instructions; no upload or execution service is added.
 Claude Chat, Cowork and coding modes require separate observations of their existing file access. No mode switch is required.
 Files and verified hashes prove delivery, not that a model read every value or that OCR is accurate.
 
-The current single-file chooser remains a proof. Folder and multiple-file snapshots are remaining public-v1 work under AC-32.
-Parsing-quality acceptance precedes that expansion. Local timing and explicit diagnostic sharing follow AC-33 without silent telemetry.
+Multi-file and recursive folder snapshots are implemented development mechanisms under AC-32.
+Adapter-format expansion preserves native cells where supplied and uses JSON-location citations without physical pagination.
+Mixed-format frozen verification and native chooser acceptance remain separate gates.
+Parsing-quality acceptance remains independent of format and delivery acceptance. Local timing and explicit diagnostic sharing follow AC-33 without silent telemetry.

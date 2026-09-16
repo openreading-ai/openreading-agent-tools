@@ -4,7 +4,7 @@ This is the power-user route for managing your own OpenReading installation and 
 It does not use the Agent Tools bundle or add settings to that bundle.
 You manage Python, dependencies, model assets and updates yourself.
 
-Status: configuration below is checked against the current candidate contract at core `6aa0bebe2aefbf806fdb0f749bd61cf628e4795a`.
+Status: configuration below is checked against the current candidate contract at core `3ff02d415ca5389093c2ea16b54e1ec65caa015c`.
 The released-version installation and native walkthrough remain R1 acceptance work in the [implementation plan](../../design/implementation-plan.md).
 Replace `<released-version>` with the merged core release selected by R0 before running the installation recipe or publishing it as release instructions.
 This guide does not imply that the candidate's MCP features are already on PyPI.

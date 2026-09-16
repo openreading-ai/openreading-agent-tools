@@ -54,6 +54,28 @@ class SnapshotTests(unittest.TestCase):
         )
         self.assertTrue(all("nested" not in r for r in result["references"]))
 
+    def test_configured_formats_and_explicit_hidden_file(self):
+        store = SelectionStore(
+            "claude-desktop", home=self.root / "formats", extensions=("pdf", "md", "docx", "png")
+        )
+        store.prepare()
+        for name in ("one.pdf", "notes.MD", "report.docx", "scan.png", "ignored.exe", ".chosen.md"):
+            (self.folder / name).write_bytes(b"synthetic format bytes")
+        result = self.module().snapshot(store, [self.folder, self.folder / ".chosen.md"])
+        self.assertEqual(len(result["references"]), 5)
+        self.assertEqual(result["skipped"], {"hidden": 1, "unsupported": 1})
+        self.assertEqual(
+            {Path(r).name for r in result["references"]},
+            {"one.pdf", "notes.MD", "report.docx", "scan.png", ".chosen.md"},
+        )
+        # Cleanup validates safe references, independent of the current format selection policy.
+        legacy = SelectionStore("claude-desktop", home=self.root / "formats")
+        legacy.rollback(next(r for r in result["references"] if r.endswith(".MD")))
+        self.assertEqual(legacy.clear(), 4)
+        for extensions in ((), ("../pdf",), ("pdf';evil",)):
+            with self.assertRaises(ValueError):
+                SelectionStore("claude-desktop", home=self.root, extensions=extensions)
+
     def test_copy_failure_revokes_only_this_snapshot(self):
         for name in ["a.pdf", "b.pdf"]:
             (self.folder / name).write_bytes(b"%PDF-file")

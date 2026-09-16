@@ -23,6 +23,9 @@ class DesktopPackageTests(unittest.TestCase):
         for name in [
             "_internal/openreading/mcp_server/selection.py",
             "_internal/openreading/mcp_server/selection_pages.py",
+            "_internal/openreading/adapters/docling_local/formats.py",
+            "_internal/openreading/adapters/docling_local/unpaginated.py",
+            "_internal/openreading/schemas/passage.v0.4.json",
             "_internal/runtime/native_selection.py",
             "_internal/runtime/snapshot_selection.py",
             "_internal/openreading/artifacts/document.py",
@@ -40,10 +43,10 @@ class DesktopPackageTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"synthetic identity input")
         (release.root / name).chmod(0o755)
-        schema = release.root / "_internal/openreading/schemas/import-job.v0.2.json"
+        schema = release.root / "_internal/openreading/schemas/import-job.v0.3.json"
         schema.parent.mkdir(parents=True, exist_ok=True)
         schema.write_text(json.dumps({"$defs": {"ListRequest": {}, "PageProgress": {}}}))
-        (schema.parent / "document-tool.v0.3.json").write_text(
+        (schema.parent / "document-tool.v0.4.json").write_text(
             json.dumps(
                 {
                     "$defs": {
@@ -137,7 +140,7 @@ class DesktopPackageTests(unittest.TestCase):
         for contents in (None, b"{}", b"[]", b"invalid", b'{"$defs":[]}'):
             with self.subTest(contents=contents):
                 source = self.fixture()
-                schema = source.root / "_internal/openreading/schemas/import-job.v0.2.json"
+                schema = source.root / "_internal/openreading/schemas/import-job.v0.3.json"
                 if contents is None:
                     schema.unlink()
                 else:
@@ -309,6 +312,8 @@ console.log(JSON.stringify(results));
                 ],
             )
             self.assertEqual(manifest["name"], "openreading-chat-selection-preview")
+            self.assertIn("configured adapter", manifest["long_description"])
+            self.assertNotIn("choose a local PDF", manifest["long_description"])
             self.assertIn(
                 "openreading_select_document", [tool["name"] for tool in manifest["tools"]]
             )
@@ -347,7 +352,7 @@ console.log(JSON.stringify(results));
 
     def test_candidate_refuses_missing_complete_delivery_contract_before_output(self):
         source = self.fixture()
-        (source.root / "_internal/openreading/schemas/document-tool.v0.3.json").unlink()
+        (source.root / "_internal/openreading/schemas/document-tool.v0.4.json").unlink()
         source.metadata["files"] = inventory(source.root)
         source.write_metadata()
         with tempfile.TemporaryDirectory() as temp:
@@ -371,7 +376,7 @@ console.log(JSON.stringify(results));
 
     def test_candidate_refuses_wrong_delivery_enum(self):
         source = self.fixture()
-        path = source.root / "_internal/openreading/schemas/document-tool.v0.3.json"
+        path = source.root / "_internal/openreading/schemas/document-tool.v0.4.json"
         schema = json.loads(path.read_text())
         schema["$defs"]["DeliveryRequest"]["properties"]["delivery"]["enum"] = ["fragments"]
         path.write_text(json.dumps(schema))
@@ -385,7 +390,7 @@ console.log(JSON.stringify(results));
 
     def test_candidate_refuses_delivery_without_origin_metadata(self):
         source = self.fixture()
-        for name in ("document-tool.v0.2.json", "document-tool.v0.3.json"):
+        for name in ("document-tool.v0.2.json", "document-tool.v0.4.json"):
             path = source.root / "_internal/openreading/schemas" / name
             if path.exists():
                 schema = json.loads(path.read_text())
@@ -401,7 +406,7 @@ console.log(JSON.stringify(results));
 
     def test_candidate_refuses_jobs_without_page_progress(self):
         source = self.fixture()
-        for name in ("import-job.v0.1.json", "import-job.v0.2.json"):
+        for name in ("import-job.v0.1.json", "import-job.v0.3.json"):
             path = source.root / "_internal/openreading/schemas" / name
             if path.exists():
                 schema = json.loads(path.read_text())
@@ -426,3 +431,19 @@ console.log(JSON.stringify(results));
             with self.assertRaisesRegex(ValueError, "snapshot selection"):
                 self.operation()(source.root, destination, chat=True)
             self.assertFalse(destination.exists())
+
+    def test_chat_candidate_refuses_missing_format_runtime(self):
+        for name in (
+            "adapters/docling_local/formats.py",
+            "adapters/docling_local/unpaginated.py",
+            "schemas/passage.v0.4.json",
+        ):
+            source = self.fixture()
+            (source.root / "_internal/openreading" / name).unlink()
+            source.metadata["files"] = inventory(source.root)
+            source.write_metadata()
+            with tempfile.TemporaryDirectory() as temp:
+                output = Path(temp) / "candidate"
+                with self.assertRaisesRegex(ValueError, "snapshot selection"):
+                    self.operation()(source.root, output, chat=True)
+                self.assertFalse(output.exists())

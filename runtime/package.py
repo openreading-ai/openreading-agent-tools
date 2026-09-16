@@ -104,7 +104,7 @@ def package_docling_desktop(
         raise ValueError("Choose a new package output directory.")
     if "_internal/openreading/artifacts/document.py" not in metadata["files"]:
         raise ValueError("Rebuild with full normalized document access before using this manifest.")
-    delivery_schema = "_internal/openreading/schemas/document-tool.v0.3.json"
+    delivery_schema = "_internal/openreading/schemas/document-tool.v0.4.json"
     try:
         if not {
             delivery_schema,
@@ -125,7 +125,7 @@ def package_docling_desktop(
         raise ValueError("Rebuild with complete delivery before using this manifest.") from None
     if "_internal/openreading/artifacts/jobs.py" not in metadata["files"]:
         raise ValueError("Rebuild with background import support before using this manifest.")
-    job_schema = "_internal/openreading/schemas/import-job.v0.2.json"
+    job_schema = "_internal/openreading/schemas/import-job.v0.3.json"
     try:
         if job_schema not in metadata["files"]:
             raise ValueError
@@ -154,6 +154,9 @@ def package_docling_desktop(
                 "_internal/runtime/native_selection.py",
                 "_internal/runtime/snapshot_selection.py",
                 "_internal/openreading/mcp_server/selection_pages.py",
+                "_internal/openreading/adapters/docling_local/formats.py",
+                "_internal/openreading/adapters/docling_local/unpaginated.py",
+                "_internal/openreading/schemas/passage.v0.4.json",
             }.issubset(metadata["files"]):
                 raise ValueError
         except (OSError, ValueError, KeyError, TypeError):
@@ -231,8 +234,8 @@ def package_docling_desktop(
         manifest["display_name"] = "OpenReading Chat Documents (development)"
         manifest["long_description"] = (
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "
-            "Ask OpenReading to choose a local PDF. Choose your document in its OS file dialog, "
-            "then ask a question in chat. OpenReading processes it locally with automatic OCR. "
+            "Ask OpenReading to choose local documents or folders. The configured adapter supplies the supported formats. "
+            "Ask a question in chat. OpenReading processes selected documents locally with automatic OCR where supported. "
             "Selected copies and evidence remain locally until removed; requested document content enters "
             "your assistant context. OCR can misread words and identifiers. Verify important "
             "quotes against the printed page. Use Cancel in the file dialog to dismiss it; "

@@ -1,7 +1,8 @@
 """Use one fixed macOS file-and-folder panel for snapshot selection.
 
 The system JXA interpreter only presents NSOpenPanel and serializes the user's choices.
-No document, path, model argument or setting is interpolated into its script. Cancellation
+Only validated adapter extensions enter its script through JSON serialization.
+No document text, source path or model argument controls the dialog. Cancellation
 kills and reaps the dialog process. Snapshot copying runs in an owned thread; cancellation
 waits for rollback before releasing the selection slot. No native acceptance is implied.
 The older single-file developer picker remains in runtime.chat_selection.
@@ -20,19 +21,20 @@ import anyio
 from anyio.lowlevel import checkpoint
 
 from runtime.chat_selection import LocalSelectionProvider, remove_copy
+from runtime.selection import checked_extensions
 from runtime.snapshot_selection import snapshot
 
 _SCRIPT = """ObjC.import('AppKit');
 var app = $.NSApplication.sharedApplication;
 app.setActivationPolicy($.NSApplicationActivationPolicyAccessory);
 var panel = $.NSOpenPanel.openPanel;
-panel.title = 'OpenReading: Choose PDFs or folders';
-panel.message = 'Selected PDFs are copied locally. Folders include nested PDFs, excluding hidden entries, packages and symbolic links.';
+panel.title = 'OpenReading: Choose documents or folders';
+panel.message = 'Selected documents are copied locally. Folders include supported files, excluding hidden descendants, packages and symbolic links.';
 panel.canChooseFiles = true;
 panel.canChooseDirectories = true;
 panel.allowsMultipleSelection = true;
 panel.resolvesAliases = false;
-panel.allowedFileTypes = ['pdf'];
+panel.allowedFileTypes = __ADAPTER_EXTENSIONS__;
 panel.treatsFilePackagesAsDirectories = false;
 app.activateIgnoringOtherApps(true);
 var result = null;
@@ -45,13 +47,23 @@ JSON.stringify(result);
 """
 
 
-def command() -> list[str]:
-    return ["/usr/bin/osascript", "-l", "JavaScript", "-e", _SCRIPT]
+def adapter_extensions() -> tuple[str, ...]:
+    from openreading.adapters.docling_local.formats import selection_extensions
+
+    return checked_extensions(selection_extensions())
 
 
-async def choose() -> list[Path] | None:
+def command(extensions=("pdf",)) -> list[str]:
+    script = _SCRIPT.replace("__ADAPTER_EXTENSIONS__", json.dumps(checked_extensions(extensions)))
+    return ["/usr/bin/osascript", "-l", "JavaScript", "-e", script]
+
+
+async def choose(extensions=("pdf",)) -> list[Path] | None:
     process = await anyio.open_process(
-        command(), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+        command(extensions),
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
     )
     try:
         output = bytearray()
@@ -118,7 +130,7 @@ class SnapshotSelectionProvider(LocalSelectionProvider):
     async def select(self):
         result = None
         try:
-            paths = await choose()
+            paths = await choose(self.store.extensions)
             if paths is not None:
                 result = await copy_snapshot(self.store, paths)
             await checkpoint()

@@ -43,7 +43,7 @@ class NativeSelectionTests(unittest.IsolatedAsyncioTestCase):
     async def test_provider_rolls_back_copies_on_validation_failure(self):
         m = self.module()
 
-        async def choose():
+        async def choose(extensions):
             return [self.source]
 
         with patch.object(m, "choose", choose):
@@ -56,7 +56,7 @@ class NativeSelectionTests(unittest.IsolatedAsyncioTestCase):
     async def test_provider_retains_success_and_handles_cancel(self):
         m = self.module()
 
-        async def choose():
+        async def choose(extensions):
             return [self.source]
 
         with patch.object(m, "choose", choose):
@@ -64,7 +64,7 @@ class NativeSelectionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len(batch["references"]), 1)
         self.assertEqual(len(list(self.store.grant.iterdir())), 1)
 
-        async def cancel():
+        async def cancel(extensions):
             return None
 
         with patch.object(m, "choose", cancel):
@@ -79,6 +79,21 @@ class NativeSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("canChooseDirectories = true", command[-1])
         self.assertIn("allowsMultipleSelection = true", command[-1])
         self.assertNotIn("doShellScript", command[-1])
+
+    def test_adapter_formats_are_forwarded_without_a_packaging_copy(self):
+        from types import SimpleNamespace
+
+        stub = SimpleNamespace(selection_extensions=lambda: ("png", "md", "pdf"))
+        with patch.dict(sys.modules, {"openreading.adapters.docling_local.formats": stub}):
+            self.assertEqual(self.module().adapter_extensions(), ("md", "pdf", "png"))
+
+    def test_script_uses_only_validated_operator_formats(self):
+        m = self.module()
+        script = m.command(("docx", "md", "png"))[-1]
+        self.assertIn('panel.allowedFileTypes = ["docx", "md", "png"]', script)
+        self.assertNotIn("Choose PDFs", script)
+        with self.assertRaises(ValueError):
+            m.command(("pdf']; doShellScript('bad')",))
 
     async def test_cancel_during_copy_waits_and_revokes_publication_race(self):
         import threading

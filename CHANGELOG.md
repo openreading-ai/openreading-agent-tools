@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased adapter-driven formats
+
+- Use the configured core adapter's extensions for chat selection and recursive snapshots.
+- Preserve explicitly selected hidden files while continuing to skip hidden descendants.
+- Require the pageless evidence contracts and cite artifact identifiers with evidence identifiers.
+- Keep the existing local OCR and raster table settings; provider-reported model-free cells remain available.
+
 - Add a native multi-file/folder chooser with private snapshot copies, disclosed skips and paginated core receipts.
   Each PDF retains its own import job and citations. Native and clean-machine acceptance remain pending.
 

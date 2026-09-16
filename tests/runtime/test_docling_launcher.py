@@ -14,6 +14,11 @@ from runtime.verify import ReleaseIntegrityError, inventory, sha256, verify_rele
 
 class DoclingLaunchTests(unittest.TestCase):
     def setUp(self):
+        format_stub = patch(
+            "runtime.native_selection.adapter_extensions", return_value=("pdf", "md", "docx")
+        )
+        format_stub.start()
+        self.addCleanup(format_stub.stop)
         self.root = Path(self.enterContext(tempfile.TemporaryDirectory())).resolve()
         self.home = self.root / "home"
         self.home.mkdir()

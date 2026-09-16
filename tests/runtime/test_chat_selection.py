@@ -18,6 +18,11 @@ from runtime.selection import SelectionStore
 
 class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        format_stub = patch(
+            "runtime.native_selection.adapter_extensions", return_value=("pdf", "md", "docx")
+        )
+        format_stub.start()
+        self.addCleanup(format_stub.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve()

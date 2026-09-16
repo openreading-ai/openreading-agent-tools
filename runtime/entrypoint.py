@@ -124,7 +124,12 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 from runtime.selection import SelectionStore
 
-                store = SelectionStore(args.client)
+                if args.chat_documents:
+                    from runtime.native_selection import adapter_extensions
+
+                    store = SelectionStore(args.client, extensions=adapter_extensions())
+                else:
+                    store = SelectionStore(args.client)
                 if args.select_document:
                     from runtime.selection_ui import run
 

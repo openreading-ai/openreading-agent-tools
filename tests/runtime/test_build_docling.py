@@ -153,3 +153,4 @@ class DoclingBuildTests(unittest.TestCase):
         self.assertIn(("metadata", "destination"), analyses[0]["datas"])
         self.assertEqual(analyses[0]["module_collection_mode"]["openreading"], "pyz+py")
         self.assertEqual(analyses[0]["module_collection_mode"]["runtime"], "pyz+py")
+        self.assertEqual(analyses[0]["module_collection_mode"]["docx"], "pyz+py")

@@ -1,7 +1,7 @@
-"""Copy a user-selected set of PDFs without granting continuing folder access.
+"""Copy user-selected adapter-supported files without granting continuing folder access.
 
 Traversal uses an iterative stack, never follows symlinks, and deduplicates device/inode
-identities across overlapping selections. Hidden entries, macOS packages, non-PDF files
+identities across overlapping selections. Discovered hidden entries, macOS packages, unsupported files
 and special files are skipped with aggregate counts. Counts describe encountered entries;
 skipped directories are not inspected. Unreadable or changed entries fail the entire copy.
 There is no fixed count, byte or recursion cutoff. Cancellation is checked between entries
@@ -89,8 +89,9 @@ def snapshot(store: SelectionStore, paths: list[Path], *, cancelled=lambda: Fals
             if stat.S_ISLNK(info.st_mode):
                 skipped["symlink"] += 1
                 continue
-            if path.name.startswith(".") or getattr(info, "st_flags", 0) & getattr(
-                stat, "UF_HIDDEN", 0
+            if expected is not None and (
+                path.name.startswith(".")
+                or getattr(info, "st_flags", 0) & getattr(stat, "UF_HIDDEN", 0)
             ):
                 skipped["hidden"] += 1
                 continue
@@ -119,7 +120,7 @@ def snapshot(store: SelectionStore, paths: list[Path], *, cancelled=lambda: Fals
                         raise SelectionError("A selected directory changed. Select it again.")
                     pending.extend(entries)
             elif stat.S_ISREG(info.st_mode):
-                if path.suffix.lower() != ".pdf":
+                if not store.supports_name(path.name):
                     skipped["unsupported"] += 1
                     continue
                 result = store.select(

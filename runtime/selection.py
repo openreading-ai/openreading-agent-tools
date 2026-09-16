@@ -62,19 +62,37 @@ class Selection:
 def filename(name: str) -> bool:
     return (
         bool(name)
-        and name.lower().endswith(".pdf")
+        and name not in {".", ".."}
         and not any(
             character in "/\\" or ord(character) < 32 or ord(character) == 127 for character in name
         )
     )
 
 
+def checked_extensions(extensions) -> tuple[str, ...]:
+    values = tuple(extensions)
+    if not values or any(
+        not isinstance(value, str)
+        or len(value) > 32
+        or re.fullmatch(r"[a-z0-9]+(?:\.[a-z0-9]+)*", value) is None
+        for value in values
+    ):
+        raise SelectionError("The configured adapter has invalid file extensions.")
+    return tuple(sorted(set(values)))
+
+
 class SelectionStore:
-    def __init__(self, client: str, *, home: Path | None = None):
+    def __init__(self, client: str, *, home: Path | None = None, extensions=("pdf",)):
+        self.extensions = checked_extensions(extensions)
         self.root = client_root(client, home=home) / "v2/selection"
         self.grant = self.root / "ready"
         self.staging = self.root / "staging"
         self.discarded = self.root / "discarded"
+
+    def supports_name(self, name: str) -> bool:
+        return filename(name) and any(
+            name.lower().endswith("." + extension) for extension in self.extensions
+        )
 
     @contextmanager
     def directories(self):
@@ -225,8 +243,8 @@ class SelectionStore:
         expected_identity: tuple[int, int] | None = None,
         _existing_checked: bool = False,
     ) -> Selection:
-        if not path.is_absolute() or not filename(path.name):
-            raise SelectionError("Choose one local PDF file.")
+        if not path.is_absolute() or not self.supports_name(path.name):
+            raise SelectionError("Choose a local file supported by the configured adapter.")
 
         def check():
             if cancelled():

@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 16
+spec_revision: 17
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-16T00:00:00Z"
@@ -82,13 +82,15 @@ PDFium supplies preflight and rendering; bundled Tesseract automatically reads e
 The bundle includes its layout weights and selected OCR language data, with no runtime download.
 PyMuPDF remains available in core but is excluded from this distributed bundle.
 A backend is the engine that reads a document, wrapped by OpenReading core.
-The proof intentionally tests a narrower PDF profile than the [core adapter catalog](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md) may support.
+The configured adapter owns supported formats through the [core adapter catalog](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md).
+The chooser and folder traversal consume that adapter declaration, with no independent PDF-only product restriction.
+Native acceptance uses mixed-format fixtures; historical PDF-only results retain their original scope.
 
 Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 15 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 17 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -107,7 +109,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `6aa0beb` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
+The candidate pin `3ff02d4` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -133,7 +135,7 @@ in:
   - Deliver a signed and notarized Claude Desktop runtime for macOS on Apple Silicon with pinned Docling, PDFium, ONNX layout weights, and Tesseract; add ChatGPT desktop only under a separately passed, named local conversation mode.
   - Disclose the bundled local vision model and automatic local OCR, preserve usable native text, and label OCR-derived evidence without requiring users to choose a mode.
   - Exclude table structure recognition until a separately approved compatible engine exists.
-  - Require no directory-path configuration in public installation; accept one explicitly user-selected local PDF through a verified file picker or handoff per import.
+  - Require no directory-path configuration in public installation; accept explicitly selected adapter-supported local documents through a verified file picker or handoff, with one artifact per import.
   - Expose the complete implemented MCP tool catalog of the pinned core release; including import, complete normalized retrieval, search, read, local selection and background start/status/list/cancel, with bounded replies.
   - Include only a static OpenReading Managed Coming soon visual for the future product; build no managed components.
   - Preserve exact source identity, physical page numbers, and evidence identifiers through the answer workflow.
@@ -217,14 +219,15 @@ A broader parser workflow requires a separately chosen operation.
 ### Inspect and remove
 
 Setup identifies the local artifact directory.
-Each answer provides the original filename and physical PDF page so you can inspect it in your own viewer.
+Each answer identifies its artifact and evidence together, alongside the original filename.
+Physical pages are cited only when supplied. Unpaginated content uses exact normalized JSON locations and character spans.
 Local artifact files also contain source hashes and extraction metadata.
 Removing the documented installation data directory deletes retained artifacts.
 Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 11 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 17 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
@@ -303,7 +306,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-31
   criterion: Before public v1, representative difficult pages have source-level expected facts compared against the provider export and normalized result; missing text, wrong OCR, ordering and unsupported tables are separate findings; fixes use provider-supported configuration or literal adapter projection, and the final frozen profile repeats those checks without neighboring-block, form-specific or inferred OCR corrections.
 - id: AC-32
-  criterion: Public v1 supports explicit multi-file and folder snapshot selection without granting live directory access; the user controls selection, each selected eligible file has a distinct result and discoverable job, and unimplemented traversal or cancellation semantics block that feature's acceptance.
+  criterion: Public v1 supports adapter-declared formats through explicit multi-file and folder snapshot selection without granting live directory access; the user controls selection, each selected eligible file has a distinct result and discoverable job, physical-page provenance is never invented for unpaginated formats, explicit hidden-file choices are honored while hidden descendants are skipped, and unimplemented traversal or cancellation semantics block that feature's acceptance.
 - id: AC-33
   criterion: Analytics distinguish server-observed downloads, marketplace-reported installs and explicitly opted-in client events; default clients send no telemetry, local processing timings remain local, diagnostic sharing is explicit, and any future managed-service usage measurement belongs to separate service terms.
 
