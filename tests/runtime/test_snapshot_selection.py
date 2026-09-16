@@ -18,6 +18,7 @@ class SnapshotTests(unittest.TestCase):
         self.folder.mkdir()
         self.store = SelectionStore("claude-desktop", home=self.root / "home")
         self.store.prepare()
+        self.package_reader = self.module().is_package
         if __import__("sys").platform != "darwin":
             stub = patch("runtime.snapshot_selection.is_package", return_value=False)
             stub.start()
@@ -143,3 +144,52 @@ class SnapshotTests(unittest.TestCase):
             result = self.module().snapshot(self.store, [self.folder])
         self.assertEqual(len(result["references"]), 20)
         self.assertEqual(checks.call_count, 1)
+
+    def test_package_api_handles_success_and_failures_and_releases_values(self):
+        import ctypes
+        from types import SimpleNamespace
+        from unittest.mock import MagicMock
+
+        m = self.module()
+
+        class Pointer(ctypes.c_void_p):
+            @classmethod
+            def in_dll(cls, library, name):
+                self.assertEqual(name, "kCFURLIsPackageKey")
+                return cls(42)
+
+        for url, succeeds, package in [
+            (None, True, False),
+            (2, False, False),
+            (2, True, False),
+            (2, True, True),
+        ]:
+
+            def resource(url, key, value, error, succeeds=succeeds):
+                self.assertEqual(key.value, 42)
+                if succeeds:
+                    value._obj.value = 3
+                else:
+                    error._obj.value = 4
+                return succeeds
+
+            cf = SimpleNamespace(
+                CFURLCreateFromFileSystemRepresentation=MagicMock(return_value=url),
+                CFURLCopyResourcePropertyForKey=MagicMock(side_effect=resource),
+                CFBooleanGetValue=MagicMock(return_value=package),
+                CFRelease=MagicMock(),
+            )
+            with (
+                patch.object(m.ctypes, "CDLL", return_value=cf),
+                patch.object(m.ctypes, "c_void_p", Pointer),
+            ):
+                if not url or not succeeds:
+                    with self.assertRaises(ValueError):
+                        self.package_reader(self.folder)
+                else:
+                    self.assertEqual(self.package_reader(self.folder), package)
+            released = [
+                c.args[0].value if isinstance(c.args[0], Pointer) else c.args[0]
+                for c in cf.CFRelease.call_args_list
+            ]
+            self.assertEqual(released, [] if url is None else ([3, 2] if succeeds else [4, 2]))
