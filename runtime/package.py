@@ -104,7 +104,7 @@ def package_docling_desktop(
         raise ValueError("Choose a new package output directory.")
     if "_internal/openreading/artifacts/document.py" not in metadata["files"]:
         raise ValueError("Rebuild with full normalized document access before using this manifest.")
-    delivery_schema = "_internal/openreading/schemas/document-tool.v0.2.json"
+    delivery_schema = "_internal/openreading/schemas/document-tool.v0.3.json"
     try:
         if not {
             delivery_schema,
@@ -113,6 +113,8 @@ def package_docling_desktop(
         }.issubset(metadata["files"]):
             raise ValueError
         delivery = json.loads((runtime / delivery_schema).read_text())
+        if "TextOriginCounts" not in delivery["$defs"]:
+            raise ValueError
         if set(delivery["$defs"]["DeliveryRequest"]["properties"]["delivery"]["enum"]) != {
             "fragments",
             "auto",

@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Require complete-delivery v0.3 metadata for measured page origins, empty-text pages and explicit warning-record counts.
+  Denied process cleanup reports a permission error; inaccessible abandoned exports do not prevent new exports.
+
 - Pin precise provenance warnings and crash-safe export cleanup. Active writes and completed exports remain intact.
   Search and exact reads retain document-level warning flags.
   Parser cleanup preserves failure and cancellation when macOS process-group signaling races leader exit.

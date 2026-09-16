@@ -40,13 +40,14 @@ class DesktopPackageTests(unittest.TestCase):
         schema = release.root / "_internal/openreading/schemas/import-job.v0.1.json"
         schema.parent.mkdir(parents=True, exist_ok=True)
         schema.write_text(json.dumps({"$defs": {"ListRequest": {}}}))
-        (schema.parent / "document-tool.v0.2.json").write_text(
+        (schema.parent / "document-tool.v0.3.json").write_text(
             json.dumps(
                 {
                     "$defs": {
+                        "TextOriginCounts": {},
                         "DeliveryRequest": {
                             "properties": {"delivery": {"enum": ["fragments", "auto", "file"]}}
-                        }
+                        },
                     }
                 }
             )
@@ -340,7 +341,7 @@ console.log(JSON.stringify(results));
 
     def test_candidate_refuses_missing_complete_delivery_contract_before_output(self):
         source = self.fixture()
-        (source.root / "_internal/openreading/schemas/document-tool.v0.2.json").unlink()
+        (source.root / "_internal/openreading/schemas/document-tool.v0.3.json").unlink()
         source.metadata["files"] = inventory(source.root)
         source.write_metadata()
         with tempfile.TemporaryDirectory() as temp:
@@ -364,10 +365,26 @@ console.log(JSON.stringify(results));
 
     def test_candidate_refuses_wrong_delivery_enum(self):
         source = self.fixture()
-        path = source.root / "_internal/openreading/schemas/document-tool.v0.2.json"
+        path = source.root / "_internal/openreading/schemas/document-tool.v0.3.json"
         schema = json.loads(path.read_text())
         schema["$defs"]["DeliveryRequest"]["properties"]["delivery"]["enum"] = ["fragments"]
         path.write_text(json.dumps(schema))
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "candidate"
+            with self.assertRaisesRegex(ValueError, "complete delivery"):
+                package.package_docling_desktop(source.root, output)
+            self.assertFalse(output.exists())
+
+    def test_candidate_refuses_delivery_without_origin_metadata(self):
+        source = self.fixture()
+        for name in ("document-tool.v0.2.json", "document-tool.v0.3.json"):
+            path = source.root / "_internal/openreading/schemas" / name
+            if path.exists():
+                schema = json.loads(path.read_text())
+                schema["$defs"].pop("TextOriginCounts", None)
+                path.write_text(json.dumps(schema))
         source.metadata["files"] = inventory(source.root)
         source.write_metadata()
         with tempfile.TemporaryDirectory() as temp:

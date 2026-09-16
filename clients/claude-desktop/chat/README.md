@@ -121,3 +121,9 @@ Background jobs can survive a chat or server disconnect. Reconnect with the same
 list imports, cancel any active job, and wait for a terminal status before uninstalling.
 Uninstalling the connector does not provide a core cancellation hook or remove retained documents and exports.
 Native host cancellation, uninstall behavior and export permissions still require owner-operated checks.
+
+Complete-delivery receipts summarize measured physical-page origins before the full content is opened.
+They distinguish unmeasured origins from recorded unknown origins and preview pages with neither page nor block text.
+Warning counts describe warning records, not affected pages or regions. Unlocated warnings remain unlocated.
+A block can produce multiple evidence passages; those counts describe different units.
+These metadata fields change no normalized text, geometry, citations or OCR output.

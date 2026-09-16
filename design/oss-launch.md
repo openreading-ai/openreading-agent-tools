@@ -20,7 +20,7 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `4fa77d0` implements:
+The current candidate `74c81b0` implements:
 
 | Tool | Required behavior |
 | --- | --- |
