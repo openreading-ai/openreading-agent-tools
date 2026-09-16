@@ -23,3 +23,8 @@ If selection is unavailable, explain the configured server's limitation. Never f
 
 OpenReading parses locally and retains source copies until removed. Requested document content enters the calling agent's context and may reach its cloud model.
 Full-document retrieval can send all retained extracted content to that model. Neither local parsing nor bounded replies establishes token savings.
+
+For multi-file selection, follow every selection next_cursor to obtain all copied items without reopening the chooser.
+Import each item.path once, retaining its own job_id and artifact_id. Wait for one job before starting the next.
+Report skipped-entry counts and individual failures. Never infer that a complete folder was processed from one successful file.
+Citations must identify the document as well as its physical page and evidence ID.

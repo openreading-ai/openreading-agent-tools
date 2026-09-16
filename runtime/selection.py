@@ -217,7 +217,14 @@ class SelectionStore:
                         raise
         return total
 
-    def select(self, path: Path, *, cancelled: Callable[[], bool] = lambda: False) -> Selection:
+    def select(
+        self,
+        path: Path,
+        *,
+        cancelled: Callable[[], bool] = lambda: False,
+        expected_identity: tuple[int, int] | None = None,
+        _existing_checked: bool = False,
+    ) -> Selection:
         if not path.is_absolute() or not filename(path.name):
             raise SelectionError("Choose one local PDF file.")
 
@@ -227,8 +234,9 @@ class SelectionStore:
 
         with self.locked() as (ready, staging):
             check()
-            # Validate existing entries without imposing a retained-byte quota.
-            self.used_bytes()
+            # A snapshot validates once before its copies, avoiding a quadratic intake scan.
+            if not _existing_checked:
+                self.used_bytes()
             name = secrets.token_hex(16)
             if (self.grant / name).exists():
                 raise SelectionError("Selection name collision. Try again.")
@@ -237,6 +245,11 @@ class SelectionStore:
             try:
                 with source(path.parent, path.name) as opened:
                     before = os.fstat(opened)
+                    if (
+                        expected_identity is not None
+                        and (before.st_dev, before.st_ino) != expected_identity
+                    ):
+                        raise SelectionError("The selected document changed. Select it again.")
                     if before.st_size <= 0:
                         raise SelectionError("The selected document is empty.")
                     digest = hashlib.sha256()

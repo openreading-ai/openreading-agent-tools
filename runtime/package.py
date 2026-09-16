@@ -140,6 +140,26 @@ def package_docling_desktop(
         raise ValueError("Rebuild with job discovery before using this manifest.") from None
     if "_internal/openreading/mcp_server/selection.py" not in metadata["files"]:
         raise ValueError("Rebuild with the core selection contract before using this manifest.")
+    if chat:
+        try:
+            contract = json.loads(
+                (runtime / "_internal/openreading/schemas/selection-tool.v0.2.json").read_text()
+            )
+            if (
+                "SelectionPage" not in contract["$defs"]
+                or "cursor" not in contract["$defs"]["Request"]["properties"]
+            ):
+                raise ValueError
+            if not {
+                "_internal/runtime/native_selection.py",
+                "_internal/runtime/snapshot_selection.py",
+                "_internal/openreading/mcp_server/selection_pages.py",
+            }.issubset(metadata["files"]):
+                raise ValueError
+        except (OSError, ValueError, KeyError, TypeError):
+            raise ValueError(
+                "Rebuild with snapshot selection before using this manifest."
+            ) from None
     if (selection or chat) and not {
         "_internal/runtime/selection.py",
         "_internal/_tcl_data/init.tcl",

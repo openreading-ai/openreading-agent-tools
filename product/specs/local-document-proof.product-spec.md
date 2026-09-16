@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 15
+spec_revision: 16
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-15T00:00:00Z"
+updated_at: "2026-09-16T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -57,7 +57,7 @@ It does not infer one outcome from another.
 ## Product Summary
 
 You install an OpenReading bundle without configuring a directory or typing a filesystem path.
-You explicitly select each document through a tested local file-selection interface.
+You explicitly select files or a folder snapshot through a local file-selection interface. Native acceptance of multiple selection remains pending.
 Each client connects to the same runtime through its tested local MCP interface.
 Setup discloses local retention, automatic local OCR and shared document content without asking for a directory or OCR choice.
 A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
@@ -107,7 +107,7 @@ These names do not rename historical prototype revisions, settings directories, 
 The current internal v2 profile is a local Docling profile, not a managed service.
 
 Launch v1 supports every implemented MCP tool in its pinned core release, with no commercial tool gate.
-The candidate pin `263ea52` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
+The candidate pin `6aa0beb` includes `openreading_get_document`, introduced in `25c15c4`, alongside import, search, read, local selection and background job start/status/list/cancel.
 Its core implementation passed direct stdio checks; this pin alone establishes no frozen or native-host acceptance.
 Here “MCP endpoints” means tools discovered through MCP and invoked through its tool-call protocol, not new HTTP routes.
 Public bundles pin a merged core release by immutable commit and record its release version; feature-branch pins remain development evidence.
@@ -152,7 +152,7 @@ out:
   - Do not offer alternate backends, endpoint configuration, or credential setup in the first assistant profile.
   - Do not make an embedding service, vector database, semantic summarizer, or answer-generating model part of this runtime.
 cut:
-  - Keep the current proof single-file. Public v1 still needs explicit multi-file and folder snapshot selection, bounded traversal semantics and per-document job access; this is not implemented.
+  - Support explicit files and recursive folder snapshots through one native chooser. Retain separate copied references and per-document jobs; paginate receipt entries without reopening selection. Native acceptance remains pending.
   - Cut automatic retries and a separate job-management UI; background jobs and MCP discovery remain in scope.
   - Cut a thousand-page acceptance claim until a separate resource and retrieval study passes.
   - Cut model-controlled OCR settings and silent hosted retries; automatic local OCR stays within the verified bundled pipeline and measured import limits.
@@ -161,7 +161,7 @@ cut:
   - Cut public marketplace submission and automatic updates from the first proof.
 ~~~
 
-Public selection authorizes the selected file, not its containing directory.
+Public selection authorizes copied files from the selected snapshot, never a live directory grant.
 The runtime manages its own private intake root; this internal grant is never a public directory-setting prompt.
 The assistant may have separate file and shell tools whose access OpenReading cannot restrict.
 The current explicit directory form remains a developer-only fixture mechanism.
@@ -245,7 +245,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-2
   criterion: Public installation never asks for a directory or filesystem-path configuration; a verified local picker or handoff authorizes each selected file, discloses retained copies, the local layout model and shared document content, and automatically applies local OCR without a required setup choice or manual reference copying; cancelled or invalid selection imports nothing, failed settings replacement preserves valid configuration, and internally generated version 2 settings coexist with untouched revision 1 settings.
 - id: AC-3
-  criterion: Public import reads one explicitly selected regular file through an OpenReading-owned intake root, refuses unselected source paths, traversal and symlink escapes, and never grants the containing folder; model tool arguments cannot create or widen a source grant.
+  criterion: Public import reads each explicitly selected or snapshotted regular file through an OpenReading-owned intake root, refuses unselected source paths, traversal and symlink escapes, and never grants live folder access; model tool arguments cannot create or widen a source grant.
 - id: AC-4
   criterion: The first profile invokes only the pinned in-process Docling, PDFium, ONNX layout, and automatically selected local Tesseract stages; it loads no weights or OCR data outside the verified bundle, reads no ambient routing configuration, fetches no document URL, and performs no hosted dispatch.
 - id: AC-5

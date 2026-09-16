@@ -1,5 +1,8 @@
 # Changelog
 
+- Add a native multi-file/folder chooser with private snapshot copies, disclosed skips and paginated core receipts.
+  Each PDF retains its own import job and citations. Native and clean-machine acceptance remain pending.
+
 ## Native evidence review
 
 - Pin observed page-assembly progress in background import status, without estimated percentages or extraction changes.

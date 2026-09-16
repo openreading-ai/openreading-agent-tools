@@ -1,6 +1,6 @@
 # OSS launch v1 and the Coming soon boundary
 
-Status: ProductSpec revision 15 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
+Status: ProductSpec revision 16 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-30.
 Execution order: A1, D0, C0 and N3 in the [implementation plan](implementation-plan.md).
 
@@ -20,7 +20,7 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `263ea52` implements:
+The current candidate `6aa0beb` implements:
 
 | Tool | Required behavior |
 | --- | --- |

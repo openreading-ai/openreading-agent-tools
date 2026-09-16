@@ -22,6 +22,9 @@ class DesktopPackageTests(unittest.TestCase):
         self.addCleanup(release.doCleanups)
         for name in [
             "_internal/openreading/mcp_server/selection.py",
+            "_internal/openreading/mcp_server/selection_pages.py",
+            "_internal/runtime/native_selection.py",
+            "_internal/runtime/snapshot_selection.py",
             "_internal/openreading/artifacts/document.py",
             "_internal/openreading/artifacts/delivery.py",
             "_internal/openreading/mcp_server/delivery.py",
@@ -51,6 +54,9 @@ class DesktopPackageTests(unittest.TestCase):
                     }
                 }
             )
+        )
+        (schema.parent / "selection-tool.v0.2.json").write_text(
+            json.dumps({"$defs": {"SelectionPage": {}, "Request": {"properties": {"cursor": {}}}}})
         )
         release.metadata.update(
             format_version="2",
@@ -408,3 +414,15 @@ console.log(JSON.stringify(results));
             with self.assertRaisesRegex(ValueError, "job discovery"):
                 package.package_docling_desktop(source.root, output)
             self.assertFalse(output.exists())
+
+    def test_chat_candidate_refuses_missing_snapshot_schema(self):
+        source = self.fixture()
+        path = source.root / "_internal/openreading/schemas/selection-tool.v0.2.json"
+        path.write_text(json.dumps({"$defs": {"Request": {"properties": {"cursor": {}}}}}))
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temp:
+            destination = Path(temp) / "candidate"
+            with self.assertRaisesRegex(ValueError, "snapshot selection"):
+                self.operation()(source.root, destination, chat=True)
+            self.assertFalse(destination.exists())

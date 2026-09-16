@@ -1,6 +1,6 @@
 # Public document selection and automatic OCR
 
-**Status:** production intent with an implemented development candidate for [ProductSpec revision 15](../product/specs/local-document-proof.product-spec.md).
+**Status:** production intent with an implemented development candidate for [ProductSpec revision 16](../product/specs/local-document-proof.product-spec.md).
 The existing picker, copyable reference and OCR switch remain development mechanisms.
 This design supersedes their use as the public walkthrough, not their retained evidence or settings.
 A1 in the [implementation plan](implementation-plan.md) owns implementation and native proof.

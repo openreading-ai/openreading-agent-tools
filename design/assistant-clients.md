@@ -8,7 +8,7 @@
 
 The first assistant distribution contains one selected local Docling profile.
 “Docling slim” names the selected packaged profile built from the pinned `docling-slim` dependencies; it is not a second parser.
-The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 15 does not rename it.
+The exact engine contract remains `local-document-proof-v2`; ProductSpec revision 16 does not rename it.
 Docling, PDFium, CPU ONNX layout inference, and automatically selected local Tesseract perform the document work.
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.

@@ -39,7 +39,7 @@ The package records runtime identity plus manifest/workflow hashes and preserves
 `WORKFLOW.md` is a review copy; the pinned core supplies the actual MCP initialization instructions.
 No skill-delivery claim follows from copying that file into an archive.
 
-The current candidate pins core `263ea52044626a3a722576b060f8d4916c02a404`, including the optional local selection tool.
+The current candidate pins core `6aa0bebe2aefbf806fdb0f749bd61cf628e4795a`, including the optional local selection tool.
 Its dependency versions and Docling integration remain unchanged from the preceding candidate.
 The packed/unpacked archive passes native/OCR imports, warm reuse, restart, exact citations and same-profile catalog/instruction comparison against direct core.
 This is development-machine protocol evidence, not a Desktop conversation or clean-machine pass.

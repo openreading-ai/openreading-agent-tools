@@ -134,3 +134,18 @@ Document-wide processing and artifact publication can remain after every page is
 The job must still reach `succeeded` before retrieval. Cache reuse and older jobs have no new page observation.
 Updates coalesce to avoid per-page disk writes. Reconnecting reads the latest persisted observation.
 Native checks must record displayed counts during conversion and the separate terminal state.
+
+## Multiple files and folder snapshots
+
+The chat candidate opens one macOS panel for multiple PDFs or folders. Selected folders include nested PDFs.
+Hidden entries, symlinks, macOS packages and unsupported files are skipped with encountered-entry counts.
+Skipped directories are not inspected, so their counts do not describe all files inside them.
+Copies form a per-file snapshot rather than an atomic filesystem snapshot. Later additions require another selection.
+An unreadable or changing entry refuses the snapshot and rolls back its copies on ordinary failure or delivered cancellation.
+Original files and older selections remain untouched. No fixed file-count, depth or byte cutoff is introduced.
+
+Core returns paginated items with opaque references and basenames. Follow next_cursor with the same selection tool.
+A continuation reads retained receipts without opening another dialog and survives server restart.
+Import each item once with the existing background tools, retaining distinct job and artifact IDs.
+Process the jobs sequentially and disclose any skipped or failed documents before claiming the selection was processed.
+The native macOS chooser and clean-machine folder permissions still need owner-operated acceptance.

@@ -131,10 +131,10 @@ def main(argv: list[str] | None = None) -> int:
                     return run(store)
                 args.input_root = store.prepare()
                 if args.chat_documents:
-                    from runtime.chat_selection import LocalSelectionProvider
+                    from runtime.native_selection import SnapshotSelectionProvider
 
                     args.ocr = "true"
-                    return launch(args, root, selection_provider=LocalSelectionProvider(store))
+                    return launch(args, root, selection_provider=SnapshotSelectionProvider(store))
             return launch(args, root)
         if args.configure:
             if args.input_root is None:
