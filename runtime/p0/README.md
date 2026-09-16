@@ -85,7 +85,7 @@ The process-exit observation lacked a retained PID capture and cannot establish 
 Successful user selection remains unverified.
 These results do not replace named-host interaction or clean-machine acceptance.
 
-The current candidate pins core `74c81b0cecefb6cc3894fec676eb635c663a0b6d`, with explicit provider cleanup responsibilities.
+The current candidate pins core `263ea52044626a3a722576b060f8d4916c02a404`, with explicit provider cleanup responsibilities.
 The format 2 launcher sets `ORT_DISABLE_TELEMETRY=1` before core or native parser imports, including worker dispatch.
 ONNX Runtime's later Python API opt-out alone does not prevent its device identifier and telemetry database initialization.
 See the pinned [upstream privacy contract](https://github.com/microsoft/onnxruntime/blob/v1.30.0/docs/Privacy.md).

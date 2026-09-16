@@ -20,12 +20,12 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The current candidate `74c81b0` implements:
+The current candidate `263ea52` implements:
 
 | Tool | Required behavior |
 | --- | --- |
 | `openreading_start_import` | Start a persistent local import and return a job ID promptly. |
-| `openreading_get_import` | Report actual stage, elapsed time and a terminal artifact receipt or error. |
+| `openreading_get_import` | Report actual stage, elapsed time, measured page-assembly counts when available, and a terminal artifact receipt or error. |
 | `openreading_list_imports` | Discover grant-scoped retained jobs after reconnecting, without a saved job ID. |
 | `openreading_cancel_import` | Cancel one pending import without deleting a completed artifact. |
 | `openreading_import` | Retain the requested granted document, return a bounded receipt, and preserve explicit core refusals. |

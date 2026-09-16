@@ -2,6 +2,9 @@
 
 ## Native evidence review
 
+- Pin observed page-assembly progress in background import status, without estimated percentages or extraction changes.
+  Preserve status access for older jobs; page assembly does not imply completed document publication.
+
 - Require complete-delivery v0.3 metadata for measured page origins, empty-text pages and explicit warning-record counts.
   Denied process cleanup reports a permission error; inaccessible abandoned exports do not prevent new exports.
 

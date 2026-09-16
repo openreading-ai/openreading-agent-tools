@@ -37,9 +37,9 @@ class DesktopPackageTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b"synthetic identity input")
         (release.root / name).chmod(0o755)
-        schema = release.root / "_internal/openreading/schemas/import-job.v0.1.json"
+        schema = release.root / "_internal/openreading/schemas/import-job.v0.2.json"
         schema.parent.mkdir(parents=True, exist_ok=True)
-        schema.write_text(json.dumps({"$defs": {"ListRequest": {}}}))
+        schema.write_text(json.dumps({"$defs": {"ListRequest": {}, "PageProgress": {}}}))
         (schema.parent / "document-tool.v0.3.json").write_text(
             json.dumps(
                 {
@@ -131,7 +131,7 @@ class DesktopPackageTests(unittest.TestCase):
         for contents in (None, b"{}", b"[]", b"invalid", b'{"$defs":[]}'):
             with self.subTest(contents=contents):
                 source = self.fixture()
-                schema = source.root / "_internal/openreading/schemas/import-job.v0.1.json"
+                schema = source.root / "_internal/openreading/schemas/import-job.v0.2.json"
                 if contents is None:
                     schema.unlink()
                 else:
@@ -390,5 +390,21 @@ console.log(JSON.stringify(results));
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp) / "candidate"
             with self.assertRaisesRegex(ValueError, "complete delivery"):
+                package.package_docling_desktop(source.root, output)
+            self.assertFalse(output.exists())
+
+    def test_candidate_refuses_jobs_without_page_progress(self):
+        source = self.fixture()
+        for name in ("import-job.v0.1.json", "import-job.v0.2.json"):
+            path = source.root / "_internal/openreading/schemas" / name
+            if path.exists():
+                schema = json.loads(path.read_text())
+                schema["$defs"].pop("PageProgress", None)
+                path.write_text(json.dumps(schema))
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "candidate"
+            with self.assertRaisesRegex(ValueError, "job discovery"):
                 package.package_docling_desktop(source.root, output)
             self.assertFalse(output.exists())

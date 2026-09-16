@@ -127,3 +127,10 @@ They distinguish unmeasured origins from recorded unknown origins and preview pa
 Warning counts describe warning records, not affected pages or regions. Unlocated warnings remain unlocated.
 A block can produce multiple evidence passages; those counts describe different units.
 These metadata fields change no normalized text, geometry, citations or OCR output.
+
+Background job status includes `page_progress` when Docling reports successful physical-page assembly.
+For example, 12 assembled pages out of 251 is an observed count, not a percentage or time estimate.
+Document-wide processing and artifact publication can remain after every page is assembled.
+The job must still reach `succeeded` before retrieval. Cache reuse and older jobs have no new page observation.
+Updates coalesce to avoid per-page disk writes. Reconnecting reads the latest persisted observation.
+Native checks must record displayed counts during conversion and the separate terminal state.

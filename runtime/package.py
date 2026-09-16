@@ -125,7 +125,7 @@ def package_docling_desktop(
         raise ValueError("Rebuild with complete delivery before using this manifest.") from None
     if "_internal/openreading/artifacts/jobs.py" not in metadata["files"]:
         raise ValueError("Rebuild with background import support before using this manifest.")
-    job_schema = "_internal/openreading/schemas/import-job.v0.1.json"
+    job_schema = "_internal/openreading/schemas/import-job.v0.2.json"
     try:
         if job_schema not in metadata["files"]:
             raise ValueError
@@ -133,7 +133,7 @@ def package_docling_desktop(
         if (
             not isinstance(contract, dict)
             or not isinstance(contract.get("$defs"), dict)
-            or "ListRequest" not in contract["$defs"]
+            or not {"ListRequest", "PageProgress"}.issubset(contract["$defs"])
         ):
             raise ValueError
     except (OSError, ValueError):
