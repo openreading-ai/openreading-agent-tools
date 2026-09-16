@@ -2,6 +2,10 @@
 
 ## Native evidence review
 
+- Pin precise provenance warnings and crash-safe export cleanup. Active writes and completed exports remain intact.
+  Search and exact reads retain document-level warning flags.
+  Parser cleanup preserves failure and cancellation when macOS process-group signaling races leader exit.
+
 - Pin the literal Docling list-provenance repair and reviewed complete-export fixes.
   Existing artifacts require reimport to recover omitted list text. The bundled OCR engine remains unchanged.
 

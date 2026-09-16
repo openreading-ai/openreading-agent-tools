@@ -104,10 +104,20 @@ the host's manifest format cannot enforce integers, so invalid values still fail
 macOS may request Downloads permission, or deny exports if that permission is unavailable.
 Native and clean-machine checks must record the prompt, its application attribution, and denial behavior.
 Exports contain complete extracted text. Depending on system settings, indexing, backup or sync may include them.
-A process crash can leave a hidden temporary export file. Automatic cleanup of abandoned exports is not implemented.
+The next export under the same grant removes abandoned temporary files created by this candidate.
+Active writes and completed JSON exports are preserved. Older temporary names require manual cleanup after their writers exit.
 The retrieval tool can write exports, so its write annotation also applies to inline and fragment requests.
 Measure actual approval prompts for every route rather than assuming read-only approval behavior.
 
 The candidate core pin retains provider-original list markers with their original page spans.
 Reimport older documents to recover omitted list items; retained artifacts are not rewritten.
 The bundled OCR engine remains Tesseract. Alternative OCR and table-stage experiments do not establish a new release default.
+
+The candidate distinguishes provider text preserved in separate spans from text omitted for invalid provenance.
+Search and exact reads retain document-level warning flags; they do not identify a fault in each quoted passage.
+Old artifacts keep their recorded warnings. Reimport to obtain the current warning distinctions.
+
+Background jobs can survive a chat or server disconnect. Reconnect with the same input grant,
+list imports, cancel any active job, and wait for a terminal status before uninstalling.
+Uninstalling the connector does not provide a core cancellation hook or remove retained documents and exports.
+Native host cancellation, uninstall behavior and export permissions still require owner-operated checks.
