@@ -16,12 +16,12 @@ This sequence supersedes historical continuation-only and resource-ceiling tasks
 - [ ] Complete native progress, reconnect/cancellation, removal, retention, retrieval reliability and representative scale measurements.
 - [ ] Implement honest analytics: downloads versus installs, local timing, explicit sharing; no silent client telemetry (AC-33).
 - [ ] Complete signing, notarization, clean-machine install/update/uninstall, per-mode acceptance and pilot review.
-- [ ] Merge and release only after owner approval; pin released core before public Agent Tools distribution.
+- [ ] The owner merges and releases core, then approves public Agent Tools distribution against that released pin. Agents never merge either PR.
 
 The current delivery experiment does not establish extraction accuracy or 10,000-page/1 GB acceptance.
 
 Continue on the existing feature branches and preserve unrelated work.
-Never merge either repository's PR automatically.
+Never merge either repository's PR. The owner performs every merge.
 Each implementation commit names the acceptance criteria it addresses and leaves unmet host checks explicit.
 A passing offline gate is necessary but cannot replace native application or signing evidence.
 
@@ -331,6 +331,7 @@ Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC
 - [ ] Mark AC-26 unmet if no qualifying Chat conversation exists; never claim full target completion from a Claude-only release.
 - [x] Record separate owner-operated Claude Code and Codex CLI candidate workflows for synthetic imports, citations and local exports. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records runtime identity, post-run checks and limitations.
 - [ ] Verify the named versions, human-visible approvals, cancellation and clean-machine lifecycle before labeling their Docling distributions supported.
+- [x] Record same-version Desktop removal and reinstall on the development Mac. Installed files, retained jobs, artifacts, selections and the export survived with identical hashes; the owner retrieved an existing citation without reimport. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records scope and missing prompt observations.
 - [ ] Test setup cancellation, root changes, permissions, process cleanup, update, removal, retained-data cleanup, spaces, and Unicode.
 - [ ] Record actual host logs and recovery steps; do not infer which process needs OS permissions without observing it.
 - [ ] Review evidence and any public claims before the ten-participant, separately reported pilot cohorts or distribution.

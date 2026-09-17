@@ -12,7 +12,7 @@ Checked on 2026-09-11. These are connection candidates, not a supported-client r
 
 | Surface | Documented local route | Current Docling evidence |
 | --- | --- | --- |
-| Claude Desktop | Local MCP desktop extension. | Owner-reported folder, delivery, reconnect and active-cancellation checks passed on the development candidate. Complete host/version capture and installation lifecycle remain pending. |
+| Claude Desktop | Local MCP desktop extension. | Owner-reported folder, delivery, reconnect and active-cancellation checks passed on the development candidate. Same-version removal and reinstall preserved retained data. Version upgrades, clean-machine installation and complete host/prompt capture remain pending. |
 | ChatGPT desktop Chat conversation | Local route must be established by E1. | No mode-specific local invocation evidence. |
 | ChatGPT desktop Work conversation | Conditional on independently established local execution. | No mode-specific local invocation evidence. |
 | Codex local thread in ChatGPT desktop | Candidate STDIO registration on a Codex host. | Native UI, launch, and invocation pending. |
@@ -72,6 +72,17 @@ Post-terminal inspection found the recorded job process gone, no OpenReading par
 The private record `2026-09-16-native-reconnect-cancel` preserves this result without claiming exact cancellation latency or teardown order.
 An earlier reconnect found a completed job; a separate attempt lacked the connector and could not test discovery.
 Owner-requested cache resets removed the earlier artifact stores after their metadata was preserved; prior hash checks remain historical observations.
+
+The owner removed and reinstalled the same development extension, then retrieved the existing Markdown artifact without selecting or importing again.
+Independent removal checks found the extension directory and settings absent, with no associated extension processes observed.
+All twenty-two retained artifact, job and selection files remained unchanged, along with the 1,190-byte JSON export.
+After reinstall, all 4,655 installed files matched their previous hashes, and those retained files and export remained unchanged.
+The owner recovered the existing job, exact pointer-based citation and content hash through the native tools.
+The private record `2026-09-16-lifecycle-preparation` separates owner reports from before-removal, after-removal and after-reinstall file checks.
+Claude Desktop 2.110.0 was observed during lifecycle preparation; this does not establish versions for earlier reported sessions.
+This is same-version reinstall evidence on the development Mac, not a version upgrade or clean-machine installation.
+Specific human-visible uninstall and reinstall prompts were not recorded.
+
 These observations establish the reported workflows, not clean-machine installation, signed distribution, general parsing accuracy or token savings.
 The historical setup commands below retain their original scope.
 
