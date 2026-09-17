@@ -351,7 +351,8 @@ No release or merge occurs automatically when tests pass.
 - [x] Refresh both pins to `4f4351a`, the nine-tool catalogs, package, and frozen functional checks after the owner completes testing.
 - [x] Measure server memory through all continuations at `e0061a6`, then focused retrieval at `4f4351a`. Retrieval code is unchanged between those pins. Streaming passage checks still materialize normalized content; this does not establish constant memory at larger sizes.
 - [x] Record owner-observed Codex CLI page-assembly counts and separate terminal success during a fresh 251-page import. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) bounds this report.
-- [ ] Check named-host active import cancellation and reconnect behavior. Do not assume a native progress bar or infer large-document accuracy from completion.
+- [x] Record owner-operated Claude Desktop reconnect, active-job discovery and cancellation. Retained status confirms cancelled at 14/251 with no receipt; post-terminal inspection found no parser and no published artifact. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records the evidence limits.
+- [ ] Repeat lifecycle acceptance on the signed clean-machine candidate with exact host/version and human-visible prompts. Do not infer teardown timing or parsing accuracy from these development-machine checks.
 
 These tasks change processing lifecycle, not parser semantics. No neighboring-block inference is added.
 

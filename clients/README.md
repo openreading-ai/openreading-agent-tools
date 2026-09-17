@@ -12,7 +12,7 @@ Checked on 2026-09-11. These are connection candidates, not a supported-client r
 
 | Surface | Documented local route | Current Docling evidence |
 | --- | --- | --- |
-| Claude Desktop | Local MCP desktop extension. | Owner-supplied partial Chat-mode calls and OCR/refusal results; exact host version, complete capture and installation acceptance pending. |
+| Claude Desktop | Local MCP desktop extension. | Owner-reported folder, delivery, reconnect and active-cancellation checks passed on the development candidate. Complete host/version capture and installation lifecycle remain pending. |
 | ChatGPT desktop Chat conversation | Local route must be established by E1. | No mode-specific local invocation evidence. |
 | ChatGPT desktop Work conversation | Conditional on independently established local execution. | No mode-specific local invocation evidence. |
 | Codex local thread in ChatGPT desktop | Candidate STDIO registration on a Codex host. | Native UI, launch, and invocation pending. |
@@ -61,9 +61,17 @@ Original host transcripts, human-visible approvals and exact cancel-to-response 
 One successful chooser cancellation report does not explicitly identify its host, so neither host receives a separate cancellation pass.
 Codex also reported printing one complete synthetic result against the test instruction; this is a recorded protocol deviation.
 
-The earlier Desktop folder run imported seventeen files across two receipt pages.
-Its stored skip counts omit three expected categories; the matching source and installed-bytecode snapshots report all four categories.
-That native discrepancy remains unresolved and does not receive an acceptance pass.
+The earlier Desktop folder run imported seventeen files across two receipt pages but omitted three expected skip categories.
+A later selection-only native retest returned seventeen files, 99,808 bytes and both receipt pages with all four expected skip categories.
+Copied receipts corroborate hidden:1, package:1, unsupported:1 and symlink:1. These are entry counts, not per-entry identity proofs.
+The retest passes its aggregate selection check. The earlier discrepancy remains unexplained; no production fix is claimed.
+
+The owner also reports discovering one active import after restarting Claude Desktop and opening a new chat, then cancelling that job.
+The retained status is cancelled at 14 of 251 pages, with no receipt.
+Post-terminal inspection found the recorded job process gone, no OpenReading parser or Tesseract processes, and empty artifact, staging and worker directories.
+The private record `2026-09-16-native-reconnect-cancel` preserves this result without claiming exact cancellation latency or teardown order.
+An earlier reconnect found a completed job; a separate attempt lacked the connector and could not test discovery.
+Owner-requested cache resets removed the earlier artifact stores after their metadata was preserved; prior hash checks remain historical observations.
 These observations establish the reported workflows, not clean-machine installation, signed distribution, general parsing accuracy or token savings.
 The historical setup commands below retain their original scope.
 

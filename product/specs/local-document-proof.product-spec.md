@@ -59,7 +59,8 @@ It does not infer one outcome from another.
 You install an OpenReading bundle without configuring a directory or typing a filesystem path.
 You explicitly select files or a folder snapshot through a local file-selection interface.
 Owner-operated candidate checks cover folder selection and multiple imports in the [client matrix](../../clients/README.md#owner-operated-candidate-checks-september-16-2026).
-Full native acceptance remains pending, including the unexplained Desktop skip counts and installation lifecycle.
+The repeated native folder check matches expected aggregate skip counts; the earlier discrepancy remains unexplained.
+Signed clean-machine installation and lifecycle acceptance remain pending.
 Each client connects to the same runtime through its tested local MCP interface.
 Setup discloses local retention, automatic local OCR and shared document content without asking for a directory or OCR choice.
 A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
