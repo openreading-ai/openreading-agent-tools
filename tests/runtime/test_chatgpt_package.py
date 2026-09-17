@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -42,6 +43,11 @@ class ChatGPTPackageTests(unittest.TestCase):
 
     def test_relocated_marketplace_resolves_worker_skill_and_bound_metadata(self):
         source = self.fixture()
+        worker = source.root / "openreading-worker"
+        worker.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\"\n")
+        source.metadata["files"] = inventory(source.root)
+        source.metadata["worker_sha256"] = sha256(worker)
+        source.write_metadata()
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp) / "built"
             target = self.operation()(source.root, output)
@@ -56,11 +62,21 @@ class ChatGPTPackageTests(unittest.TestCase):
             self.assertEqual(manifest["name"], entry["name"])
             config = json.loads((target / manifest["mcpServers"]).read_text())
             server = config["mcpServers"]["openreading"]
-            command = Path(server["command"].replace("${PLUGIN_ROOT}", str(target)))
+            # Legacy plugin commands are literal. Only cwd is rooted by the host.
+            self.assertEqual(server.get("cwd"), ".")
+            cwd = target / server["cwd"]
+            command = cwd / server["command"]
             self.assertEqual(command, target / "server/openreading-worker")
+            process = subprocess.run(
+                [server["command"], *server["args"]], cwd=cwd, capture_output=True, text=True
+            )
+            self.assertEqual(process.returncode, 0, process.stderr)
+            self.assertEqual(
+                process.stdout.splitlines(), ["--client", "chatgpt", "--chat-documents"]
+            )
             self.assertTrue(command.stat().st_mode & 0o111)
             self.assertEqual(server["args"], ["--client", "chatgpt", "--chat-documents"])
-            self.assertEqual(set(server), {"command", "args"})
+            self.assertEqual(set(server), {"command", "args", "cwd"})
             skill = target / manifest["skills"] / "read-local-document/SKILL.md"
             self.assertEqual(
                 skill.read_bytes(),

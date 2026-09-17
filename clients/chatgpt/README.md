@@ -18,7 +18,8 @@ The desired target is a local Chat conversation, with Work and Codex local threa
 A Codex-thread pass does not establish support for Chat conversations.
 The development plugin bundles the same verified worker and shared workflow in a local marketplace.
 Its [installation guide](plugin/README.md) describes the owner-operated native check without a pasted executable path.
-The host resolves the installed plugin directory through `${PLUGIN_ROOT}` and supplies the fixed chat arguments.
+The host resolves `cwd: "."` to the installed plugin directory and launches `./server/openreading-worker` with fixed chat arguments.
+The legacy plugin MCP loader leaves `${PLUGIN_ROOT}` literal in commands, so this package does not use that placeholder.
 Packaging writes only its output directory. It never registers a server or changes shared host configuration.
 Public setup asks for neither a document directory nor an OCR decision. Bundled OCR works automatically within its verified limits.
 The earlier manual registration remains valid development evidence, separately from plugin installation acceptance.

@@ -5,7 +5,8 @@ use the separately pinned official CLI. No archive is signed or submitted automa
 The historical assembler refuses format-2 runtimes. An explicit Docling Desktop path
 assembles a development candidate for local installation checks, never a signed release.
 The ChatGPT plugin path copies that same verified runtime into a relocatable local marketplace.
-Its host expands PLUGIN_ROOT after installation; packaging never changes host configuration.
+The host roots the explicit working directory; the executable path stays relative to it.
+Legacy plugin MCP commands do not expand PLUGIN_ROOT. Packaging never changes host configuration.
 The chatgpt storage namespace remains unchanged, including existing intake and exports.
 WORKFLOW.md is a review copy; actual model instructions come from the pinned core server.
 The selected-documents variant removes the directory setting and adds a co-located GUI app.

@@ -2,7 +2,8 @@
 
 This plugin bundles local document tools and the shared evidence workflow for ChatGPT desktop Work.
 It uses the verified macOS Apple Silicon runtime without requiring a pasted executable path or a separate Python installation.
-The host expands `${PLUGIN_ROOT}` to the installed plugin directory before launching the included worker.
+The host resolves the explicit working directory to the installed plugin folder, then launches `./server/openreading-worker`.
+This avoids unsupported `${PLUGIN_ROOT}` expansion in legacy plugin MCP commands.
 The candidate is unsigned development output. Native plugin installation, ordinary Chat, signing and clean-machine acceptance remain pending.
 
 ## Local installation check

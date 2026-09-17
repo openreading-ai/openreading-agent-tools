@@ -2,6 +2,9 @@
 
 ## Unreleased ChatGPT development plugin
 
+- Fix plugin startup by rooting the working directory and using a literal relative executable path.
+  The native host does not expand `${PLUGIN_ROOT}` in legacy MCP commands.
+
 - Assemble a local plugin marketplace around the verified Docling worker and shared evidence workflow.
 - Resolve the executable relative to the installed plugin, preserving existing data without editing host settings.
 - Keep native plugin installation, ordinary Chat, signing and clean-machine acceptance pending.
