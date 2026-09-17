@@ -14,7 +14,7 @@ Checked on 2026-09-11. These are connection candidates, not a supported-client r
 | --- | --- | --- |
 | Claude Desktop | Local MCP desktop extension. | Owner-reported folder, delivery, reconnect and active-cancellation checks passed on the development candidate (folder skips passed the aggregate retest; the original discrepancy remains unexplained). Same-version removal and reinstall preserved retained data. Version upgrades, clean-machine installation and complete host/prompt capture remain pending. |
 | ChatGPT desktop Chat conversation | Local route must be established by E1. | No mode-specific local invocation evidence. |
-| ChatGPT desktop Work conversation | Conditional on independently established local execution. | No mode-specific local invocation evidence. |
+| ChatGPT desktop Work conversation | Owner-configured local STDIO server through native Settings. | Owner-reported small and 251-page workflows passed on 26.903.61454; retained jobs and exports corroborate the results. Plugin installation, lifecycle and clean-machine acceptance remain pending. |
 | Codex local thread in ChatGPT desktop | Candidate STDIO registration on a Codex host. | Native UI, launch, and invocation pending. |
 | Claude Code | Local STDIO registration; the existing prototype also has a plugin wrapper. | Owner reports successful 2.1.272 candidate imports, citations and local exports. Clean-machine distribution and lifecycle acceptance remain pending. |
 | Codex CLI | Local STDIO registration; the existing prototype also has a plugin wrapper. | Owner reports successful candidate imports, citations and local exports. Preparation used 0.154.0; session version and distribution acceptance remain unverified. |
@@ -90,6 +90,24 @@ Specific human-visible uninstall and reinstall prompts were not recorded.
 
 These observations establish the reported workflows, not clean-machine installation, signed distribution, general parsing accuracy or token savings.
 The historical setup commands below retain their original scope.
+
+## Owner-operated ChatGPT Work checks, September 17, 2026
+
+The owner selected Work mode with Downloads as its workspace and registered the same verified worker through native Settings.
+The installed application reported 26.903.61454; owner screenshots show STDIO, the worker path and three separate arguments: `--client`, `chatgpt`, `--chat-documents`.
+The owner supplied a nine-tool discovery report, followed by successful small Markdown and fresh 251-page workflows.
+Both reports describe exact MCP reads and local export access without attachment, failures or retries.
+The Markdown report includes complete inline delivery, a forced 1,190-byte export and preserved Unicode.
+The large report records increasing assembly counts, with 251/251 still running at 473.87 seconds and success at 482.24 seconds.
+
+Independent post-run checks verified both terminal jobs, retained file hashes and exports against complete canonical retained content.
+The large export has 21,593,816 bytes and SHA-256 `a03a0c31d3b71228fddc6adf4107692adb590ea9c08b0531b12a3babe29f60ff`, matching the earlier coding-host checks.
+The reported sampled passages, pageless pointer and Unicode text agree with retained evidence.
+The private record `2026-09-17-chatgpt-work-acceptance` separates summarized owner reports, supplied screenshots and independent file comparisons.
+No permission prompts were reported by the model; human-visible prompt absence was not independently observed.
+Computer Use failed before UI inspection, so no automated host transcript or process-ancestry capture establishes the reported mode.
+These observations support the owner-operated Work workflow; ordinary Chat mode and packaged plugin installation remain untested.
+Cancellation, reconnect, update, removal, clean-machine installation, accuracy and token savings require their own evidence.
 
 ## Per-client guides
 
