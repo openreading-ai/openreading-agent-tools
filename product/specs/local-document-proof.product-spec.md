@@ -439,7 +439,7 @@ No result authorizes an agent to merge or publish.
 The design makes implementation defaults explicit so a worker does not have to invent them.
 The following owner actions remain release dependencies:
 
-- Establish a named local ChatGPT conversation mode and helper-app setup path before claiming its compatibility; Claude Desktop can ship independently after its own gates pass.
+- Establish a named local ChatGPT conversation mode and native plugin setup path before claiming its compatibility; Claude Desktop can ship independently after its own gates pass.
 - Approve the core contract scope in core before changing its public schemas or MCP surface.
 - Review the complete Docling bundle, including native dependencies, model weights, and OCR data, before sharing it.
 - Supply a clean macOS virtual machine and the Developer ID identity required for release signing and notarization.

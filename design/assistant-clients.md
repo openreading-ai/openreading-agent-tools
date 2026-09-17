@@ -1,6 +1,6 @@
 # Assistant integration and compatibility design
 
-**Status:** revision 11 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
+**Status:** revision 12 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).
 
@@ -184,43 +184,27 @@ It must preserve core Python sources and installed dependency metadata required 
 It must include verified `tessdata/configs/tsv`, language data, native libraries, layout weights, and complete notices.
 A modified or incomplete inventory refuses startup; do not relax identity for frozen builds.
 
-Claude Desktop may use an MCPB wrapper; a generic signed app or installer can supply the common runtime for other hosts.
-The proposed ChatGPT candidate route uses the A1 chat-driven local file-selection handoff with automatic local OCR.
-A folder picker is not an acceptable public substitute; E1, E2 and A1 precede its implementation.
-It writes only OpenReading settings, then shows the executable path to paste into the host's local MCP Settings form.
-Use an argument-free, verified host launcher so users need not quote paths or supply environment variables, working directories, or timeout overrides.
-The launcher reads the explicit saved settings and sets required process context itself.
-E1 must verify how the form accepts a path containing spaces; no shell-quoting assumption is allowed.
-The helper does not modify shared TOML or install a marketplace entry.
-Cancel before Save leaves existing settings intact; failed writes show a recoverable error without marking setup complete.
-Saving OpenReading settings is distinct from connecting in the host; an incomplete registration is displayed as pending.
-If this path cannot fit measured default host budgets or the form cannot launch it, stop ChatGPT N2 for a revised setup decision.
-Do not silently add an installer that edits shared host settings.
-If setup requires editing JSON or TOML manually, it may support a developer proof but does not pass the nondeveloper walkthrough.
-The engine design's signing, notarization, clean-machine, and installer fallback gates apply to every distributed path.
+Claude Desktop uses its MCPB development wrapper. ChatGPT Work has a separate local plugin candidate around the same verified runtime.
+The [ChatGPT client guide](../clients/chatgpt/README.md) documents the implemented assembler and its relative launch configuration.
+This replaces the proposed helper app and manually pasted argument-free launcher; it adds no runtime or managed service.
+The host owns plugin installation, approval policy and removal. Packaging never edits shared host settings.
+The owner-operated native gate must disable the manual test connection before attributing calls to the installed plugin.
+Record the installed cache location, worker identity, effective workflow and configuration changes on the named application version.
+Test spaces and Unicode through actual host installation, not only direct subprocess launch.
+Ordinary Chat remains separate from Work. Stop unsupported modes instead of substituting a remote worker or tunnel.
+The engine design's signing, notarization, clean-machine and lifecycle gates apply to every distributed path.
 
 Keep compatibility, installation, answer quality, and token results separate in release notes.
 A working local integration may ship without a savings claim after its functional and distribution gates pass.
 The owner reviews and merges; no stage authorizes automatic merge or publication.
 
-## 7. Remaining helper and citation-checker implementation
+## 7. Remaining native plugin and citation checks
 
-ChatGPT N2 includes `runtime/chatgpt_entrypoint.py` and the argument-free executable `openreading-chatgpt` beside `openreading-worker`.
-Both executables belong to the same release inventory and shared frozen dependency tree.
-The host entrypoint selects only the `chatgpt` settings namespace; internal worker dispatch retains its original arguments.
-It accepts no user-supplied grant or backend arguments and never infers the client from a parent process name.
-Implement it only after E1, with verified dispatch and subprocess regression tests under `tests/runtime/`.
+The plugin assembler reuses the existing chat chooser and automatic local OCR without introducing another executable.
+Native N2 checks must establish plugin discovery, installation, tool qualification, chooser handoff and access to local exports.
+Repeat cancellation, reconnect and removal after installing through the host, keeping retained data behavior explicit.
+A CLI cache install and direct frozen-worker test do not establish ChatGPT's native plugin UI behavior.
+P1 still owns signing, notarization, minimal entitlements and clean-machine acceptance of the complete package.
 
-The helper candidate uses the pinned Python 3.11.15/PyInstaller toolchain with the existing picker/controller separation as a prototype. The public handoff and accessible native UI require the A0 successor check before selecting final widgets.
-A1 must establish its native selection and handoff contract before this implementation starts.
-Pin and inventory the actual Tcl/Tk assets in the helper build before claiming a usable GUI; they are not required by P0.
-Put configuration and controller logic in `runtime/setup.py` and its thin UI binding in `runtime/setup_ui.py`.
-Both modules and their headless boundary tests belong to the existing Python line/branch 95% coverage gate.
-Do not introduce unmeasured Swift application logic outside that gate.
-Native widget behavior remains an additional manual host check rather than a substitute for controller tests.
-P1 owns signing and notarization of `OpenReading Setup.app` and the argument-free launcher alongside the engine.
-The helper's inventory, executable path resolution, cancelled Save, failed writes, and pending host registration all require explicit N2 tasks.
-
-The citation checker now runs under the ordinary test environment and resolves evidence through frozen v2 MCP reads.
-Its reproduction and implemented contract live in the [measurement guide](../measurement/README.md#citation-evidence-checker).
-Native capture adapters and reviewed host answers remain N2 tasks; the current real-runtime check uses a generated synthetic answer.
+The deterministic checker interface is implemented in [the measurement guide](../measurement/README.md#citation-evidence-checker).
+Native capture adapters and reviewed host answers remain N2 tasks; a generated synthetic answer does not pass native acceptance.

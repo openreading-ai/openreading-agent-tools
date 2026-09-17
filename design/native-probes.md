@@ -39,7 +39,7 @@ Remote or cloud tasks remain excluded; record them as out of scope rather than s
 
 Register through the documented native Settings form and capture its actual available fields.
 Record how it interprets an executable path with spaces and Unicode, whether arguments are separate, and any required environment or working directory.
-Exercise the selected helper-app design using an argument-free host launcher with saved OpenReading settings.
+Exercise the local plugin installation candidate using the bundled runtime and fixed chat launch arguments.
 Do not edit shared TOML to rescue a form-only check or infer absent form fields from a short documentation page.
 Verify the actual configuration delta and which other local clients receive that registration.
 

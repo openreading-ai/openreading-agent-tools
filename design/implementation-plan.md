@@ -106,7 +106,7 @@ Acceptance: AC-23 through AC-25. Files: ProductSpec, assistant design, client RE
 The ChatGPT UI check is currently unavailable because the computer-use tool refused access to the installed app.
 Do not bypass that restriction or treat an API invocation as an alternative UI check.
 A later owner-operated check can close it using the named app/version and synthetic input.
-The selected ChatGPT setup candidate is a signed helper app plus an argument-free executable path pasted into native Settings.
+The ChatGPT setup candidate is now a local plugin around the verified worker, documented in the [client guide](../clients/chatgpt/README.md).
 Do not write shared TOML or substitute Codex-mode evidence for the Chat conversation target.
 Stop ChatGPT-specific N2 if E1 cannot establish that mode and setup route; Claude Desktop remains independently releasable.
 Other common implementation work can continue without that unsupported claim.
@@ -202,7 +202,7 @@ Owners: `clients/`, `runtime/package.py`, the existing shared skill, adapter tes
 
 1. Inspect the existing packaging implementation and keep the common runtime independent of any one host manifest format.
 2. Add host-specific setup translation and workflow delivery using the shared configuration semantics.
-3. After E1 and A1, implement the named argument-free ChatGPT entrypoint and reviewed native selection provider in assistant design section 7, including inventory, coverage, and native GUI checks.
+3. After E1 and A1, test the ChatGPT plugin through native installation, including cache identity, chooser handoff, approval prompts and local file access.
 4. Test argument arrays with shell metacharacters, spaces, Unicode, absent configuration, and host-qualified tool names.
 5. Test that every wrapper resolves the same profile, tool schemas, and workflow text without importing provider SDKs.
 6. For OpenAI's shared MCP settings, disclose the actual set of clients receiving the registration and grant.
@@ -314,7 +314,7 @@ Owners: runtime lock, build/verifier, package metadata, notices, packaging tests
 
 - [ ] Pin the passing core and complete runtime; reject prohibited packages and verify model, metadata, source, and tessdata inventory.
 - [ ] Inventory every collected dependency and applicable notice, rather than presenting the build-environment superset as an exact distribution audit.
-- [ ] Sign nested native components, the helper app and argument-free launcher, record minimal entitlements, notarize, and then hash the final installed representation.
+- [ ] Sign the complete native runtime and client package, record minimal entitlements, notarize, and then hash the final installed representation.
 - [ ] Exercise the signed app/installer fallback if MCPB extraction or notarization layout fails.
 - [ ] Record archive/installed size, extraction, full integrity-check cost, and online/offline first-launch behavior.
 
@@ -329,6 +329,7 @@ Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC
 - [ ] Use a snapshotted clean Apple Silicon VM with image identity and no user-installed interpreter or developer-tool dependency.
 - [ ] Verify Claude Desktop independently, then only the ChatGPT modes E1 established; record executable resolution, local execution, and checked citations.
 - [ ] Mark AC-26 unmet if no qualifying Chat conversation exists; never claim full target completion from a Claude-only release.
+- [ ] Complete owner-operated ChatGPT plugin installation and lifecycle checks with the manual connection disabled. CLI cache checks cannot pass this gate.
 - [x] Record owner-operated ChatGPT Work small and large delivery checks through manual STDIO registration. The [Work record](../clients/README.md#owner-operated-chatgpt-work-checks-september-17-2026) preserves scope; ordinary Chat and packaged installation remain pending.
 - [x] Record separate owner-operated Claude Code and Codex CLI candidate workflows for synthetic imports, citations and local exports. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records runtime identity, post-run checks and limitations.
 - [ ] Verify the named versions, human-visible approvals, cancellation and clean-machine lifecycle before labeling their Docling distributions supported.

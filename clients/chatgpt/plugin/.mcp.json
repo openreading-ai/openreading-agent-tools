@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "openreading": {
+      "command": "${PLUGIN_ROOT}/server/openreading-worker",
+      "args": [
+        "--client",
+        "chatgpt",
+        "--chat-documents"
+      ]
+    }
+  }
+}

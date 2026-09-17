@@ -16,15 +16,32 @@ The route must execute locally and cannot set `experimental_environment = "remot
 
 The desired target is a local Chat conversation, with Work and Codex local threads checked separately in [E1](../../design/native-probes.md).
 A Codex-thread pass does not establish support for Chat conversations.
-The proposed signed setup helper shows an argument-free executable path for host registration.
-Public document selection uses A1's chat-invoked local picker and returns the selected reference automatically.
-The proposed helper does not edit shared TOML. The owner tested a native STDIO form with separate arguments and an existing development worker.
-Argument-free setup, paths containing spaces or Unicode, and the complete shared-configuration delta remain unverified.
+The development plugin bundles the same verified worker and shared workflow in a local marketplace.
+Its [installation guide](plugin/README.md) describes the owner-operated native check without a pasted executable path.
+The host resolves the installed plugin directory through `${PLUGIN_ROOT}` and supplies the fixed chat arguments.
+Packaging writes only its output directory. It never registers a server or changes shared host configuration.
 Public setup asks for neither a document directory nor an OCR decision. Bundled OCR works automatically within its verified limits.
-Pasting the executable path registers the host; it is not per-document reference copying.
-E1 must establish the named Chat mode, E2 its deadlines, and A1 the native handoff before implementation acceptance.
-The [assistant design](../../design/assistant-clients.md) owns the pending setup interface and grant rules.
-No copy-and-paste installation command is provided until the corresponding artifact exists and its native launch is tested.
+The earlier manual registration remains valid development evidence, separately from plugin installation acceptance.
+The [assistant design](../../design/assistant-clients.md) retains native, signing and clean-machine gates.
+
+## Assemble the development plugin
+
+Use a verified format-2 runtime with the current delivery, selection and pageless evidence contracts:
+
+```sh
+python -m runtime.package --chatgpt-plugin --runtime /path/to/verified-runtime --output /path/to/new-marketplace
+```
+
+The output contains `.agents/plugins/marketplace.json` and `plugins/openreading-local-documents`.
+The plugin contains `.codex-plugin/plugin.json`, `.mcp.json`, the shared skill and the unchanged `server` runtime.
+Its package record binds the manifest, launch configuration, workflow and README to the worker and core commit.
+The compatibility manifest follows [OpenAI's supported plugin packaging layout](https://developers.openai.com/plugins/build/plugins).
+It is a local development marketplace, not a public directory submission or an MCPB archive.
+An existing output directory or incompatible runtime is refused before copying.
+
+Before native testing, disable the earlier manual test connection so the result identifies the installed plugin.
+OpenAI clients can share plugin configuration. Record the affected applications rather than assuming application isolation.
+Plugin removal does not delete OpenReading's retained data or exports.
 
 ## Required proof
 

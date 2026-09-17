@@ -207,3 +207,12 @@ The setting applies to the dedicated process lifetime and cannot be overridden b
 Earlier development builds could initialize ONNX Runtime's device identifier and queue outside the artifact store.
 The startup opt-out prevents that initialization in the pinned runtime; it does not erase existing shared Microsoft data.
 The [Docling build checks](p0/README.md) distinguish persistence suppression from unverified installed-host network behavior.
+
+## ChatGPT development plugin packaging
+
+`python -m runtime.package --chatgpt-plugin --runtime VERIFIED_RUNTIME --output NEW_MARKETPLACE` assembles a local plugin marketplace.
+The [client guide](../clients/chatgpt/README.md) owns its installation walkthrough and acceptance limits.
+The assembler applies the same runtime contract guards as the Desktop chat candidate before writing output.
+It copies the unchanged runtime, shared workflow and relative MCP launch configuration, then verifies the copied runtime inventory.
+Package metadata binds wrapper files separately from the engine inventory. No host configuration is changed during assembly.
+The plugin uses the existing `chatgpt` data namespace; switching wrappers does not migrate or erase retained documents.

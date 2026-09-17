@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased ChatGPT development plugin
+
+- Assemble a local plugin marketplace around the verified Docling worker and shared evidence workflow.
+- Resolve the executable relative to the installed plugin, preserving existing data without editing host settings.
+- Keep native plugin installation, ordinary Chat, signing and clean-machine acceptance pending.
+
 ## Unreleased adapter-driven formats
 
 - Use the configured core adapter's extensions for chat selection and recursive snapshots.

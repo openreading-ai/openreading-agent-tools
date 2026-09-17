@@ -4,6 +4,9 @@ The output contains review candidates, not published releases. MCPB validation a
 use the separately pinned official CLI. No archive is signed or submitted automatically.
 The historical assembler refuses format-2 runtimes. An explicit Docling Desktop path
 assembles a development candidate for local installation checks, never a signed release.
+The ChatGPT plugin path copies that same verified runtime into a relocatable local marketplace.
+Its host expands PLUGIN_ROOT after installation; packaging never changes host configuration.
+The chatgpt storage namespace remains unchanged, including existing intake and exports.
 WORKFLOW.md is a review copy; actual model instructions come from the pinned core server.
 The selected-documents variant removes the directory setting and adds a co-located GUI app.
 Its wrapper starts the verified worker without user-controlled shell interpolation.
@@ -92,16 +95,10 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
     return paths
 
 
-def package_docling_desktop(
-    runtime: Path, output: Path, *, selection: bool = False, chat: bool = False
-) -> Path:
-    if selection and chat:
-        raise ValueError("Choose one selection candidate mode.")
+def _docling_runtime(runtime: Path, *, selection: bool = False, chat: bool = False) -> dict:
     metadata = verify_release(runtime)
     if metadata["format_version"] != "2":
-        raise ValueError("The Desktop development candidate requires a Docling runtime.")
-    if output.exists():
-        raise ValueError("Choose a new package output directory.")
+        raise ValueError("The development candidate requires a Docling runtime.")
     if "_internal/openreading/artifacts/document.py" not in metadata["files"]:
         raise ValueError("Rebuild with full normalized document access before using this manifest.")
     delivery_schema = "_internal/openreading/schemas/document-tool.v0.4.json"
@@ -174,6 +171,69 @@ def package_docling_desktop(
         "_internal/openreading/mcp_server/selection.py",
     }.issubset(metadata["files"]):
         raise ValueError("Rebuild with the chat chooser and core selection contract.")
+    return metadata
+
+
+def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
+    metadata = _docling_runtime(runtime, chat=True)
+    if output.exists():
+        raise ValueError("Choose a new package output directory.")
+    target = output / "plugins/openreading-local-documents"
+    shutil.copytree(REPOSITORY / "clients/chatgpt/plugin", target)
+    shutil.copytree(runtime, target / "server", symlinks=True)
+    shutil.copytree(REPOSITORY / "skills", target / "skills")
+    verify_release(target / "server")
+    # Bind package-owned inputs separately; the unchanged runtime retains its own inventory.
+    files = [".codex-plugin/plugin.json", ".mcp.json", "README.md"]
+    files.extend(
+        path.relative_to(target).as_posix() for path in (target / "skills").rglob("SKILL.md")
+    )
+    (target / "package-info.json").write_text(
+        json.dumps(
+            {
+                "distribution": "development-only",
+                "core_commit": metadata["core_commit"],
+                "worker_sha256": metadata["worker_sha256"],
+                "package_files": {name: sha256(target / name) for name in sorted(files)},
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    marketplace = output / ".agents/plugins/marketplace.json"
+    marketplace.parent.mkdir(parents=True)
+    marketplace.write_text(
+        json.dumps(
+            {
+                "name": "openreading-chatgpt-development",
+                "interface": {"displayName": "OpenReading development preview"},
+                "plugins": [
+                    {
+                        "name": "openreading-local-documents",
+                        "source": {
+                            "source": "local",
+                            "path": "./plugins/openreading-local-documents",
+                        },
+                        "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                        "category": "Productivity",
+                    }
+                ],
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return target
+
+
+def package_docling_desktop(
+    runtime: Path, output: Path, *, selection: bool = False, chat: bool = False
+) -> Path:
+    if selection and chat:
+        raise ValueError("Choose one selection candidate mode.")
+    metadata = _docling_runtime(runtime, selection=selection, chat=chat)
+    if output.exists():
+        raise ValueError("Choose a new package output directory.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
     shutil.copytree(runtime, output / "server", symlinks=True)
     shutil.copy2(REPOSITORY / "skills/read-local-document/SKILL.md", output / "WORKFLOW.md")
@@ -284,10 +344,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runtime", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument(
+    targets = parser.add_mutually_exclusive_group()
+    targets.add_argument(
         "--docling-desktop",
         action="store_true",
         help="assemble only a development Docling Desktop candidate for local checks",
+    )
+    targets.add_argument(
+        "--chatgpt-plugin",
+        action="store_true",
+        help="assemble a development ChatGPT local plugin marketplace without host registration",
     )
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument(
@@ -303,7 +369,9 @@ def main() -> int:
     args = parser.parse_args()
     if (args.selected_documents or args.chat_documents) and not args.docling_desktop:
         parser.error("Selection candidates require --docling-desktop")
-    if args.docling_desktop:
+    if args.chatgpt_plugin:
+        paths = {"chatgpt": package_chatgpt_plugin(args.runtime.resolve(), args.output.resolve())}
+    elif args.docling_desktop:
         paths = {
             "claude-desktop": package_docling_desktop(
                 args.runtime.resolve(),
