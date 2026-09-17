@@ -6,6 +6,8 @@ Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full impl
 The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
 See the [client matrix](../README.md) for the limits of existing evidence.
 Existing setup commands and test results below do not establish revision 2 compatibility.
+The [client matrix](../README.md#owner-operated-candidate-checks-september-16-2026) records later owner-operated Docling checks through separate session-specific registrations.
+Those checks do not validate this historical marketplace package or its installation commands.
 
 The assembled marketplace installs a frozen worker and the shared evidence retrieval skill.
 Build the packages from the [runtime guide](../../runtime/README.md), then use absolute paths below.

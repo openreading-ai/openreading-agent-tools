@@ -18,6 +18,7 @@ ChatGPT desktop Chat conversations remain a conditional primary target pending e
 Work conversations require independent proof of local execution; a Codex local thread is a separate developer target.
 Release only the modes that pass, without presenting a Claude-only release as completion of the full target.
 Claude Code and Codex remain developer targets and potential measurement surfaces.
+The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records owner-operated candidate workflows and separates them from clean-machine distribution acceptance.
 Each supported entry names the application, version, execution mode, platform, and connection method.
 A shared model provider does not make two applications equivalent.
 For example, a successful OpenAI API trial proves nothing about a ChatGPT desktop installation.

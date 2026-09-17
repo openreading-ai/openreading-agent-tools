@@ -6,6 +6,8 @@ Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full impl
 The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
 See the [client matrix](../README.md) for the limits of existing evidence.
 Existing setup commands and test results below do not establish revision 2 compatibility.
+The [client matrix](../README.md#owner-operated-candidate-checks-september-16-2026) records later owner-operated Docling checks through separate session-specific registrations.
+Those checks do not validate this historical marketplace package or its installation commands.
 
 The package uses the portable Agent Plugins manifest and the same native worker as the Claude packages.
 Build the packages through the [runtime guide](../../runtime/README.md).

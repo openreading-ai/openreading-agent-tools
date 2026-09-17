@@ -16,8 +16,8 @@ Checked on 2026-09-11. These are connection candidates, not a supported-client r
 | ChatGPT desktop Chat conversation | Local route must be established by E1. | No mode-specific local invocation evidence. |
 | ChatGPT desktop Work conversation | Conditional on independently established local execution. | No mode-specific local invocation evidence. |
 | Codex local thread in ChatGPT desktop | Candidate STDIO registration on a Codex host. | Native UI, launch, and invocation pending. |
-| Claude Code | Local STDIO registration; the existing prototype also has a plugin wrapper. | CLI syntax checked; native Docling invocation pending. |
-| Codex CLI | Local STDIO registration; the existing prototype also has a plugin wrapper. | CLI syntax checked; native Docling invocation pending. |
+| Claude Code | Local STDIO registration; the existing prototype also has a plugin wrapper. | Owner reports successful 2.1.272 candidate imports, citations and local exports. Clean-machine distribution and lifecycle acceptance remain pending. |
+| Codex CLI | Local STDIO registration; the existing prototype also has a plugin wrapper. | Owner reports successful candidate imports, citations and local exports. Preparation used 0.154.0; session version and distribution acceptance remain unverified. |
 | ChatGPT web or mobile | Outside this local proof. | No compatibility claim. |
 
 [Anthropic's local MCP guide](https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop) describes desktop extensions and their setup.
@@ -39,6 +39,33 @@ A later inventory on the same date observed Claude Desktop 1.52386.3; these are 
 App presence does not establish the required settings, permissions, launch, or tool use.
 The computer-use tool refused inspection of ChatGPT desktop, so its UI check remains pending.
 No host configuration was changed, package installed, or model trial executed during this investigation.
+
+## Owner-operated candidate checks, September 16, 2026
+
+Owner-supplied reports cover local STDIO sessions in Claude Code 2.1.272 and Codex CLI on the development Mac.
+The Codex executable reported 0.154.0 during preparation; the model session did not establish its version.
+Both used the candidate built from core `3ff02d4` and Agent Tools `78bda83`.
+The worker SHA-256 is `1d29da80156da3859005913d186c38d47e2bcf0d4bd338bb62f1b002b9df19b5`.
+These tests used session-specific registration of the common runtime, not the historical marketplace packages described below.
+
+Both hosts reported six synthetic imports, complete automatic results, exact citations, distinct same-name documents and provider-reported table cells.
+They also read a forced small export through existing local tools and verified its original bytes and hash.
+Each host then completed a fresh 251-page import and read its 21,593,816-byte automatic export without attachment or fragment reconstruction.
+Three physical-page passages matched exact MCP reads in each host, with their OCR labels preserved.
+Codex reported increasing page-assembly counts and waited for terminal success after every page was assembled.
+
+Post-run checks verified fourteen terminal job records and their retained file hashes.
+Both large exports and both small exports equal their complete retained response, evidence mappings, origins and warnings.
+The private record `2026-09-16-native-acceptance` separates summarized owner reports from those independent disk checks.
+Original host transcripts, human-visible approvals and exact cancel-to-response latency were not captured.
+One successful chooser cancellation report does not explicitly identify its host, so neither host receives a separate cancellation pass.
+Codex also reported printing one complete synthetic result against the test instruction; this is a recorded protocol deviation.
+
+The earlier Desktop folder run imported seventeen files across two receipt pages.
+Its stored skip counts omit three expected categories; the matching source and installed-bytecode snapshots report all four categories.
+That native discrepancy remains unresolved and does not receive an acceptance pass.
+These observations establish the reported workflows, not clean-machine installation, signed distribution, general parsing accuracy or token savings.
+The historical setup commands below retain their original scope.
 
 ## Per-client guides
 

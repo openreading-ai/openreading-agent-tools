@@ -329,7 +329,8 @@ Acceptance: AC-1, AC-2, AC-11 through AC-14, AC-19, AC-20, AC-24, conditional AC
 - [ ] Use a snapshotted clean Apple Silicon VM with image identity and no user-installed interpreter or developer-tool dependency.
 - [ ] Verify Claude Desktop independently, then only the ChatGPT modes E1 established; record executable resolution, local execution, and checked citations.
 - [ ] Mark AC-26 unmet if no qualifying Chat conversation exists; never claim full target completion from a Claude-only release.
-- [ ] Verify Claude Code and Codex separately before labeling their Docling distributions supported.
+- [x] Record separate owner-operated Claude Code and Codex CLI candidate workflows for synthetic imports, citations and local exports. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records runtime identity, post-run checks and limitations.
+- [ ] Verify the named versions, human-visible approvals, cancellation and clean-machine lifecycle before labeling their Docling distributions supported.
 - [ ] Test setup cancellation, root changes, permissions, process cleanup, update, removal, retained-data cleanup, spaces, and Unicode.
 - [ ] Record actual host logs and recovery steps; do not infer which process needs OS permissions without observing it.
 - [ ] Review evidence and any public claims before the ten-participant, separately reported pilot cohorts or distribution.
@@ -349,7 +350,8 @@ No release or merge occurs automatically when tests pass.
 - [x] Verify grant-scoped job listing after reconnecting without a saved ID, then cancel the discovered job in the frozen candidate.
 - [x] Refresh both pins to `4f4351a`, the nine-tool catalogs, package, and frozen functional checks after the owner completes testing.
 - [x] Measure server memory through all continuations at `e0061a6`, then focused retrieval at `4f4351a`. Retrieval code is unchanged between those pins. Streaming passage checks still materialize normalized content; this does not establish constant memory at larger sizes.
-- [ ] Check named-host stage reporting and cancellation. Do not assume a native progress bar or infer large-document accuracy from completion.
+- [x] Record owner-observed Codex CLI page-assembly counts and separate terminal success during a fresh 251-page import. The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) bounds this report.
+- [ ] Check named-host active import cancellation and reconnect behavior. Do not assume a native progress bar or infer large-document accuracy from completion.
 
 These tasks change processing lifecycle, not parser semantics. No neighboring-block inference is added.
 
