@@ -106,8 +106,22 @@ The reported sampled passages, pageless pointer and Unicode text agree with reta
 The private record `2026-09-17-chatgpt-work-acceptance` separates summarized owner reports, supplied screenshots and independent file comparisons.
 No permission prompts were reported by the model; human-visible prompt absence was not independently observed.
 Computer Use failed before UI inspection, so no automated host transcript or process-ancestry capture establishes the reported mode.
-These observations support the owner-operated Work workflow; ordinary Chat mode and packaged plugin installation remain untested.
+These observations support the owner-operated Work workflow through manual registration; they do not establish ordinary Chat mode or packaged plugin installation.
 Cancellation, reconnect, update, removal, clean-machine installation, accuracy and token savings require their own evidence.
+
+## ChatGPT development plugin checks, September 17, 2026
+
+ChatGPT 26.911.61220's bundled CLI resolved the plugin working directory into its isolated installation cache, leaving the executable path relative.
+A separate network-denied MCP process used that configuration and passed catalog, import, exact-read and export checks.
+This check did not invoke the native GUI or chooser; it differs from the earlier Work test on 26.903.61454.
+The private record `2026-09-17-chatgpt-plugin-launch-fix` retains that distinction and the original placeholder launch failure.
+
+After reinstall, the owner reported successful automatic delivery and an exact read of `FORMAT CHECK` from `sample.md`.
+The reported citation uses `d0000-b0000-s0000`, pointer `/document/pages/0/blocks/0/text` and character span `[0,12)`.
+The owner reported no errors and preserved `page_attribution_unavailable`, without claiming a physical page.
+The private record `2026-09-17-chatgpt-plugin-review` retains this owner report separately from the earlier independent checks.
+No accompanying native trace establishes the active registration, application version or GUI startup for this later report.
+Full plugin installation acceptance, ordinary Chat, signing and clean-machine checks remain pending.
 
 ## Per-client guides
 

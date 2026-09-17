@@ -2,8 +2,9 @@
 
 This plugin bundles local document tools and the shared evidence workflow for ChatGPT desktop Work.
 It uses the verified macOS Apple Silicon runtime without requiring a pasted executable path or a separate Python installation.
-The host resolves the explicit working directory to the installed plugin folder, then launches `./server/openreading-worker`.
-This avoids unsupported `${PLUGIN_ROOT}` expansion in legacy plugin MCP commands.
+ChatGPT 26.911.61220's bundled CLI resolved the working directory to the installed plugin folder, leaving `./server/openreading-worker` relative.
+A separate network-denied MCP process passed with that configuration; native GUI startup after reinstall has not been independently captured.
+The configuration avoids `${PLUGIN_ROOT}`, which remained literal in the observed legacy plugin MCP loader.
 The candidate is unsigned development output. Native plugin installation, ordinary Chat, signing and clean-machine acceptance remain pending.
 
 ## Local installation check
