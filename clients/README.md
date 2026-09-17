@@ -12,7 +12,7 @@ Checked on 2026-09-11. These are connection candidates, not a supported-client r
 
 | Surface | Documented local route | Current Docling evidence |
 | --- | --- | --- |
-| Claude Desktop | Local MCP desktop extension. | Owner-reported folder, delivery, reconnect and active-cancellation checks passed on the development candidate. Same-version removal and reinstall preserved retained data. Version upgrades, clean-machine installation and complete host/prompt capture remain pending. |
+| Claude Desktop | Local MCP desktop extension. | Owner-reported folder, delivery, reconnect and active-cancellation checks passed on the development candidate (folder skips passed the aggregate retest; the original discrepancy remains unexplained). Same-version removal and reinstall preserved retained data. Version upgrades, clean-machine installation and complete host/prompt capture remain pending. |
 | ChatGPT desktop Chat conversation | Local route must be established by E1. | No mode-specific local invocation evidence. |
 | ChatGPT desktop Work conversation | Conditional on independently established local execution. | No mode-specific local invocation evidence. |
 | Codex local thread in ChatGPT desktop | Candidate STDIO registration on a Codex host. | Native UI, launch, and invocation pending. |
@@ -49,9 +49,9 @@ The worker SHA-256 is `1d29da80156da3859005913d186c38d47e2bcf0d4bd338bb62f1b002b
 These tests used session-specific registration of the common runtime, not the historical marketplace packages described below.
 
 Both hosts reported six synthetic imports, complete automatic results, exact citations, distinct same-name documents and provider-reported table cells.
-They also read a forced small export through existing local tools and verified its original bytes and hash.
-Each host then completed a fresh 251-page import and read its 21,593,816-byte automatic export without attachment or fragment reconstruction.
-Three physical-page passages matched exact MCP reads in each host, with their OCR labels preserved.
+Both hosts reported reading a forced small export through existing local tools and verifying its original bytes and hash.
+Each host reported completing a fresh 251-page import and reading its 21,593,816-byte automatic export without attachment or fragment reconstruction.
+Each host reported matching three physical-page passages against exact MCP reads, with their OCR labels preserved.
 Codex reported increasing page-assembly counts and waited for terminal success after every page was assembled.
 
 Post-run checks verified fourteen terminal job records and their retained file hashes.
@@ -59,24 +59,29 @@ Both large exports and both small exports equal their complete retained response
 The private record `2026-09-16-native-acceptance` separates summarized owner reports from those independent disk checks.
 Original host transcripts, human-visible approvals and exact cancel-to-response latency were not captured.
 One successful chooser cancellation report does not explicitly identify its host, so neither host receives a separate cancellation pass.
-Codex also reported printing one complete synthetic result against the test instruction; this is a recorded protocol deviation.
+Codex reported printing one complete synthetic result against the test instruction and reading a required skill outside the fixture scope.
+Claude Code reported 21 MCP calls, but no transcript was acquired to reconcile that count; it is not an accepted measurement.
 
 The earlier Desktop folder run imported seventeen files across two receipt pages but omitted three expected skip categories.
 A later selection-only native retest returned seventeen files, 99,808 bytes and both receipt pages with all four expected skip categories.
 Copied receipts corroborate hidden:1, package:1, unsupported:1 and symlink:1. These are entry counts, not per-entry identity proofs.
 The retest passes its aggregate selection check. The earlier discrepancy remains unexplained; no production fix is claimed.
+Separate diagnostic replays used matching source and installed archive bytecode; neither ran the frozen bootloader or native chooser.
 
-The owner also reports discovering one active import after restarting Claude Desktop and opening a new chat, then cancelling that job.
+Preparation removed only the completed document artifact to force a fresh import, preserving its manifest hash, original source, exports, jobs and selection copies.
+The owner reports discovering that active import after restarting Claude Desktop and opening a new chat, then cancelling that job.
 The retained status is cancelled at 14 of 251 pages, with no receipt.
 Post-terminal inspection found the recorded job process gone, no OpenReading parser or Tesseract processes, and empty artifact, staging and worker directories.
 The private record `2026-09-16-native-reconnect-cancel` preserves this result without claiming exact cancellation latency or teardown order.
-An earlier reconnect found a completed job; a separate attempt lacked the connector and could not test discovery.
+Earlier owner messages reported a completed job and a separate session without the connector. These attempts lack retained evidence records and establish no acceptance result.
 Owner-requested cache resets removed the earlier artifact stores after their metadata was preserved; prior hash checks remain historical observations.
 
 The owner removed and reinstalled the same development extension, then retrieved the existing Markdown artifact without selecting or importing again.
-Independent removal checks found the extension directory and settings absent, with no associated extension processes observed.
-All twenty-two retained artifact, job and selection files remained unchanged, along with the 1,190-byte JSON export.
-After reinstall, all 4,655 installed files matched their previous hashes, and those retained files and export remained unchanged.
+Independent removal checks found the extension directory and settings absent, with no associated extension processes observed after removal.
+This was a point-in-time inspection; no process stop event was captured.
+The Desktop client's current post-reset `v2/artifacts` and `v2/selection` roots retained eighteen and four files respectively, all unchanged.
+The 1,190-byte JSON export also remained unchanged; these comparisons exclude historical stores deleted during the earlier cache reset.
+After reinstall, all 4,655 installed files matched the before-uninstall inventory, and those retained files and export remained unchanged.
 The owner recovered the existing job, exact pointer-based citation and content hash through the native tools.
 The private record `2026-09-16-lifecycle-preparation` separates owner reports from before-removal, after-removal and after-reinstall file checks.
 Claude Desktop 2.110.0 was observed during lifecycle preparation; this does not establish versions for earlier reported sessions.
