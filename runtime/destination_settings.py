@@ -3,6 +3,8 @@
 Settings live in CLIENT/destination.json with mode 0600 and a fresh revision on each save.
 An absent file selects bundled Docling. Invalid explicit settings never fall back to local.
 The file contains only a Keychain reference. Old references remain available to pending jobs.
+Stopping token use or switching to local mode drops the reference, not the Keychain item.
+Remove unused items in Keychain Access after their pending jobs finish.
 Changing the URL never reuses the old credential unless you explicitly supply it again.
 No setting grants document access, sends a document, or starts a server.
 """

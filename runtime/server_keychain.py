@@ -3,6 +3,8 @@
 Each setting revision uses an opaque account reference under OpenReading's service name.
 Tokens never enter JSON settings, job snapshots, shell commands, or model tool arguments.
 Existing references remain immutable so pending jobs can use their approved credential.
+After pending jobs finish, Keychain Access can remove entries for ai.openreading.agent-tools.core-server.
+Settings stops using a saved token without deleting the immutable item.
 Missing items and refused Keychain access fail closed instead of sending anonymously.
 The Security framework may ask the owner to unlock or permit credential access.
 Native credential prompts and signed-bundle access remain separate acceptance checks.

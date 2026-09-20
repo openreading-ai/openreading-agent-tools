@@ -187,6 +187,7 @@ def _server_destination(metadata: dict) -> None:
         "_internal/runtime/destination_ui.py",
         "_internal/openreading/artifacts/retention.py",
         "_internal/openreading/schemas/local-document.v0.5.json",
+        "_internal/openreading/schemas/agent-document-tool.v0.5.json",
         "_internal/openreading/schemas/import-job.v0.4.json",
     }.issubset(metadata["files"]):
         raise ValueError(
@@ -342,7 +343,7 @@ def package_docling_desktop(
     if chat:
         manifest = json.loads((output / "manifest.json").read_text())
         manifest["name"] = "openreading-chat-selection-preview"
-        manifest["version"] = "0.2.0-alpha.2+server.20260920"
+        manifest["version"] = "0.2.0-alpha.3+server.20260920"
         manifest["display_name"] = "OpenReading Chat Documents (development)"
         manifest["long_description"] = (
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "

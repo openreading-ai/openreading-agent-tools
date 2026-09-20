@@ -91,6 +91,15 @@ class ServerResult:
     request_sha256: str
 
 
+def notify_progress(callback, stage):
+    """Keep an advisory observer failure from changing upload or retention state."""
+    if callback is not None:
+        try:
+            callback(stage)
+        except Exception:
+            pass
+
+
 def _decode(payload: bytes, *, max_depth: int = 64) -> dict:
     text = payload.decode("utf-8")
     depth, quoted, escaped = 0, False, False
@@ -151,8 +160,7 @@ async def parse_document(
         return cancelled is not None and cancelled.is_set()
 
     def stage(value):
-        if progress is not None:
-            progress(value)
+        notify_progress(progress, value)
 
     if cancellation():
         raise DestinationError("Cancelled before submission.")

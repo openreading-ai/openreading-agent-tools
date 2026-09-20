@@ -35,6 +35,7 @@ class DesktopPackageTests(unittest.TestCase):
             "_internal/runtime/destination_ui.py",
             "_internal/openreading/artifacts/retention.py",
             "_internal/openreading/schemas/local-document.v0.5.json",
+            "_internal/openreading/schemas/agent-document-tool.v0.5.json",
             "_internal/openreading/schemas/import-job.v0.4.json",
             "_internal/runtime/native_selection.py",
             "_internal/runtime/snapshot_selection.py",
@@ -69,7 +70,14 @@ class DesktopPackageTests(unittest.TestCase):
             )
         )
         (schema.parent / "selection-tool.v0.2.json").write_text(
-            json.dumps({"$defs": {"SelectionPage": {}, "Request": {"properties": {"cursor": {}}}}})
+            json.dumps(
+                {
+                    "$defs": {
+                        "SelectionPage": {},
+                        "Request": {"properties": {"cursor": {}}},
+                    }
+                }
+            )
         )
         release.metadata.update(
             format_version="2",
@@ -200,7 +208,9 @@ class DesktopPackageTests(unittest.TestCase):
             self.assertEqual(set(paths), {"claude-desktop"})
             self.assertTrue((Path(paths["claude-desktop"]) / "manifest.json").is_file())
 
-    def test_selection_package_requires_picker_runtime_and_has_no_directory_setting(self):
+    def test_selection_package_requires_picker_runtime_and_has_no_directory_setting(
+        self,
+    ):
         source = self.fixture()
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "selection"
@@ -278,7 +288,8 @@ console.log(JSON.stringify(results));
     def test_selection_cli_requires_explicit_docling_package_mode(self):
         with (
             patch(
-                "sys.argv", ["package", "--runtime", "r", "--output", "o", "--selected-documents"]
+                "sys.argv",
+                ["package", "--runtime", "r", "--output", "o", "--selected-documents"],
             ),
             contextlib.redirect_stderr(io.StringIO()),
             self.assertRaises(SystemExit) as error,
@@ -325,7 +336,8 @@ console.log(JSON.stringify(results));
             self.assertIn("configured adapter", manifest["long_description"])
             self.assertNotIn("choose a local PDF", manifest["long_description"])
             self.assertIn(
-                "openreading_select_document", [tool["name"] for tool in manifest["tools"]]
+                "openreading_select_document",
+                [tool["name"] for tool in manifest["tools"]],
             )
             self.assertEqual(verify_release(target / "server"), source.metadata)
             self.assertFalse((target / "OpenReading Choose Document.app").exists())

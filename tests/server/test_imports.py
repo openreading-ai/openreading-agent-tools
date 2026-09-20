@@ -205,7 +205,8 @@ class ServerImportTests(unittest.TestCase):
 
         async def retrieve():
             server = create_server(
-                self.service, execution=ImportExecution(("trusted-child",), {"test": True})
+                self.service,
+                execution=ImportExecution(("trusted-child",), {"test": True}),
             )
             async with create_connected_server_and_client_session(server) as client:
                 tools = (await client.list_tools()).tools
@@ -218,10 +219,12 @@ class ServerImportTests(unittest.TestCase):
                 )
                 self.assertFalse(document.isError)
                 self.assertEqual(
-                    json.loads(document.content[0].text)["content"]["response"], response
+                    json.loads(document.content[0].text)["content"]["response"],
+                    response,
                 )
                 found = await client.call_tool(
-                    "openreading_search", {"artifact_id": receipt.artifact_id, "query": "ALPHA"}
+                    "openreading_search",
+                    {"artifact_id": receipt.artifact_id, "query": "ALPHA"},
                 )
                 evidence = json.loads(found.content[0].text)["hits"][0]["evidence_id"]
                 read = await client.call_tool(
@@ -256,4 +259,108 @@ class ServerImportTests(unittest.TestCase):
             lambda request: httpx.Response(200, json=nested)
         )
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+        self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+
+    def test_synchronous_mcp_server_import_with_progress_preserves_the_batch(self):
+        import asyncio
+        import json
+
+        from mcp.shared.memory import create_connected_server_and_client_session
+        from openreading.artifacts.jobs import ImportExecution
+        from openreading.mcp_server.tools import create_server
+
+        from runtime.server_imports import ServerArtifactService
+
+        response = {
+            "schema_version": "0.3",
+            "status": {"state": "succeeded"},
+            "backend": {"id": "synthetic", "type": "oss_library"},
+            "document": {
+                "page_count": 1,
+                "text": "SERVER ALPHA",
+                "pages": [{"page_number": 1, "text": "SERVER ALPHA"}],
+            },
+        }
+
+        async def handle(request):
+            self.requests.append(request)
+            await asyncio.sleep(0.05)
+            return httpx.Response(200, json=response)
+
+        self.service.transport = httpx.MockTransport(handle)
+        seen = []
+
+        async def observed(progress, total, message):
+            seen.append(message)
+
+        async def run():
+            server = create_server(self.service, execution=ImportExecution(("trusted",), {}))
+            async with create_connected_server_and_client_session(server) as client:
+                for reference in self.references:
+                    result = await client.call_tool(
+                        "openreading_import",
+                        {"path": reference},
+                        progress_callback=observed,
+                    )
+                    self.assertFalse(result.isError, result)
+                    self.assertEqual(
+                        json.loads(result.content[0].text)["extraction_state"],
+                        "succeeded",
+                    )
+
+        with patch.object(
+            self.service, "_retain", ServerArtifactService._retain.__get__(self.service)
+        ):
+            asyncio.run(run())
+        self.assertEqual(len(self.requests), 2)
+        self.assertIn("uploading", seen)
+
+    def test_nonobject_cached_response_fails_before_retention_without_upload(self):
+        import json
+
+        from runtime.server_selection import approval_name
+
+        self.service.import_document(self.references[0])
+        path = self.service.transfers / (approval_name(self.references[0]) + ".response")
+        value = json.loads(path.read_bytes())
+        self.retainer.reset_mock()
+        for response in (None, [], "invalid", 1):
+            value["response"] = response
+            path.write_text(json.dumps(value))
+            with self.assertRaises(ArtifactError) as caught:
+                self.service.import_document(self.references[0])
+            self.assertEqual(caught.exception.code, "artifact_corrupt")
+        self.retainer.assert_not_called()
+        self.assertEqual(len(self.requests), 1)
+
+    def test_stopped_selection_explains_recovery_without_repeating_upload(self):
+        def fail(request):
+            self.requests.append(request)
+            raise httpx.ReadTimeout("private failure")
+
+        self.service.transport = httpx.MockTransport(fail)
+        with self.assertRaises(ArtifactError):
+            self.service.import_document(self.references[0])
+        for reference in self.references:
+            with self.assertRaises(ArtifactError) as caught:
+                self.service.import_document(reference)
+            message = caught.exception.envelope().error.message.lower()
+            self.assertIn("selection", message)
+            self.assertIn("select", message)
+            self.assertIn("confirm", message)
+        self.assertEqual(len(self.requests), 1)
+
+    def test_unicode_cache_avoids_ascii_expansion_and_reads_legacy_cache(self):
+        import json
+
+        from runtime.server_selection import approval_name
+
+        self.service.transport = httpx.MockTransport(
+            lambda request: httpx.Response(200, json={"text": "界" * 1000})
+        )
+        self.service.import_document(self.references[0])
+        path = self.service.transfers / (approval_name(self.references[0]) + ".response")
+        self.assertLess(len(path.read_bytes()), 4000)
+        value = json.loads(path.read_bytes())
+        path.write_text(json.dumps(value, ensure_ascii=True))
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)

@@ -13,9 +13,13 @@ from runtime.selection import SelectionError
 class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.assertIsNotNone(
-            importlib.util.find_spec("runtime.server_selection"), "Missing server selection"
+            importlib.util.find_spec("runtime.server_selection"),
+            "Missing server selection",
         )
-        from runtime.server_selection import ServerSelectionProvider, ServerSelectionStore
+        from runtime.server_selection import (
+            ServerSelectionProvider,
+            ServerSelectionStore,
+        )
 
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -58,7 +62,9 @@ class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(list(self.store.grant.iterdir()), [])
         self.assertEqual(list(self.store.approvals.iterdir()), [])
 
-    async def test_settings_change_during_confirmation_invalidates_new_and_old_selection(self):
+    async def test_settings_change_during_confirmation_invalidates_new_and_old_selection(
+        self,
+    ):
         from runtime.server_selection import read_approval
 
         with (
@@ -129,7 +135,7 @@ class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(args, ["/usr/bin/osascript", "-l", "JavaScript", "-"])
                 script = process.call_args.kwargs["input"].decode()
                 self.assertIn("external providers", script)
-                self.assertIn("1 documents (5 bytes)", script)
+                self.assertIn("1 document (5 bytes)", script)
                 self.assertIn("NSAlertSecondButtonReturn", script)
 
     async def test_change_while_confirmation_open_and_oversized_input_roll_back(self):
@@ -179,7 +185,12 @@ class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
         from runtime.server_selection import confirm
 
         url = "http://localhost/__DETAILS__"
-        documents = [{"name": 'quote"__MESSAGE____DETAILS__.pdf', "bytes": 5}]
+        documents = [
+            {
+                "name": 'quote"__MESSAGE____DETAILS__\u2028fake.txt\u2029end\u202e.pdf',
+                "bytes": 5,
+            }
+        ]
         with patch(
             "runtime.server_selection.anyio.run_process",
             AsyncMock(return_value=SimpleNamespace(stdout=b"true", returncode=0)),
@@ -212,4 +223,17 @@ const $ = {
         self.assertEqual(result.returncode, 0, result.stderr)
         displayed = json.loads(result.stdout)
         self.assertIn(url, displayed["message"])
-        self.assertEqual(displayed["details"], 'quote"__MESSAGE____DETAILS__.pdf (5 bytes)')
+        self.assertEqual(
+            displayed["details"],
+            'quote"__MESSAGE____DETAILS__\\u2028fake.txt\\u2029end\\u202e.pdf (5 bytes)',
+        )
+
+
+class DisplayValueTests(unittest.TestCase):
+    def test_controls_and_line_separators_are_visible_without_rewriting_other_text(self):
+        from runtime.server_selection import display_value
+
+        self.assertEqual(
+            display_value("café\n\u2028\u2029\u202e\U000e0001"),
+            "café\\u000a\\u2028\\u2029\\u202e\\U000e0001",
+        )

@@ -12,7 +12,8 @@ from runtime.destination_settings import read_destination, save_destination
 class SettingsControllerTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(
-            importlib.util.find_spec("runtime.destination_ui"), "Missing native settings interface"
+            importlib.util.find_spec("runtime.destination_ui"),
+            "Missing native settings interface",
         )
         from test_destination_settings import Keychain
 
@@ -56,3 +57,11 @@ class SettingsControllerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.controller.current()
         self.assertEqual(self.controller.save("local", "", "", False).mode, "local")
+
+    def test_native_response_limit_can_be_lowered_and_rejects_invalid_values(self):
+        saved = self.controller.save("server", "http://localhost", "", False, response_mib="4")
+        self.assertEqual(saved.destination.response_bytes, 4 * 1024 * 1024)
+        for value in ("0", "-1", "invalid", "1.5"):
+            with self.assertRaises(ValueError):
+                self.controller.save("server", "http://localhost", "", False, response_mib=value)
+            self.assertEqual(self.controller.current(), saved)

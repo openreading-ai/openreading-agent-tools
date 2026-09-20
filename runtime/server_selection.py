@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import re
+import unicodedata
 import uuid
 from contextlib import asynccontextmanager
 
@@ -50,7 +51,7 @@ def approval_name(reference):
 
 def write_private(path, value):
     """Atomically persist a nonsecret record without following parent or final links."""
-    data = json.dumps(value, ensure_ascii=True, allow_nan=False).encode()
+    data = json.dumps(value, ensure_ascii=False, allow_nan=False).encode("utf-8")
     with directory(path.parent, create=True) as parent:
         os.fchmod(parent, 0o700)
         name = ".pending-" + uuid.uuid4().hex
@@ -112,10 +113,24 @@ def read_approval(store, reference, settings, *, require_current=True):
         raise SelectionError("Select and confirm this document again.") from None
 
 
+def display_value(value):
+    """Expose invisible controls and separators without letting data forge consent rows."""
+    return "".join(
+        (f"\\u{ord(character):04x}" if ord(character) <= 0xFFFF else f"\\U{ord(character):08x}")
+        if unicodedata.category(character).startswith("C")
+        or unicodedata.category(character) in {"Zl", "Zp"}
+        else character
+        for character in value
+    )
+
+
 async def confirm(url, documents):
     """Present a fixed native alert; document names enter as JSON data through stdin."""
-    details = "\n".join(f"{row['name']} ({row['bytes']:,} bytes)" for row in documents)
-    message = f"Send {len(documents)} documents ({sum(row['bytes'] for row in documents):,} bytes) to {url}?\nThe server may use external providers. Local cancellation cannot stop submitted server processing."
+    details = "\n".join(
+        f"{display_value(row['name'])} ({row['bytes']:,} bytes)" for row in documents
+    )
+    noun = "document" if len(documents) == 1 else "documents"
+    message = f"Send {len(documents)} {noun} ({sum(row['bytes'] for row in documents):,} bytes) to {display_value(url)}?\nThe server may use external providers. Local cancellation cannot stop submitted server processing."
     # Substitute once so marker-like text in URLs and filenames stays literal data.
     values = {"__MESSAGE__": json.dumps(message), "__DETAILS__": json.dumps(details)}
     script = """ObjC.import('AppKit');

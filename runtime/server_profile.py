@@ -6,6 +6,10 @@ Detached children reconstruct fixed roots, limits and retaining-runtime identity
 Serialized execution contains a client name and nonsecret destination snapshot, never code.
 Settings changes never reroute a running transfer. Unsubmitted stale approvals are refused.
 The external profile has no parser or overall server wait deadline. Transport bounds apply.
+No page count or aggregate storage ceiling is configured, and retained data has no eviction.
+For example, successive imports grow disk use until the user removes their retained data.
+A stalled server can keep a detached job waiting until explicit local cancellation.
+The response byte budget limits downloads, not peak memory during decoding and retention.
 """
 
 from __future__ import annotations

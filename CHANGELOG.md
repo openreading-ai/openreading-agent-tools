@@ -1,5 +1,8 @@
 # Changelog
 
+- Harden optional server progress, Unicode consent rows, cached responses and stopped-selection recovery.
+- Expose the response download budget and clarify retained-token and storage behavior.
+
 ## Optional server transport foundation
 
 - Include a client-bound Settings app in the Claude chat candidate as well as ChatGPT.

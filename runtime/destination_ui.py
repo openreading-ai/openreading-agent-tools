@@ -1,7 +1,8 @@
 """Let the native user save a destination or test metadata without sending documents.
 
 Blank credentials preserve an existing key only for the identical normalized URL.
-Clear credential explicitly selects anonymous access. Connection checks never save settings.
+Stopping token use selects anonymous access without deleting pending jobs' Keychain items.
+Connection checks never save settings. The native user can lower the response download budget.
 No model argument supplies settings. Saving does not grant a document or start a server.
 """
 
@@ -22,11 +23,18 @@ class Controller:
     def current(self):
         return read_destination(self.client, home=self.home)
 
-    def save(self, mode, url, token, clear):
+    def save(self, mode, url, token, clear, *, response_mib="128"):
+        if (
+            not str(response_mib).isascii()
+            or not str(response_mib).isdecimal()
+            or int(response_mib) < 1
+        ):
+            raise ValueError("Maximum downloaded response must be a positive whole number of MiB.")
         return save_destination(
             self.client,
             mode,
             base_url=url,
+            response_bytes=int(response_mib) * 1024 * 1024,
             token="" if clear else token or None,
             home=self.home,
             keychain=self.keychain,
@@ -67,8 +75,8 @@ class SettingsWindow:
             current = DestinationSettings()
             status = str(error)
         root.title("OpenReading Settings")
-        root.geometry("720x540")
-        root.minsize(680, 520)
+        root.geometry("720x700")
+        root.minsize(680, 680)
         frame = ttk.Frame(root, padding=24)
         frame.pack(fill="both", expand=True)
         ttk.Label(frame, text="Document processing", font=("Helvetica", 21, "bold")).pack(
@@ -77,6 +85,11 @@ class SettingsWindow:
         self.mode = tk.StringVar(value=current.mode)
         self.url = tk.StringVar(
             value=current.destination.base_url if current.destination else "http://127.0.0.1:8787"
+        )
+        self.response_mib = tk.StringVar(
+            value=str((current.destination.response_bytes + 1024 * 1024 - 1) // (1024 * 1024))
+            if current.destination
+            else "128"
         )
         self.token = tk.StringVar(value="")
         self.clear = tk.BooleanVar(value=False)
@@ -95,9 +108,23 @@ class SettingsWindow:
         ttk.Label(frame, text="Leave blank to keep the saved token for the same URL.").pack(
             anchor="w"
         )
-        ttk.Checkbutton(frame, text="Clear saved credential", variable=self.clear).pack(
+        ttk.Checkbutton(frame, text="Stop using saved token", variable=self.clear).pack(
             anchor="w", pady=(4, 12)
         )
+        ttk.Label(
+            frame,
+            text="Old tokens remain in Keychain for pending jobs. Remove them in Keychain Access after those jobs finish.",
+            wraplength=650,
+            justify="left",
+        ).pack(anchor="w")
+        ttk.Label(frame, text="Maximum downloaded response (MiB)").pack(anchor="w", pady=(12, 0))
+        ttk.Entry(frame, textvariable=self.response_mib).pack(fill="x", pady=(4, 4))
+        ttk.Label(
+            frame,
+            text="Responses are buffered in memory. Lower this limit to reduce memory use; it is not a memory cap.",
+            wraplength=650,
+            justify="left",
+        ).pack(anchor="w", pady=(0, 12))
         ttk.Label(
             frame,
             text="Server mode sends selected file bytes to this URL after your confirmation. The server may use external providers. Start and configure your server separately. Connection checks send no document.",
@@ -117,7 +144,11 @@ class SettingsWindow:
     def save(self):
         try:
             self.controller.save(
-                self.mode.get(), self.url.get(), self.token.get(), self.clear.get()
+                self.mode.get(),
+                self.url.get(),
+                self.token.get(),
+                self.clear.get(),
+                response_mib=self.response_mib.get(),
             )
             self.token.set("")
             self.clear.set(False)

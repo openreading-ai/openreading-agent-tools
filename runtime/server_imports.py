@@ -2,7 +2,8 @@
 
 A client-wide advisory lock serializes HTTP submissions across detached jobs and tools.
 A durable attempt marker precedes HTTP. An interrupted attempt never uploads again.
-Batch markers stop siblings after shared failures or process death during a request.
+Batch markers stop siblings after local cancellation, shared failures or process death during a request.
+Select and confirm the remaining files again to recover. Submitted server work may continue.
 Document-specific HTTP rejections release the batch for its remaining selected documents.
 Complete responses are atomically saved before retention, outside Core's staging sweep.
 An explicit later import can retry local retention from that saved result without another POST.
@@ -32,8 +33,24 @@ from runtime.server_transport import (
     DestinationError,
     ServerResult,
     _decode,
+    notify_progress,
     parse_document,
 )
+
+
+class SelectionStopped(ArtifactError):
+    """Explain refusal of a consumed selection without exposing transport diagnostics."""
+
+    def __init__(self):
+        super().__init__("access_denied")
+
+    def envelope(self):
+        value = super().envelope()
+        value.error.message = (
+            "This selection stopped after cancellation, a shared failure, or an interrupted attempt. "
+            "Select and confirm the remaining files again. Submitted server processing may continue."
+        )
+        return value
 
 
 class ServerArtifactService(ArtifactService):
@@ -102,12 +119,12 @@ class ServerArtifactService(ArtifactService):
                         "source_sha256",
                         "destination_sha256",
                         "request_sha256",
-                    }:
+                    } or not isinstance(value["response"], dict):
                         raise ArtifactError("artifact_corrupt")
                     result = ServerResult(**value)
                 else:
                     if os.path.lexists(attempt_path) or os.path.lexists(batch_path):
-                        raise ArtifactError("parse_failed")
+                        raise SelectionStopped()
                     # A process death from this point stops the batch, including queued siblings.
                     write_private(batch_path, {"reference": path})
                     token = None
@@ -155,8 +172,7 @@ class ServerArtifactService(ArtifactService):
                 ):
                     raise ArtifactError("artifact_corrupt")
                 check()
-                if progress is not None:
-                    progress("retaining")
+                notify_progress(progress, "retaining")
                 return self._retain(path, result, cancelled)
         except SelectionError:
             raise ArtifactError("access_denied") from None

@@ -18,7 +18,10 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(self.temporary.cleanup)
         self.source = Path(self.temporary.name) / "report.md"
         self.source.write_bytes("synthetic 界".encode())
-        self.response = {"status": {"state": "succeeded"}, "document": {"text": "synthetic"}}
+        self.response = {
+            "status": {"state": "succeeded"},
+            "document": {"text": "synthetic"},
+        }
         self.destination = ServerDestination("http://127.0.0.1:8787/prefix", "revision-1")
 
     async def test_multipart_preserves_bytes_prefix_and_null_backend(self):
@@ -60,7 +63,9 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
 
                 with self.assertRaises(DestinationError) as caught:
                     await parse_document(
-                        self.destination, self.source, transport=httpx.MockTransport(handle)
+                        self.destination,
+                        self.source,
+                        transport=httpx.MockTransport(handle),
                     )
                 self.assertEqual(caught.exception.http_status, status)
                 self.assertNotIn("private", str(caught.exception))
@@ -195,7 +200,10 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_invalid_credentials_never_start_a_request(self):
         for token in ("", "line\nsecret", "has space", "界"):
-            with self.subTest(token=token), self.assertRaisesRegex(DestinationError, "credential"):
+            with (
+                self.subTest(token=token),
+                self.assertRaisesRegex(DestinationError, "credential"),
+            ):
                 await parse_document(self.destination, self.source, token=token)
 
     async def test_write_timeout_does_not_retry(self):
@@ -217,7 +225,11 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             await parse_document(self.destination, self.source, transport=httpx.MockTransport(fail))
 
     def test_settings_validate_limits_and_port(self):
-        for kwargs in ({"response_bytes": 0}, {"response_bytes": True}, {"revision": ""}):
+        for kwargs in (
+            {"response_bytes": 0},
+            {"response_bytes": True},
+            {"revision": ""},
+        ):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 ServerDestination("https://example.invalid", **({"revision": "r"} | kwargs))
         for url in (
@@ -247,7 +259,11 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
         ):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 ServerDestination(url, "r")
-        for url in ("http://localhost:8787", "http://[::1]:8787", "https://example.invalid/core"):
+        for url in (
+            "http://localhost:8787",
+            "http://[::1]:8787",
+            "https://example.invalid/core",
+        ):
             self.assertEqual(ServerDestination(url, "r").base_url, url)
 
 
@@ -283,3 +299,19 @@ class GrantedDescriptorTests(unittest.IsolatedAsyncioTestCase):
                     result.source_sha256, hashlib.sha256(b"approved bytes").hexdigest()
                 )
                 self.assertFalse(granted.closed)
+
+    async def test_progress_observer_failure_cannot_abort_a_transfer(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "synthetic.pdf"
+            source.write_bytes(b"synthetic")
+
+            def broken(stage):
+                raise RuntimeError("observer unavailable")
+
+            result = await parse_document(
+                ServerDestination("http://localhost", "r"),
+                source,
+                progress=broken,
+                transport=httpx.MockTransport(lambda _: httpx.Response(200, json={"ok": True})),
+            )
+            self.assertEqual(result.response, {"ok": True})

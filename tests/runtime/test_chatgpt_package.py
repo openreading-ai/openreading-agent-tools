@@ -33,6 +33,7 @@ class ChatGPTPackageTests(unittest.TestCase):
             "_internal/runtime/destination_ui.py",
             "_internal/openreading/artifacts/retention.py",
             "_internal/openreading/schemas/local-document.v0.5.json",
+            "_internal/openreading/schemas/agent-document-tool.v0.5.json",
             "_internal/openreading/schemas/import-job.v0.4.json",
             "_internal/runtime/chat_selection.py",
             "_internal/_tcl_data/init.tcl",
@@ -47,7 +48,8 @@ class ChatGPTPackageTests(unittest.TestCase):
 
     def operation(self):
         self.assertTrue(
-            hasattr(package, "package_chatgpt_plugin"), "ChatGPT plugin assembler missing"
+            hasattr(package, "package_chatgpt_plugin"),
+            "ChatGPT plugin assembler missing",
         )
         return package.package_chatgpt_plugin
 
@@ -78,7 +80,10 @@ class ChatGPTPackageTests(unittest.TestCase):
             command = cwd / server["command"]
             self.assertEqual(command, target / "server/openreading-worker")
             process = subprocess.run(
-                [server["command"], *server["args"]], cwd=cwd, capture_output=True, text=True
+                [server["command"], *server["args"]],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
             )
             self.assertEqual(process.returncode, 0, process.stderr)
             self.assertEqual(
@@ -170,14 +175,19 @@ class ChatGPTPackageTests(unittest.TestCase):
         ):
             with (
                 self.subTest(flags=flags),
-                patch("sys.argv", ["package", "--runtime", ".", "--output", "unused", *flags]),
+                patch(
+                    "sys.argv",
+                    ["package", "--runtime", ".", "--output", "unused", *flags],
+                ),
                 contextlib.redirect_stderr(io.StringIO()),
                 self.assertRaises(SystemExit) as result,
             ):
                 package.main()
             self.assertEqual(result.exception.code, 2)
 
-    def test_relocated_settings_helper_uses_fixed_client_and_no_configuration_arguments(self):
+    def test_relocated_settings_helper_uses_fixed_client_and_no_configuration_arguments(
+        self,
+    ):
         import plistlib
 
         source = self.fixture()
@@ -198,14 +208,20 @@ class ChatGPTPackageTests(unittest.TestCase):
                 check=True,
             )
             self.assertEqual(
-                process.stdout.splitlines(), ["--client", "chatgpt", "--destination-settings"]
+                process.stdout.splitlines(),
+                ["--client", "chatgpt", "--destination-settings"],
             )
 
     def test_old_chat_runtime_cannot_package_a_nonfunctional_settings_helper(self):
-        source = self.fixture()
-        (source.root / "_internal/runtime/server_profile.py").unlink()
-        source.metadata["files"] = inventory(source.root)
-        source.write_metadata()
-        with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(ValueError, "server destination"):
-                self.operation()(source.root, Path(temporary) / "package")
+        for missing in (
+            "_internal/runtime/server_profile.py",
+            "_internal/openreading/schemas/agent-document-tool.v0.5.json",
+        ):
+            with self.subTest(missing=missing):
+                source = self.fixture()
+                (source.root / missing).unlink()
+                source.metadata["files"] = inventory(source.root)
+                source.write_metadata()
+                with tempfile.TemporaryDirectory() as temporary:
+                    with self.assertRaisesRegex(ValueError, "server destination"):
+                        self.operation()(source.root, Path(temporary) / "package")

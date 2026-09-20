@@ -245,4 +245,6 @@ It does not install a plugin or start a Core server. Use the ChatGPT plugin brow
 
 The offline gate keeps historical runtime tests on their original Core pin.
 `runtime/testing` runs `tests/server` against the same Core commit as the Docling candidate.
+The broader `tests/runtime` lane uses the historical `runtime` pin, including transport and Settings tests.
+The server lane exercises the current Core service through MCP, including synchronous progress notifications.
 Both lanes contribute to the existing line and branch coverage requirements.

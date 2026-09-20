@@ -37,7 +37,14 @@ class WindowTests(unittest.TestCase):
         widgets = SimpleNamespace(
             **{
                 name: Widget
-                for name in ("Frame", "Label", "Entry", "Button", "Radiobutton", "Checkbutton")
+                for name in (
+                    "Frame",
+                    "Label",
+                    "Entry",
+                    "Button",
+                    "Radiobutton",
+                    "Checkbutton",
+                )
             }
         )
         tk = SimpleNamespace(StringVar=Widget, BooleanVar=Widget)
@@ -52,7 +59,7 @@ class WindowTests(unittest.TestCase):
         window.token.set("synthetic")
         window.save()
         controller.save.assert_called_once_with(
-            "server", "http://localhost:8787", "synthetic", False
+            "server", "http://localhost:8787", "synthetic", False, response_mib="128"
         )
         self.assertEqual(window.token.get(), "")
         self.assertIn("Saved", window.status.get())
@@ -80,7 +87,10 @@ class WindowTests(unittest.TestCase):
     def test_check_errors_are_sanitized_and_broken_settings_can_open(self):
         window, controller, executor = self.make(broken=True)
         self.assertIn("Invalid", window.status.get())
-        for error in (ValueError("No connection"), RuntimeError("sensitive diagnostic")):
+        for error in (
+            ValueError("No connection"),
+            RuntimeError("sensitive diagnostic"),
+        ):
             future = Future()
             future.set_exception(error)
             executor.submit.return_value = future
@@ -90,7 +100,10 @@ class WindowTests(unittest.TestCase):
 
     def test_run_owns_window(self):
         self.assertTrue(hasattr(destination_ui, "run"), "Missing Settings entry point")
-        with patch("tkinter.Tk") as root, patch.object(destination_ui, "SettingsWindow") as window:
+        with (
+            patch("tkinter.Tk") as root,
+            patch.object(destination_ui, "SettingsWindow") as window,
+        ):
             self.assertEqual(destination_ui.run("chatgpt"), 0)
             self.assertEqual(window.call_args.args[1].client, "chatgpt")
             root.return_value.mainloop.assert_called_once()
