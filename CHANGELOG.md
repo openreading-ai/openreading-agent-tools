@@ -1,5 +1,20 @@
 # Changelog
 
+## Optional server transport foundation
+
+- Add a source HTTP client for one selected snapshot and an explicitly configured Core destination.
+- Reject unsafe URLs, redirects, oversized responses, duplicate JSON keys, and nonfinite values.
+- Stop local waiting on cancellation without claiming remote cancellation or retrying submitted work.
+- Add revisioned destination settings and a Keychain wrapper tested without real credentials.
+- Add a native Settings window and bounded document-free connection checks, covered by offline tests.
+- Keep packaged settings launch, consent, client job integration, and frozen/native feature acceptance pending under ProductSpec revision 18.
+
+## Development Core integration pin
+
+- Pin the Docling candidate and P0 runtime to development Core `0a8b491`.
+  This includes external response retention and trusted detached-job execution.
+  The legacy v1 runtime retains its historical pin. This is a development pin, not a released package.
+
 ## Unreleased ChatGPT development plugin
 
 - Replace the unexpanded plugin command placeholder with an explicit working directory and relative executable path.

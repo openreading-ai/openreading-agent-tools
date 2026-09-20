@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 17
+spec_revision: 18
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-16T00:00:00Z"
+updated_at: "2026-09-19T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -93,7 +93,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 17 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 18 OSS launch v1; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -124,7 +124,8 @@ Tool completeness does not mean every backend is installed or every operation ha
 The bundled runtime remains slim Docling only; unsupported capabilities must return core's explicit errors or warnings.
 If a new core tool cannot meet its contract under that boundary, resolve the scope before updating the release pin; never silently hide it for managed v2.
 Power users can separately install full core and register its MCP server through their assistant's own configuration.
-Agent Tools does not manage that installation or add a local backend/server selector.
+Agent Tools does not manage that installation or offer alternate bundled local engines.
+Revision 18 permits a separate operator-run Core HTTP destination while preserving bundled Docling as the default.
 
 Managed processing has only a static “Coming soon” visual at launch.
 No service endpoint, no-op server, authentication, upload, billing, capability polling, or inactive managed tool is included.
@@ -149,12 +150,12 @@ in:
   - Publish only supported native functional results; label token savings unmeasured unless the actual Desktop app exposes complete verified counters.
 out:
   - Do not invoke provider model APIs, use an agent SDK as a substitute for Desktop, buy API credits, or run separately metered trials.
-  - Do not build a managed endpoint, dummy or no-op service, remote connection, authentication client, upload bridge, signup flow, billing system, polling, dormant managed tools, or company document index.
+  - Do not build a managed endpoint, dummy service, managed authentication or upload bridge, signup flow, billing, dormant managed tools, or company document index.
   - Do not include a local language model, Docker, Cuttlefish, PyMuPDF, torch, torchvision, or docling-ibm-models in the distributed proof.
   - Do not implement ChatGPT web, mobile, remote execution, tunneling, Windows, Linux, or Intel Mac support in this proof.
   - Do not provide an operating-system sandbox or claim that a cloud assistant sees no document information.
   - Do not change existing core CLI, Python API, HTTP behavior, backend selection, password support, or default installation dependencies for assistant integration.
-  - Do not offer alternate backends, endpoint configuration, or credential setup in the first assistant profile.
+  - Do not let model tool arguments choose a backend, endpoint, credential, or processing destination. Bundled local processing uses Docling.
   - Do not make an embedding service, vector database, semantic summarizer, or answer-generating model part of this runtime.
 cut:
   - Support explicit files and recursive folder snapshots through one native chooser. Retain separate copied references and per-document jobs; paginate receipt entries without reopening selection. Native acceptance remains pending.
@@ -172,6 +173,41 @@ The assistant may have separate file and shell tools whose access OpenReading ca
 The current explicit directory form remains a developer-only fixture mechanism.
 An ordinary chat attachment is not assumed to reach local MCP or bypass the host upload limits.
 A public route without verified local file handoff cannot pass installation acceptance.
+
+## Optional operator-run Core destination
+
+Revision 18 adds an optional Core HTTP destination that you configure locally.
+A destination is where your selected bytes are processed. Bundled Docling remains the default.
+The separate Core process runs under your control, on localhost or an explicitly configured HTTPS host.
+Agent Tools never installs or manages that process. Its existing Core configuration chooses processing.
+This option is distinct from the unbuilt managed product.
+
+Before upload, selection shows the destination, file names, count, and total bytes for confirmation.
+Selected bytes and filenames reach that server. Its configured backends may use other services.
+Results remain in local evidence storage and enter the assistant when retrieved.
+Changing the destination invalidates consent for unprocessed selections. Existing jobs retain their approved destination.
+Server selection accepts regular files without claiming that every selected format is supported.
+It preserves the existing folder exclusions and individual file outcomes.
+
+The client uses the existing multipart parse API with a null backend ID.
+It preserves normalized values, partial status, exact uploaded-source identity, and unmeasured provenance.
+Structured-only results remain available through complete delivery, without fabricated quotes or pages.
+A server failure never silently invokes Docling or another destination.
+Shared connection or authorization failures stop later submissions; document rejections preserve sibling outcomes.
+
+Parse requests are never retried automatically. Cancellation ends local waiting and future dispatch only.
+Submitted server processing can continue. Interrupted work has an unknown remote outcome.
+The source limit is 100 MiB in server mode; the default decoded response limit is 128 MiB.
+These transport limits do not cap bundled Docling processing or change complete-result delivery budgets.
+Non-loopback servers require verified HTTPS. Redirects, credential-bearing URLs, queries, and fragments are refused.
+Optional existing bearer credentials stay in Keychain, outside tool arguments, argv, and job records.
+
+The source HTTP transport, private settings store, and native Settings window are implemented and tested offline.
+The Keychain wrapper is tested against a fake framework without accessing real credentials.
+Packaged settings launch, consent, client job integration, frozen packaging, and native feature acceptance remain proposed in
+[the server destination design](../../design/server-destination.md).
+The owner-operated synthetic ChatGPT probe establishes loopback connectivity only.
+It does not establish the finished server destination or a frozen runtime.
 
 ## User Experience
 
@@ -312,6 +348,13 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: Public v1 supports adapter-declared formats through explicit multi-file and folder snapshot selection without granting live directory access; the user controls selection, each selected eligible file has a distinct result and discoverable job, physical-page provenance is never invented for unpaginated formats, explicit hidden-file choices are honored while hidden descendants are skipped, and unimplemented traversal or cancellation semantics block that feature's acceptance.
 - id: AC-33
   criterion: Analytics distinguish server-observed downloads, marketplace-reported installs and explicitly opted-in client events; default clients send no telemetry, local processing timings remain local, diagnostic sharing is explicit, and any future managed-service usage measurement belongs to separate service terms.
+
+- id: AC-34
+  criterion: Bundled Docling remains the default; an explicitly configured operator-run Core destination requires native selection consent bound to its configuration revision, sends selected bytes through the existing parse API, preserves individual results, and never silently changes destinations.
+- id: AC-35
+  criterion: Server transport refuses redirects and invalid TLS, bounds uploads and decoded responses, rejects duplicate-key or nonfinite JSON, never retries parsing automatically, and reports cancellation or interrupted submission without claiming remote cancellation; credentials never enter model arguments or persisted job snapshots.
+- id: AC-36
+  criterion: Server responses retain exact source identity, normalized values, partial status, warnings and truthful provenance; structured-only results remain available without invented quotes, while frozen and native acceptance independently verify settings, consent, reconnect, cancellation and complete delivery.
 
 ~~~
 

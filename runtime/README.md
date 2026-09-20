@@ -216,3 +216,18 @@ The assembler applies the same runtime contract guards as the Desktop chat candi
 It copies the unchanged runtime, shared workflow and relative MCP launch configuration, then verifies the copied runtime inventory.
 Package metadata binds wrapper files separately from the engine inventory. No host configuration is changed during assembly.
 The plugin uses the existing `chatgpt` data namespace; switching wrappers does not migrate or erase retained documents.
+
+## Operator-run server transport
+
+`server_transport.py` sends one already-selected snapshot to an explicit Core HTTP destination.
+Its module documentation defines the request, response limits, and cancellation boundary.
+For example, a localhost destination can use an operator-configured Core parser without bundling that parser here.
+This library is not yet selected by the packaged launcher. The remaining integration lives in
+[the server destination design](../design/server-destination.md).
+
+`destination_settings.py` keeps a separate private destination choice with a new revision on every explicit save.
+`server_keychain.py` stores optional bearer credentials through macOS Security, keeping them out of argv and JSON.
+Changing a URL does not inherit its previous credential. Existing references remain available to pending jobs.
+`destination_ui.py` provides explicit Save and Test connection controls using the bundled Tk interface.
+The connection check reads health and authorized metadata without uploading a document or invoking a provider.
+The window and controller pass offline tests. Packaged launch and actual native Keychain prompts remain unverified.
