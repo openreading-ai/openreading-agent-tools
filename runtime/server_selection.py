@@ -116,6 +116,8 @@ async def confirm(url, documents):
     """Present a fixed native alert; document names enter as JSON data through stdin."""
     details = "\n".join(f"{row['name']} ({row['bytes']:,} bytes)" for row in documents)
     message = f"Send {len(documents)} documents ({sum(row['bytes'] for row in documents):,} bytes) to {url}?\nThe server may use external providers. Local cancellation cannot stop submitted server processing."
+    # Substitute once so marker-like text in URLs and filenames stays literal data.
+    values = {"__MESSAGE__": json.dumps(message), "__DETAILS__": json.dumps(details)}
     script = """ObjC.import('AppKit');
 var app = $.NSApplication.sharedApplication;
 app.setActivationPolicy($.NSApplicationActivationPolicyAccessory);
@@ -134,7 +136,8 @@ scroll.documentView = text;
 alert.accessoryView = scroll;
 app.activateIgnoringOtherApps(true);
 JSON.stringify(alert.runModal == $.NSAlertSecondButtonReturn);
-""".replace("__MESSAGE__", json.dumps(message)).replace("__DETAILS__", json.dumps(details))
+"""
+    script = re.sub(r"__MESSAGE__|__DETAILS__", lambda match: values[match[0]], script)
     result = await anyio.run_process(
         ["/usr/bin/osascript", "-l", "JavaScript", "-"], input=script.encode(), check=False
     )

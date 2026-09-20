@@ -2,6 +2,8 @@
 
 ## Optional server transport foundation
 
+- Preserve literal URL and filename text in the native upload confirmation.
+
 - Add a source HTTP client for one selected snapshot and an explicitly configured Core destination.
 - Reject unsafe URLs, redirects, oversized responses, duplicate JSON keys, and nonfinite values.
 - Stop local waiting on cancellation without claiming remote cancellation or retrying submitted work.

@@ -170,3 +170,46 @@ class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
             async with self.provider.select() as result:
                 self.assertEqual(result["skipped"], {"symlink": 1})
             confirm.assert_not_called()
+
+    async def test_confirmation_preserves_template_markers_as_literal_user_data(self):
+        import json
+        import subprocess
+        from types import SimpleNamespace
+
+        from runtime.server_selection import confirm
+
+        url = "http://localhost/__DETAILS__"
+        documents = [{"name": 'quote"__MESSAGE____DETAILS__.pdf', "bytes": 5}]
+        with patch(
+            "runtime.server_selection.anyio.run_process",
+            AsyncMock(return_value=SimpleNamespace(stdout=b"true", returncode=0)),
+        ) as process:
+            self.assertTrue(await confirm(url, documents))
+        script = process.call_args.kwargs["input"].decode()
+        # Execute the generated JavaScript without opening AppKit or a native dialog.
+        harness = """
+const captured = {};
+const stubAlert = {addButtonWithTitle() {}, runModal: 1001,
+  set informativeText(value) { captured.message = value; }};
+const stubText = {set string(value) { captured.details = value; }};
+const ObjC = {import() {}};
+const $ = {
+  NSApplication: {sharedApplication: {setActivationPolicy() {},
+    activateIgnoringOtherApps() {}}},
+  NSAlert: {alloc: {init: stubAlert}}, NSAlertSecondButtonReturn: 1001,
+  NSScrollView: {alloc: {initWithFrame() { return {}; }}},
+  NSTextView: {alloc: {initWithFrame() { return stubText; }}},
+  NSMakeRect() {}
+};
+"""
+        result = subprocess.run(
+            ["node", "-"],
+            input=harness + script + "\nconsole.log(JSON.stringify(captured));",
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        displayed = json.loads(result.stdout)
+        self.assertIn(url, displayed["message"])
+        self.assertEqual(displayed["details"], 'quote"__MESSAGE____DETAILS__.pdf (5 bytes)')
