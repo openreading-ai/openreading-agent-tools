@@ -204,8 +204,9 @@ Optional existing bearer credentials stay in Keychain, outside tool arguments, a
 
 The source HTTP transport, private settings store, and native Settings window are implemented and tested offline.
 The Keychain wrapper is tested against a fake framework without accessing real credentials.
-Packaged settings launch, consent, client job integration, frozen packaging, and native feature acceptance remain proposed in
-[the server destination design](../../design/server-destination.md).
+The launcher, selection consent, serialized uploads, and completed-download recovery are implemented.
+Offline tests exercise the actual pinned Core retention and MCP retrieval interfaces.
+Frozen runtime and owner-operated native feature acceptance remain separate release gates.
 The owner-operated synthetic ChatGPT probe establishes loopback connectivity only.
 It does not establish the finished server destination or a frozen runtime.
 

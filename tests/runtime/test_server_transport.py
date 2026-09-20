@@ -253,3 +253,33 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class GrantedDescriptorTests(unittest.IsolatedAsyncioTestCase):
+    async def test_upload_uses_already_granted_descriptor_not_replaced_path(self):
+        import inspect
+
+        self.assertIn("source_fd", inspect.signature(parse_document).parameters)
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "selected.pdf"
+            source.write_bytes(b"approved bytes")
+            with source.open("rb") as granted:
+                source.unlink()
+                source.write_bytes(b"unapproved replacement")
+
+                async def handle(request):
+                    body = await request.aread()
+                    self.assertIn(b"approved bytes", body)
+                    self.assertNotIn(b"unapproved replacement", body)
+                    return httpx.Response(200, json={})
+
+                result = await parse_document(
+                    ServerDestination("http://localhost", "r"),
+                    source,
+                    source_fd=granted.fileno(),
+                    transport=httpx.MockTransport(handle),
+                )
+                self.assertEqual(
+                    result.source_sha256, hashlib.sha256(b"approved bytes").hexdigest()
+                )
+                self.assertFalse(granted.closed)

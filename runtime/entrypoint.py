@@ -6,7 +6,9 @@ profile or backend. Explicit directory arguments are never interpreted by a shel
 The internal child dispatch uses the same frozen executable and verified inventory.
 Format 2 supports --select-document for the GUI and --selected-documents for MCP.
 The separate --chat-documents candidate installs a trusted local chooser and automatic OCR.
-It ignores saved settings and refuses directory or OCR overrides.
+It reads only the separate destination setting and refuses directory or OCR overrides.
+Absent destination settings keep bundled Docling. Explicit server settings use approved snapshots.
+The --destination-settings native window changes that choice without granting documents.
 The older selection modes reject directory configuration. MCP supplies private completed intake
 copies and ignores saved grants; developer OCR remains an explicit argument, default off.
 
@@ -62,6 +64,10 @@ def main(argv: list[str] | None = None) -> int:
         from openreading.artifacts.jobs import main as job_main
 
         return job_main(argv[1:])
+    if metadata.get("format_version") == "2" and argv[:1] == ["--internal-server-job"]:
+        from runtime.server_profile import job_main
+
+        return job_main(argv[1:], metadata)
     if argv[:1] == ["--internal-artifact-worker"]:
         from openreading.artifacts.worker import main as worker_main
 
@@ -85,6 +91,11 @@ def main(argv: list[str] | None = None) -> int:
         )
         parser.add_argument("--ocr", help="setup-only OCR: on/true or off/false; default off")
         selection = parser.add_mutually_exclusive_group()
+        selection.add_argument(
+            "--destination-settings",
+            action="store_true",
+            help="open native processing destination settings",
+        )
         selection.add_argument(
             "--chat-documents",
             action="store_true",
@@ -111,6 +122,14 @@ def main(argv: list[str] | None = None) -> int:
         if docling:
             if args.document_response_bytes < 4096:
                 raise ValueError("Document response bytes must be at least 4096.")
+            if args.destination_settings:
+                if args.input_root is not None or args.configure or args.ocr is not None:
+                    raise ValueError(
+                        "Destination settings cannot grant a directory or override OCR."
+                    )
+                from runtime.destination_ui import run
+
+                return run(args.client)
             from runtime.docling_profile import launch
 
             if args.selected_documents or args.select_document or args.chat_documents:
@@ -125,6 +144,13 @@ def main(argv: list[str] | None = None) -> int:
                 from runtime.selection import SelectionStore
 
                 if args.chat_documents:
+                    from runtime.destination_settings import read_destination
+
+                    destination = read_destination(args.client)
+                    if destination.mode == "server":
+                        from runtime.server_profile import launch as server_launch
+
+                        return server_launch(args, metadata, destination)
                     from runtime.native_selection import adapter_extensions
 
                     store = SelectionStore(args.client, extensions=adapter_extensions())

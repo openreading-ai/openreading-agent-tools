@@ -214,3 +214,54 @@ class EntrypointTests(unittest.TestCase):
             finally:
                 release.set()
                 worker.join(2)
+
+    def test_destination_settings_and_server_child_require_verified_v2(self):
+        with (
+            patch(
+                "runtime.entrypoint.verify_release", return_value={"format_version": "2"}
+            ) as verify,
+            patch("runtime.destination_ui.run", return_value=0) as settings,
+        ):
+            self.assertEqual(main(["--client", "chatgpt", "--destination-settings"]), 0)
+            settings.assert_called_once_with("chatgpt")
+            verify.assert_called_once()
+        with (
+            patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
+            patch("runtime.server_profile.job_main", return_value=0) as child,
+        ):
+            self.assertEqual(main(["--internal-server-job", "/private/job"]), 0)
+            self.assertEqual(child.call_args.args[0], ["/private/job"])
+        with (
+            patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
+            self.assertEqual(
+                main(
+                    ["--client", "chatgpt", "--destination-settings", "--input-root", "/documents"]
+                ),
+                2,
+            )
+
+    def test_chat_destination_default_local_and_explicit_server_dispatch(self):
+        from runtime.destination_settings import save_destination
+
+        with tempfile.TemporaryDirectory() as temporary:
+            home = Path(temporary).resolve()
+            with (
+                patch("pathlib.Path.home", return_value=home),
+                patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
+                patch("runtime.docling_profile.launch", return_value=0) as local,
+                patch("runtime.server_profile.launch", return_value=0) as server,
+                patch("runtime.native_selection.adapter_extensions", return_value=("pdf",)),
+            ):
+                self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 0)
+                local.assert_called_once()
+                server.assert_not_called()
+                setting = save_destination("chatgpt", "server", base_url="http://localhost:8787")
+                self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 0)
+                self.assertEqual(server.call_args.args[2], setting)
+                self.assertEqual(local.call_count, 1)
+                next(home.rglob("destination.json")).write_text("broken")
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 2)
+                self.assertEqual(server.call_count, 1)

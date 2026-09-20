@@ -30,7 +30,7 @@ The current picker and OCR toggle remain developer-only mechanisms.
 Native accessibility, installation and clean-machine acceptance still gate that public route.
 Existing directory forms and explicit grants remain developer-only mechanisms.
 Keep the bundled slim Docling runtime and no alternative local backend or server manager.
-An optional operator-run Core HTTP destination is approved in revision 18; its packaged launch and job integration remain proposed.
+An optional operator-run Core HTTP destination is approved in revision 18; its source implementation is tested; frozen and native acceptance remain separate gates.
 A power user's independent full-core MCP connection remains outside this package's configuration.
 Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
 Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.

@@ -91,7 +91,7 @@ class ServerResult:
     request_sha256: str
 
 
-def _decode(payload: bytes) -> dict:
+def _decode(payload: bytes, *, max_depth: int = 64) -> dict:
     text = payload.decode("utf-8")
     depth, quoted, escaped = 0, False, False
     for character in text:
@@ -106,7 +106,7 @@ def _decode(payload: bytes) -> dict:
             quoted = True
         elif character in "[{":
             depth += 1
-            if depth > 64:
+            if depth > max_depth:
                 raise ValueError("Excessive JSON depth")
         elif character in "]}":
             depth -= 1
@@ -138,6 +138,7 @@ async def parse_document(
     cancelled=None,
     progress=None,
     transport=None,
+    source_fd: int | None = None,
 ) -> ServerResult:
     """Send one snapshot once; return decoded values and the actual uploaded-byte digest."""
     submitted = False
@@ -159,7 +160,11 @@ async def parse_document(
         raise DestinationError("The configured server credential is invalid.")
     headers = {"Authorization": "Bearer " + token} if token else {}
     timeout = httpx.Timeout(connect=10, write=30, read=None, pool=10)
-    fd = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    fd = (
+        os.dup(source_fd)
+        if source_fd is not None
+        else os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    )
     with os.fdopen(fd, "rb") as stream:
         metadata = os.fstat(stream.fileno())
         if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > UPLOAD_BYTES:

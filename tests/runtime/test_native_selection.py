@@ -160,3 +160,8 @@ class NativeSelectionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertRaises(ValueError),
             ):
                 await m.choose()
+
+    def test_server_chooser_has_no_adapter_extension_filter(self):
+        script = self.module().command(None)[-1]
+        self.assertIn("panel.allowedFileTypes = null", script)
+        self.assertIn("confirmation before any upload", script)

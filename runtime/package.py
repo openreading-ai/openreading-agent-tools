@@ -177,6 +177,21 @@ def _docling_runtime(runtime: Path, *, selection: bool = False, chat: bool = Fal
 
 def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     metadata = _docling_runtime(runtime, chat=True)
+    if not {
+        "_internal/runtime/server_profile.py",
+        "_internal/runtime/server_imports.py",
+        "_internal/runtime/server_selection.py",
+        "_internal/runtime/server_transport.py",
+        "_internal/runtime/server_keychain.py",
+        "_internal/runtime/destination_settings.py",
+        "_internal/runtime/destination_ui.py",
+        "_internal/openreading/artifacts/retention.py",
+        "_internal/openreading/schemas/local-document.v0.5.json",
+        "_internal/openreading/schemas/import-job.v0.4.json",
+    }.issubset(metadata["files"]):
+        raise ValueError(
+            "Rebuild with optional server destination support before packaging Settings."
+        )
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     target = output / "plugins/openreading-local-documents"
@@ -186,6 +201,29 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     verify_release(target / "server")
     # Bind package-owned inputs separately; the unchanged runtime retains its own inventory.
     files = [".codex-plugin/plugin.json", ".mcp.json", "README.md"]
+    contents = target / "OpenReading Settings.app/Contents"
+    executable = contents / "MacOS/openreading-settings"
+    executable.parent.mkdir(parents=True)
+    executable.write_text(
+        '#!/bin/sh\nset -eu\nbase=$(/usr/bin/dirname "$0")\nexec "$base/../../../server/openreading-worker" --client chatgpt --destination-settings\n'
+    )
+    executable.chmod(0o755)
+    (contents / "Info.plist").write_bytes(
+        plistlib.dumps(
+            {
+                "CFBundleExecutable": "openreading-settings",
+                "CFBundleIdentifier": "ai.openreading.settings.chatgpt.preview",
+                "CFBundleName": "OpenReading Settings",
+                "CFBundlePackageType": "APPL",
+                "CFBundleVersion": "1",
+                "CFBundleShortVersionString": "0.2.0",
+                "NSHighResolutionCapable": True,
+            }
+        )
+    )
+    files.extend(
+        path.relative_to(target).as_posix() for path in (executable, contents / "Info.plist")
+    )
     files.extend(
         path.relative_to(target).as_posix() for path in (target / "skills").rglob("SKILL.md")
     )
