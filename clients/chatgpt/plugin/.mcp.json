@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "openreading": {
+      "command": "./server/openreading-worker",
+      "args": [
+        "--client",
+        "chatgpt",
+        "--chat-documents"
+      ],
+      "cwd": "."
+    }
+  }
+}

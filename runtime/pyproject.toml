@@ -1,0 +1,28 @@
+[project]
+name = "openreading-agent-runtime"
+version = "0.1.0a1"
+requires-python = "==3.11.15"
+dependencies = [
+  "openreading[agent,pymupdf] @ git+https://github.com/openreading-ai/openreading-core.git@078bdcd0341f55863735411572237de9e075eda3",
+  "mcp==1.30.0",
+  "pymupdf==1.28.2",
+]
+
+[dependency-groups]
+build = ["pyinstaller>=6.15,<7"]
+dev = ["pytest>=9,<10", "coverage>=7,<8", "ruff==0.15.22", "reportlab==4.4.10"]
+
+[tool.coverage.run]
+branch = true
+source = ["runtime", "measurement", "scripts"]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "D100", "D104"]
+ignore = ["E501"]

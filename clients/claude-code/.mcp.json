@@ -1,0 +1,1 @@
+{"mcpServers":{"openreading":{"type":"stdio","command":"${CLAUDE_PLUGIN_ROOT}/server/openreading-worker","args":["--client","claude-code","--input-root","${user_config.input_root}"]}}}

@@ -1,0 +1,83 @@
+{
+  "manifest_version": "0.4",
+  "name": "openreading-docling-local-preview",
+  "display_name": "OpenReading Local Documents (development)",
+  "version": "0.2.0-alpha.1",
+  "description": "Read local document evidence with physical page citations.",
+  "long_description": "Local development preview for macOS on Apple Silicon. Choose a document directory; enable OCR explicitly to read scanned text. The bundled slim Docling runtime performs extraction locally and retains source copies and evidence until you remove its store. Requested document content enters your assistant's context. The folder grant limits OpenReading tools, not other assistant tools. Resource limits are reported by the import tool. No passwords, hosted fallback, or measured token-savings claim. This candidate is not a signed public release.\n\nOpenReading Managed: Coming soon\nDocument processing on OpenReading's servers, without managing local compute. Planned after the public OSS launch.\n\nOCR text can differ from the printed page, including letters and digits. Exact identifier searches may miss evidence. Verify important OCR quotes against the source page; citations verify extracted text, not transcription accuracy.\n\nThe launcher disables ONNX Runtime telemetry before the document engine starts.",
+  "author": {
+    "name": "OpenReading"
+  },
+  "server": {
+    "type": "binary",
+    "entry_point": "server/openreading-worker",
+    "mcp_config": {
+      "command": "${__dirname}/server/openreading-worker",
+      "args": [
+        "--client",
+        "claude-desktop",
+        "--input-root",
+        "${user_config.input_root}",
+        "--ocr",
+        "${user_config.ocr}"
+      ]
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin"
+    ]
+  },
+  "user_config": {
+    "input_root": {
+      "type": "directory",
+      "title": "Document directory",
+      "description": "Allow OpenReading to read documents in this directory. Source copies are retained locally; requested document content enters your assistant's context.",
+      "required": true
+    },
+    "ocr": {
+      "type": "boolean",
+      "title": "Read scanned text (OCR)",
+      "description": "Enable local Tesseract OCR for text stored in page images. This uses additional time and memory. OCR evidence is labeled in citations. OCR can misread letters and digits, so exact identifier searches may miss evidence. Verify important quotes against the printed page.",
+      "default": false
+    }
+  },
+  "tools": [
+    {
+      "name": "openreading_import",
+      "description": "Retain one granted document using local Docling and the configured OCR setting."
+    },
+    {
+      "name": "openreading_search",
+      "description": "Search bounded retained page evidence with literal words."
+    },
+    {
+      "name": "openreading_read",
+      "description": "Read exact returned evidence with physical pages and text origins."
+    },
+    {
+      "name": "openreading_select_document",
+      "description": "Choose a local document when the launcher supplies a trusted picker; otherwise returns selection_unavailable."
+    },
+    {
+      "name": "openreading_get_document",
+      "description": "Read the complete retained normalized result with bounded continuation, existing structure, origins and citation references; no raw provider payloads."
+    },
+    {
+      "name": "openreading_start_import",
+      "description": "Start local document processing in the background."
+    },
+    {
+      "name": "openreading_get_import",
+      "description": "Check processing status, elapsed time and the finished document receipt."
+    },
+    {
+      "name": "openreading_cancel_import",
+      "description": "Cancel a pending document import."
+    },
+    {
+      "name": "openreading_list_imports",
+      "description": "Discover retained import jobs after reconnecting, then check or cancel them by job ID."
+    }
+  ]
+}

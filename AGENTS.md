@@ -5,10 +5,35 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 
 ## Current stage
 
-This repository contains proposals and repository validation tooling.
-It has no released plugin, runtime, or measured token savings.
-The approved task for this initial branch is repository foundations and design.
-Do not implement the product until the owner authorizes implementation.
+This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
+ProductSpec revision 17 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
+The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
+Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
+The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
+The core candidate implements local Docling supervision; a distinct Desktop development packager is implemented.
+The separate file-selection candidate bundles a Tk picker and a private intake launcher without directory settings.
+Native installation acceptance and signed distribution remain pending.
+Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
+No public binary or measured token savings are released.
+The remaining native and release gates stay in `design/`.
+
+## OSS launch scope
+
+Product v1 is the first public OSS release. Managed product v2 starts after launch.
+Historical prototype revision 1, version 2 settings and `local-document-proof-v2` keep their names and hashes.
+Expose every implemented MCP tool from the pinned core release, with no commercial subset.
+The candidate has import, complete normalized retrieval, search, read, local selection and background import start/status/cancel; plus grant-scoped job discovery; planned core MCP operations are not already implemented.
+Core pin changes require full catalog parity and functional cases before release.
+Public installation requires no directory-path configuration. A per-file picker and private intake are implemented as a development candidate.
+Production selection must return its reference to chat without manual copying, and local OCR must work automatically.
+The current picker and OCR toggle remain developer-only mechanisms.
+Native accessibility, installation and clean-machine acceptance still gate that public route.
+Existing directory forms and explicit grants remain developer-only mechanisms.
+Keep the bundled slim Docling runtime and no alternative local backend or server manager.
+A power user's independent full-core MCP connection remains outside this package's configuration.
+Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
+Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.
+See [the launch design](design/oss-launch.md) for the contract and verification work.
 
 ## Ownership
 
@@ -80,19 +105,22 @@ Each implementation PR has one clearly identified human reviewer.
 ## Checks and claims
 
 `make verify` is offline after `make sync`.
-Today it checks Markdown, repository policy, local links, JSON/YAML, its own regression tests, and ProductSpec.
+It checks Python runtime tests and coverage, Node measurement tests and coverage, Markdown, repository policy, local links, JSON/YAML, and ProductSpec.
 `make audit` separately queries dependency advisories and requires network access.
 GitHub actions use full commit pins, read-only repository permissions, and bounded timeouts.
 Optional Git hooks run the same gate through `make hooks`.
 
-When executable product behavior lands, add its focused offline tests to this same gate.
-Add a measured coverage floor with those tests, then raise it as coverage improves.
+Add focused offline tests for product changes to this same gate.
+Python line and branch coverage and Node line, branch, and function coverage have enforced 95% floors.
 Do not create a percentage badge before a corresponding enforced check exists.
-Real host installation and paid model trials are explicit lanes, separate from offline tests.
+Real host installation and owner-operated Desktop walkthroughs remain separate from offline tests.
+Never invoke provider model APIs, run separately metered trials, or add an execution SDK as a Desktop substitute.
 
 Synthetic fixtures belong in public tests.
 Private documents, labeled customer data, screenshots of private chats, keys, and live transcripts do not.
-Run a live model experiment only with an explicit account, run manifest, and approved spend limit.
+Existing Desktop app accounts may be used for owner-authorized native checks.
+Historical API account, budget or approval fields authorize nothing; execution and finalization must always refuse.
+Token savings remain unmeasured unless verified counters from the actual Desktop app support them.
 
 ## Truth at the product boundary
 
@@ -134,11 +162,14 @@ The first proof may name its deliberately narrower PDF test scope.
 product/specs/  product intent and acceptance criteria for unbuilt work
 design/         engineering proposals and implementation tasks
 scripts/        repository validation tooling
-tests/          regression tests for that tooling
+tests/          runtime, measurement, and repository regression tests
+runtime/        frozen runtime build, integrity verification, and launch configuration
+clients/        client manifests and installation guides
+skills/         shared bounded retrieval workflow
+measurement/    synthetic datasets, frozen trials, usage accounting, and reports
 assets/brand/   shared OpenReading brand asset
 .github/        CI, dependency updates, ownership, and issue/PR templates
 .githooks/      optional local commit and push checks
 ~~~
 
-Future runtime and client directories are specified in the implementation plan.
-Do not create empty product scaffolds that appear installable.
+Native Desktop evidence remains separate from offline verification. No provider API trials are permitted.

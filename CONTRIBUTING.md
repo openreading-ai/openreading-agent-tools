@@ -1,11 +1,11 @@
 # Contributing
 
-You can review the proposal and run every repository check without installing a document backend.
+You can run the offline preview checks without model credentials or sibling repositories.
 Read [AGENTS.md](AGENTS.md) for ownership, documentation policy, and agent instructions.
 
 ## Set up
 
-Install Node.js 24 or newer and npm, then clone this repository.
+Install Node.js 24 or newer, npm, and uv 0.11.26, then clone this repository.
 Run these commands from its root:
 
 ~~~sh
@@ -13,7 +13,8 @@ make sync
 make verify
 ~~~
 
-`make sync` installs the exact lockfile with dependency lifecycle scripts disabled.
+`make sync` installs both lockfiles and Python 3.11.15.
+The npm installation disables dependency lifecycle scripts.
 It needs registry access.
 `make verify` then runs entirely offline.
 Do not use unpinned `npx` commands in a gate.
@@ -68,13 +69,14 @@ Human maintainers own merging.
 | ProductSpec validation | Invalid intent structure or malformed acceptance and metric records. |
 
 External link availability and Markdown heading anchors require review.
-The gate does not contact websites or claim that proposed runtime behavior works.
+The gate also enforces Python and Node coverage floors through synthetic runtime and measurement tests.
+It does not contact models or establish real host compatibility.
 `make audit` is a separate network check against dependency advisories.
 
 ## Product implementation and release
 
-The [implementation plan](design/implementation-plan.md) names future source paths and gates.
-At present those files and commands are proposed.
+The [runtime guide](runtime/README.md) documents build commands and implementation evidence.
+The [remaining plan](design/implementation-plan.md) names unverified release gates.
 Do not report a future test as executed.
 
 Keep generated bundles and local evidence outside Git.
@@ -88,3 +90,6 @@ CODEOWNERS requests human review; it does not configure GitHub branch protection
 
 Do not upload private files or live model transcripts to issues.
 Use [SECURITY.md](SECURITY.md) for vulnerability reports.
+
+The `tmp` override pins 0.2.7 because MCPB editor tooling otherwise resolves a vulnerable temporary-file dependency.
+Review this override when MCPB updates its editor dependency.

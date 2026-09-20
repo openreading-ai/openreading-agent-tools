@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1"
+    },
+    "experiment_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+    },
+    "spec_revision": {
+      "const": 1
+    },
+    "study_kind": {
+      "enum": [
+        "calibration",
+        "primary"
+      ]
+    },
+    "dataset_manifest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "model_id": {
+      "type": "string",
+      "pattern": "^claude-(opus|sonnet|haiku)-[0-9][a-z0-9-]+$"
+    },
+    "client_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "client_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "client_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sdk_version": {
+      "const": "0.3.267"
+    },
+    "core_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "runtime_dir": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runtime_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "plugin_dir": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt_file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "skill_file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "skill_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "environment_file": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "arms": {
+      "const": [
+        "A",
+        "B",
+        "C"
+      ]
+    },
+    "task_ids": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      }
+    },
+    "repetitions": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "order_seed": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "max_trials": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 108
+    },
+    "max_turns_per_trial": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 12
+    },
+    "timeout_seconds_per_trial": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 180
+    },
+    "max_estimated_usd_per_trial": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 2
+    },
+    "max_estimated_usd_total": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 100
+    },
+    "evidence_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "account_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "allowed_bash_commands": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "spec_revision",
+    "study_kind",
+    "dataset_manifest",
+    "dataset_sha256",
+    "model_id",
+    "client_path",
+    "client_sha256",
+    "client_version",
+    "sdk_version",
+    "core_commit",
+    "runtime_dir",
+    "runtime_sha256",
+    "plugin_dir",
+    "prompt_file",
+    "prompt_sha256",
+    "skill_file",
+    "skill_sha256",
+    "environment_file",
+    "environment_sha256",
+    "arms",
+    "task_ids",
+    "repetitions",
+    "order_seed",
+    "max_trials",
+    "max_turns_per_trial",
+    "timeout_seconds_per_trial",
+    "max_estimated_usd_per_trial",
+    "max_estimated_usd_total",
+    "evidence_root",
+    "account_label",
+    "allowed_bash_commands"
+  ]
+}
