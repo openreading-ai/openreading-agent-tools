@@ -131,6 +131,38 @@ class ClaudePluginTests(unittest.TestCase):
                     module.build(extension, output)
                 self.assertFalse(output.exists())
 
+    def test_size_limit_refuses_archive_instead_of_delivering_uninstallable_file(self):
+        module = self.module()
+        extension, output = self.fixture()
+        with patch.object(module, "MAX_ARCHIVE_BYTES", 1, create=True):
+            with self.assertRaisesRegex(ValueError, "200 MB"):
+                module.build(extension, output)
+        self.assertFalse((output / "openreading-claude-cowork.zip").exists())
+
+    def test_bootstrap_omits_only_model_and_preserves_reconstructable_runtime(self):
+        module = self.module()
+        extension, output = self.fixture()
+        model = extension / "server" / module.MODEL_PATH
+        with patch.object(module, "MODEL_SHA256", sha256(model)):
+            archive = module.build(extension, output, download_layout=True)
+        target = output / "plugin"
+        config = json.loads((target / ".mcp.json").read_text())
+        server = config["mcpServers"]["openreading"]
+        self.assertEqual(
+            server,
+            {"command": "/bin/sh", "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", "--chat-documents"]},
+        )
+        with zipfile.ZipFile(archive) as zipped:
+            self.assertNotIn("server/" + module.MODEL_PATH, zipped.namelist())
+            self.assertIn("launch.sh", zipped.namelist())
+        self.assertIn("launch.sh", (target / module.HELPER).read_text())
+        receipt = json.loads((output / "candidate.json").read_text())
+        self.assertEqual(receipt["layout_model_download"]["sha256"], sha256(model))
+        shutil.copy2(model, target / "server" / module.MODEL_PATH)
+        self.assertEqual(verify_release(target / "server"), verify_release(extension / "server"))
+        with self.assertRaisesRegex(ValueError, "pinned download"):
+            module.build(extension, output.parent / "wrong-model", download_layout=True)
+
     def test_cli_and_incompatible_identity(self):
         module = self.module()
         extension, output = self.fixture()

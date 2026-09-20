@@ -2,6 +2,7 @@
 
 ## Unreleased Claude plugin packaging
 
+- Enforce Claude's 200 MB upload limit and offer a checksum-pinned first-use layout download. No developer runtime is required.
 - Add a build-only Claude plugin ZIP wrapper around a verified Docling chat extension. Native Cowork acceptance remains pending.
 
 ## Unreleased ChatGPT development plugin
