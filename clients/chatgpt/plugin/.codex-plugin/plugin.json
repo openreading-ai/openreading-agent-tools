@@ -1,6 +1,6 @@
 {
   "name": "openreading-local-documents",
-  "version": "0.2.0-alpha.2+server.20260920",
+  "version": "0.2.0-alpha.3+server.20260920",
   "description": "Select local documents and retrieve complete normalized content with exact evidence. Unsigned development preview.",
   "author": {
     "name": "OpenReading"

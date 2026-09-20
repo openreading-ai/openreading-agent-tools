@@ -311,7 +311,7 @@ wheels = [
 [[package]]
 name = "openreading"
 version = "0.3.0"
-source = { git = "https://github.com/openreading-ai/openreading-core.git?rev=194291aa105a453ffbb05e80e808ef976e2570e4#194291aa105a453ffbb05e80e808ef976e2570e4" }
+source = { git = "https://github.com/openreading-ai/openreading-core.git?rev=e53e6a1d52c935436eab4ea2f77e75ec215435c0#e53e6a1d52c935436eab4ea2f77e75ec215435c0" }
 dependencies = [
     { name = "jsonschema" },
     { name = "puremagic" },
@@ -350,7 +350,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "mcp", specifier = "==1.30.0" },
-    { name = "openreading", extras = ["agent", "pymupdf"], git = "https://github.com/openreading-ai/openreading-core.git?rev=194291aa105a453ffbb05e80e808ef976e2570e4" },
+    { name = "openreading", extras = ["agent", "pymupdf"], git = "https://github.com/openreading-ai/openreading-core.git?rev=e53e6a1d52c935436eab4ea2f77e75ec215435c0" },
     { name = "pymupdf", specifier = "==1.28.2" },
 ]
 
