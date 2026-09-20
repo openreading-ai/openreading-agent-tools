@@ -11,8 +11,9 @@ both registrations expose the same tools and use the same saved processing desti
 Cowork upload, native launch, signing, and clean-machine acceptance remain separate gates.
 The current archive supports regular-file runtimes; symlinks refuse rather than relying
 on host-specific ZIP extraction behavior. Python and Docling are inside the runtime.
-The optional first-use layout download keeps the archive below Claude's 200 MB limit.
-Packaging never performs that download. All other runtime files remain unchanged.
+The optional first-use runtime download keeps compressed and expanded plugin sizes
+below Claude's 200 MB limits. Packaging never performs or publishes that download.
+The runtime payload retains local Docling and the reviewed optional server destination.
 """
 
 from __future__ import annotations
@@ -24,20 +25,21 @@ import zipfile
 from pathlib import Path
 
 from runtime.claude_bootstrap import launcher
+from runtime.runtime_download import pack, validate_base_url
 from runtime.verify import sha256, verify_release
 
 HELPER = "OpenReading Settings.app/Contents/MacOS/openreading-settings"
 PLIST = "OpenReading Settings.app/Contents/Info.plist"
 NAME = "openreading-local-documents"
 MAX_ARCHIVE_BYTES = 200_000_000
-MODEL_PATH = "resources/models/docling-project--docling-layout-heron-onnx/model.onnx"
-MODEL_SHA256 = "59c81a3a2923042d85034ffc487f8f47e4854117e879aef89b2b9f728fb4922a"
-MODEL_URL = "https://huggingface.co/docling-project/docling-layout-heron-onnx/resolve/40bde044036bb181c130ddf6c51792187268748f/model.onnx"
+MAX_EXPANDED_BYTES = 200_000_000
 
 
-def build(extension: Path, output: Path, *, download_layout: bool = False) -> Path:
+def build(extension: Path, output: Path, *, runtime_base_url: str | None = None) -> Path:
     if output.exists():
         raise ValueError("Choose a new output directory.")
+    if runtime_base_url is not None:
+        validate_base_url(runtime_base_url)
     runtime = extension / "server"
     metadata = verify_release(runtime)
     if metadata["format_version"] != "2":
@@ -63,12 +65,13 @@ def build(extension: Path, output: Path, *, download_layout: bool = False) -> Pa
     if not (extension / HELPER).stat().st_mode & 0o111:
         raise ValueError("Settings helper must be executable.")
 
-    if download_layout and metadata["files"][MODEL_PATH]["sha256"] != MODEL_SHA256:
-        raise ValueError("The layout model differs from the pinned download.")
-
     target = output / "plugin"
     (target / ".claude-plugin").mkdir(parents=True)
-    shutil.copytree(runtime, target / "server")
+    download = None
+    if runtime_base_url is None:
+        shutil.copytree(runtime, target / "server")
+    else:
+        download = pack(runtime, output / "runtime", runtime_base_url)
     for name in (HELPER, PLIST):
         destination = target / name
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -93,10 +96,10 @@ def build(extension: Path, output: Path, *, download_layout: bool = False) -> Pa
             }
         }
     }
-    if download_layout:
-        manifest["version"] += ".bootstrap.1"
+    if download is not None:
+        manifest["version"] += ".bootstrap.2"
         manifest["description"] += (
-            " First use downloads a verified 171 MB layout model; internet required for setup."
+            " First use downloads the verified runtime; internet required for setup."
         )
         (target / ".claude-plugin/plugin.json").write_text(json.dumps(manifest, indent=2) + "\n")
         config["mcpServers"]["openreading"] = {
@@ -104,7 +107,7 @@ def build(extension: Path, output: Path, *, download_layout: bool = False) -> Pa
             "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", "--chat-documents"],
         }
         (target / "launch.sh").write_text(
-            launcher(metadata, sha256(runtime / "release.json"), MODEL_URL, MODEL_PATH)
+            launcher(metadata, sha256(runtime / "release.json"), download)
         )
         (target / "launch.sh").chmod(0o755)
         (target / HELPER).write_text(
@@ -115,9 +118,8 @@ def build(extension: Path, output: Path, *, download_layout: bool = False) -> Pa
         Path(__file__).resolve().parent.parent / "clients/claude-cowork/README.md",
         target / "README.md",
     )
-    verify_release(target / "server")
-    if download_layout:
-        (target / "server" / MODEL_PATH).unlink()
+    if download is None:
+        verify_release(target / "server")
     package_files = {
         path.relative_to(target).as_posix(): sha256(path)
         for path in sorted(target.rglob("*"))
@@ -125,9 +127,9 @@ def build(extension: Path, output: Path, *, download_layout: bool = False) -> Pa
     }
     receipt = {
         "distribution": "development-only",
-        "layout_model_download": (
-            {"url": MODEL_URL, **metadata["files"][MODEL_PATH]} if download_layout else None
-        ),
+        "runtime_download": download,
+        "runtime_release_sha256": sha256(runtime / "release.json"),
+        "runtime_asset_published": False,
         "target": "Claude Cowork on macOS arm64; native acceptance pending",
         "version": manifest["version"],
         "core_commit": metadata["core_commit"],
@@ -141,12 +143,21 @@ def build(extension: Path, output: Path, *, download_layout: bool = False) -> Pa
         for path in sorted(target.rglob("*")):
             if path.is_file():
                 packed.write(path, path.relative_to(target).as_posix())
+    with zipfile.ZipFile(archive) as packed:
+        expanded = sum(item.file_size for item in packed.infolist())
+    if expanded > MAX_EXPANDED_BYTES:
+        archive.unlink()
+        raise ValueError("Claude plugin uncompressed size exceeds the 200 MB limit.")
     if archive.stat().st_size > MAX_ARCHIVE_BYTES:
         archive.unlink()
         raise ValueError(
-            "Claude plugin exceeds the 200 MB upload limit. Use --download-layout for the pinned model."
+            "Claude plugin exceeds the 200 MB upload limit. Use --runtime-base-url for a separate runtime payload."
         )
-    receipt.update(archive_sha256=sha256(archive), archive_bytes=archive.stat().st_size)
+    receipt.update(
+        archive_sha256=sha256(archive),
+        archive_bytes=archive.stat().st_size,
+        archive_expanded_bytes=expanded,
+    )
     (output / "candidate.json").write_text(json.dumps(receipt, indent=2) + "\n")
     return archive
 
@@ -160,13 +171,14 @@ def main(argv: list[str] | None = None) -> int:
         "--output", required=True, type=Path, help="new directory for the plugin and ZIP"
     )
     parser.add_argument(
-        "--download-layout",
-        action="store_true",
-        help="fetch the pinned layout model at first use; never during this build",
+        "--runtime-base-url",
+        help="HTTPS asset directory for a separate pinned runtime download; does not publish it",
     )
     args = parser.parse_args(argv)
     print(
-        build(args.extension.resolve(), args.output.resolve(), download_layout=args.download_layout)
+        build(
+            args.extension.resolve(), args.output.resolve(), runtime_base_url=args.runtime_base_url
+        )
     )
     return 0
 

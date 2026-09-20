@@ -1,7 +1,37 @@
-# Revision 17 implementation plan
+# Revision 20 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 17](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 20](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+
+## Required matrix acceptance order
+
+AC-37 and the [compatibility matrix](../README.md#required-compatibility-matrix) supersede older client prioritization below.
+Apply the [same acceptance checklist](../clients/README.md#matrix-acceptance) independently to each cell.
+Preserve earlier native results as partial evidence; repeat affected checks against the actual distributed candidate.
+
+- [ ] Claude Cowork with default bundled Docling.
+- [ ] Claude Cowork with optional operator-run Core server.
+- [ ] Local Claude Code with default bundled Docling.
+- [ ] Local Claude Code with optional operator-run Core server.
+- [ ] ChatGPT Work with default bundled Docling.
+- [ ] ChatGPT Work with optional operator-run Core server.
+- [ ] Local Codex with default bundled Docling.
+- [ ] Local Codex with optional operator-run Core server.
+
+A missing supported installation route is a blocker to record and resolve, never a reason to drop a cell.
+Grok is deferred. No merge or publication is authorized by this plan.
+
+## Small-plugin delivery, AC-38
+
+1. Build a separate deterministic archive from the explicitly verified complete runtime.
+2. Generate the small plugin with a pinned HTTPS asset URL, digest, length, and cache identity.
+3. Verify setup, reuse, failure cleanup, and unchanged Settings invocation with isolated synthetic downloads.
+4. Verify both compressed and expanded plugin sizes, and reconstruct the original runtime inventory from the payload.
+5. Publish the reviewed payload only after owner approval. Confirm HTTPS availability before presenting an install candidate.
+6. The owner manually tests Claude Cowork local and server modes, followed by the remaining matrix cells.
+
+The [Cowork guide](../clients/claude-cowork/README.md) documents the implemented packaging entry point.
+Shared launcher tests do not establish native behavior in another host. Signing and clean-machine gates remain open.
 
 ## Current launch sequence
 

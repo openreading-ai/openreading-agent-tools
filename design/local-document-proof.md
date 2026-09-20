@@ -32,7 +32,8 @@ Review-time versions or performance estimates must not be copied into release ev
 Run the pipeline with the prohibited packages absent and network access blocked before committing a release lock.
 Check whether the pinned transformers preprocessing path operates without torch and whether table-region text survives disabled structure recognition.
 If either requirement fails, stop the migration at feasibility and report the concrete incompatibility.
-Do not add torch, download weights at runtime, use docling-serve, or substitute a different backend silently.
+Do not add torch, download weights during document processing, use docling-serve, or substitute a different backend silently.
+Verified first-use acquisition of the complete runtime belongs to client packaging, before any document processing.
 One Docling profile is the current decision; a fast PDFium-only profile requires new evidence and owner agreement.
 
 ## 2. Setup and grant identity

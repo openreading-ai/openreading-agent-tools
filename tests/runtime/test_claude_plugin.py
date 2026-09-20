@@ -6,6 +6,7 @@ import io
 import json
 import shutil
 import stat
+import tarfile
 import tempfile
 import unittest
 import zipfile
@@ -139,12 +140,18 @@ class ClaudePluginTests(unittest.TestCase):
                 module.build(extension, output)
         self.assertFalse((output / "openreading-claude-cowork.zip").exists())
 
-    def test_bootstrap_omits_only_model_and_preserves_reconstructable_runtime(self):
+    def test_expanded_limit_refuses_archive_even_when_compressed_size_fits(self):
         module = self.module()
         extension, output = self.fixture()
-        model = extension / "server" / module.MODEL_PATH
-        with patch.object(module, "MODEL_SHA256", sha256(model)):
-            archive = module.build(extension, output, download_layout=True)
+        with patch.object(module, "MAX_EXPANDED_BYTES", 1, create=True):
+            with self.assertRaisesRegex(ValueError, "uncompressed"):
+                module.build(extension, output)
+        self.assertFalse((output / "openreading-claude-cowork.zip").exists())
+
+    def test_download_package_is_small_and_preserves_both_destinations_runtime(self):
+        module = self.module()
+        extension, output = self.fixture()
+        archive = module.build(extension, output, runtime_base_url="https://example.invalid/v1")
         target = output / "plugin"
         config = json.loads((target / ".mcp.json").read_text())
         server = config["mcpServers"]["openreading"]
@@ -153,15 +160,45 @@ class ClaudePluginTests(unittest.TestCase):
             {"command": "/bin/sh", "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", "--chat-documents"]},
         )
         with zipfile.ZipFile(archive) as zipped:
-            self.assertNotIn("server/" + module.MODEL_PATH, zipped.namelist())
+            self.assertFalse(any(name.startswith("server/") for name in zipped.namelist()))
+            self.assertFalse(any(name.endswith(".tar.gz") for name in zipped.namelist()))
+            self.assertLess(sum(item.file_size for item in zipped.infolist()), 100_000)
             self.assertIn("launch.sh", zipped.namelist())
-        self.assertIn("launch.sh", (target / module.HELPER).read_text())
+        self.assertIn("--destination-settings", (target / module.HELPER).read_text())
         receipt = json.loads((output / "candidate.json").read_text())
-        self.assertEqual(receipt["layout_model_download"]["sha256"], sha256(model))
-        shutil.copy2(model, target / "server" / module.MODEL_PATH)
-        self.assertEqual(verify_release(target / "server"), verify_release(extension / "server"))
-        with self.assertRaisesRegex(ValueError, "pinned download"):
-            module.build(extension, output.parent / "wrong-model", download_layout=True)
+        download = receipt["runtime_download"]
+        payload = output / "runtime" / download["url"].rsplit("/", 1)[1]
+        self.assertEqual(download["sha256"], sha256(payload))
+        self.assertEqual(download["length"], payload.stat().st_size)
+        self.assertFalse((target / "server").exists())
+        restored = output.parent / "restored"
+        with tarfile.open(payload) as packed:
+            packed.extractall(restored, filter="data")
+        self.assertEqual(verify_release(restored), verify_release(extension / "server"))
+        # Neither settings nor destination selection is rewritten by packaging.
+        self.assertEqual(receipt["core_commit"], verify_release(restored)["core_commit"])
+        self.assertIn("Optional Core server", (target / ".claude-plugin/plugin.json").read_text())
+        again = output.parent / "again"
+        module.build(extension, again, runtime_base_url="https://example.invalid/v1")
+        second = json.loads((again / "candidate.json").read_text())["runtime_download"]
+        self.assertEqual(download, second)
+
+    def test_download_url_refuses_credentials_http_and_ambiguous_paths(self):
+        module = self.module()
+        for url in (
+            "http://example.com",
+            "https://user:secret@example.com",
+            "https://example.com?a=1",
+            "https://example.com/#x",
+            "https:///missing",
+            "https://example.com/../x",
+            "https://example.com/line\n",
+        ):
+            with self.subTest(url=url):
+                extension, output = self.fixture()
+                with self.assertRaisesRegex(ValueError, "HTTPS"):
+                    module.build(extension, output, runtime_base_url=url)
+                self.assertFalse(output.exists())
 
     def test_cli_and_incompatible_identity(self):
         module = self.module()
@@ -169,7 +206,17 @@ class ClaudePluginTests(unittest.TestCase):
         stdout = io.StringIO()
         with contextlib.redirect_stdout(stdout):
             self.assertEqual(
-                module.main(["--extension", str(extension), "--output", str(output)]), 0
+                module.main(
+                    [
+                        "--extension",
+                        str(extension),
+                        "--output",
+                        str(output),
+                        "--runtime-base-url",
+                        "https://example.invalid/assets",
+                    ]
+                ),
+                0,
             )
         self.assertTrue(Path(stdout.getvalue().strip()).is_file())
         extension, output = self.fixture()

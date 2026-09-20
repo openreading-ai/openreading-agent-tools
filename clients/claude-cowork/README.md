@@ -1,28 +1,39 @@
 # Claude Cowork plugin candidate
 
-This development package bundles Python, Docling, OCR assets, and the local document tools for macOS on Apple Silicon.
-Claude limits uploaded plugin archives to 200 MB. The smaller candidate downloads its pinned 171 MB layout model at first use.
-Setup needs internet access to Hugging Face and its HTTPS download CDN; no source documents are sent during setup.
-The downloaded bytes must match the recorded SHA-256 and length before the runtime starts.
-After setup, local processing needs no model download. Installation and first-start behavior remain manual acceptance checks.
-No separate interpreter, package manager, or server is needed for default local processing.
-Cowork installation and native launch are pending manual acceptance. This unsigned candidate is not a public release.
+The small plugin downloads its complete pinned runtime during first-use setup on macOS Apple Silicon.
+That runtime includes Python, Docling, layout weights, OCR assets, and the local document tools.
+You do not install Python, Node, a package manager, or a separate server for default local processing.
+The plugin verifies the downloaded archive's SHA-256 and exact length before extraction and activation.
+Setup sends no source documents. After setup, local processing needs no further dependency or model downloads.
+
+Bundled Docling remains the default when no destination settings exist. Saved settings continue to apply.
+The same runtime supports an optional OpenReading Core destination, on localhost or a configured HTTPS service.
+That service can be yours, or a future compatible service operated by OpenReading.
+This package does not create or manage that service. Server processing never silently falls back to local Docling.
+
+Cowork installation, first-start feedback, native launch, and clean-machine behavior remain manual acceptance checks.
+This unsigned candidate is not a public release. Building a package does not publish its runtime download.
+A missing HTTPS asset blocks installation readiness even when the plugin archive validates.
 
 ## Manual installation
 
-In Claude Cowork, open Plugins, then Add, then Upload plugin.
-Choose `openreading-claude-cowork.zip` and record the installation result and any permission prompts.
-The ZIP contains `.claude-plugin/plugin.json` and the packaged runtime; the separate `.mcpb` uses Extensions instead.
-Do not install both registrations. They expose the same tools and share the `claude-desktop` settings and retained data.
-Removing a registration does not erase those retained documents or saved settings.
+Wait until the candidate's exact runtime asset is published and its HTTPS download is verified.
+In Claude Cowork, open Plugins, then Add, then Upload plugin, and choose `openreading-claude-cowork.zip`.
+Record installation, setup progress, any permission prompts, and whether a reconnect is required after initial setup.
+The ZIP contains skills, launcher, Settings helper, and manifests. Its runtime asset is a separate download.
+The older all-in-one ZIP exceeded the observed 200 MB upload limit.
+The layout-only candidate passed that limit but exceeded the separate 200 MB expanded-size limit. Neither is installable.
 
-Start a new Cowork task and ask which OpenReading tools are available. Expect nine tools.
-Then ask OpenReading to select a synthetic document, import it, and quote its text with the physical page.
+The separate `.mcpb` uses Extensions. Do not enable both registrations together.
+They expose the same tools and share the `claude-desktop` settings and retained data.
+Removing a registration does not erase retained documents, saved settings, or the runtime cache.
+
+Start a new Cowork task and ask which OpenReading tools are available. Expect nine tools for this reviewed candidate.
+Ask OpenReading to select a synthetic document, import it, and quote its text with the physical page.
 Select it through OpenReading's chooser rather than attaching the original document to the conversation.
-Absent saved destination settings, processing uses bundled Docling. Existing saved settings still apply.
 Requested document content enters Claude's context; local processing does not keep those excerpts off its cloud model.
 
-The included OpenReading Settings app selects an optional operator-run Core destination.
+The included OpenReading Settings app selects an optional Core destination or returns to local Docling.
 The unpacked `plugin` folder beside the ZIP provides a visible copy of that helper for manual settings checks.
 Changing settings requires reconnecting the tools. Server selection requires confirmation before sending the selected bytes.
 Credentials stay out of model arguments. Cancelling locally may leave submitted server processing running.
@@ -30,24 +41,33 @@ A stopped selection requires selecting and confirming documents again; never aut
 
 ## Build again
 
-From the Agent Tools repository, assemble a reviewed chat extension using the existing runtime packager.
-Then run the archive builder against that extension directory:
+From Agent Tools, assemble a reviewed chat extension using the existing runtime packager.
+Run this builder against the extension directory, supplying the intended HTTPS asset directory:
 
 ~~~sh
 uv run --frozen --project runtime python -m runtime.claude_plugin \
   --extension /absolute/path/to/reviewed-extension \
   --output /absolute/path/to/new-cowork-candidate \
-  --download-layout
+  --runtime-base-url https://downloads.example.com/openreading/reviewed-version
 ~~~
 
-The builder checks the existing runtime inventory, source manifest, workflow, and Settings helper hashes.
-It retains the source version and Core identity, creates the Claude plugin metadata, and writes the ZIP and `candidate.json`.
-It refuses existing output, symlinks, and ZIPs above 200,000,000 bytes. ZIP entries preserve executable permissions; host extraction needs manual verification.
+The example hostname is a placeholder. Use an actual approved destination for an installable candidate.
+The builder verifies runtime inventory, source manifest, workflow, and Settings helper hashes.
+It creates a small plugin ZIP, `candidate.json`, and the separate immutable payload under `runtime/`.
+The receipt binds the URL, payload digest and length, original Core identity, runtime inventory hash, and worker digest.
+Publish that exact payload at the recorded URL only after distribution approval, then independently verify its download.
+Building never publishes assets, accesses that URL, installs a plugin, edits client settings, or launches the real worker.
+
+The builder refuses existing output, symlinks, and plugin ZIPs above either 200,000,000-byte size limit.
+Runtime assets may exceed that limit because they are outside the plugin upload.
 The first-use launcher uses macOS system tools and a private cache under `~/Library/Application Support/OpenReading/agent-tools/runtime-cache/`.
-Only complete model-verified setups become available; failed downloads leave no published runtime.
-The worker verifies the unchanged full runtime inventory on every start. The cache persists across plugin removal.
-Concurrent starts may download duplicate model bytes before sharing one complete cached runtime.
-A slow first download may exceed the host startup deadline; native feedback, reconnect behavior, and clean-machine timing remain unverified.
-The original all-in-one archive exceeded the observed Claude limit and failed before installation.
-Packaging never installs a plugin, changes client configuration, or launches a worker or Settings helper.
+Cache identity comes from the pinned runtime inventory, allowing different client wrappers to reuse the same complete runtime.
+Client settings and retained document stores remain separate from this shared software cache.
+Both destinations currently acquire the same complete runtime, even when you intend to use server processing.
+A separate smaller server-only runtime is not implemented.
+
+Only a complete download with matching size, digest, worker, inventory and executable permission becomes available.
+The worker verifies its full inventory on each launch. Setup failures publish no partial runtime.
+Concurrent starts may download duplicate bytes before sharing one complete cached runtime.
+A slow download may exceed host startup deadlines. Reconnect behavior and visible feedback remain native acceptance requirements.
 Native install, chooser, permissions, exports, local/server workflows, clean-machine setup, and signing need separate evidence.

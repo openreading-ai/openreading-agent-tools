@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 17
+spec_revision: 20
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-16T00:00:00Z"
+updated_at: "2026-09-20T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -30,11 +30,11 @@ Readers also need to check answers against the source.
 A convincing answer without a resolvable document and page reference cannot support that review.
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
-The first intended user runs Claude Desktop on a Mac with Apple Silicon.
-ChatGPT desktop remains a primary product target, with each conversation mode subject to its own local-execution proof.
-The desired nondeveloper route is a Chat conversation; Work requires separate proof of local execution.
-A Codex local thread is a developer target and cannot satisfy the Chat conversation goal.
-Claude Code and Codex are developer integration targets using the same engine and evidence contracts.
+The first platform remains macOS on Apple Silicon.
+Revision 20 requires the [eight-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
+Each surface must support default bundled Docling and an optional operator-run Core server.
+Ordinary Chat and cloud code sessions do not satisfy these targets. Grok remains future scope.
 A supported client means one recorded application version, execution mode, and connection path that passes the functional checks.
 Support for one desktop mode does not establish support for its web, mobile, or remotely executed modes.
 
@@ -71,7 +71,7 @@ A 1,000,000-byte configurable budget measures the entire serialized MCP response
 A fitting result is sent intact. The host may present it inline or save it into a file accessible through its existing tools.
 A larger result is saved as complete JSON under Downloads/OpenReading, with its byte count, hash and warning summary.
 The host's local-file capability or an explicit user attachment supplies access; a local path alone does not.
-Manual attachment sends exported content to the assistant host. Cowork is optional, and no execution environment is bundled.
+Manual attachment sends exported content to the assistant host. Claude Cowork is a required surface, but no host execution environment is bundled.
 This delivery budget never limits document processing and never silently truncates normalized content.
 Requested content enters the assistant context; full retrieval can include all retained extracted text.
 Neither route changes the configured parser or infers document relationships.
@@ -82,7 +82,10 @@ Neither is an LLM-generated summary.
 
 The first distributed backend is an in-process Docling profile with local ONNX layout inference.
 PDFium supplies preflight and rendering; bundled Tesseract automatically reads eligible image text while preserving usable native text.
-The bundle includes its layout weights and selected OCR language data, with no runtime download.
+The runtime includes its layout weights and selected OCR language data.
+A small plugin downloads the complete version-pinned runtime during first-use setup.
+Setup verifies its digest and size before activation and requires no user-installed interpreter or package manager.
+Document processing performs no dependency or model downloads after setup.
 PyMuPDF remains available in core but is excluded from this distributed bundle.
 A backend is the engine that reads a document, wrapped by OpenReading core.
 The configured adapter owns supported formats through the [core adapter catalog](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md).
@@ -93,7 +96,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 17 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 20 requires eight independently tested client/destination combinations; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -124,7 +127,8 @@ Tool completeness does not mean every backend is installed or every operation ha
 The bundled runtime remains slim Docling only; unsupported capabilities must return core's explicit errors or warnings.
 If a new core tool cannot meet its contract under that boundary, resolve the scope before updating the release pin; never silently hide it for managed v2.
 Power users can separately install full core and register its MCP server through their assistant's own configuration.
-Agent Tools does not manage that installation or add a local backend/server selector.
+Agent Tools does not manage that installation or offer alternate bundled local engines.
+Revision 18 permits a separate operator-run Core HTTP destination while preserving bundled Docling as the default.
 
 Managed processing has only a static “Coming soon” visual at launch.
 No service endpoint, no-op server, authentication, upload, billing, capability polling, or inactive managed tool is included.
@@ -135,7 +139,7 @@ The [OSS launch design](../../design/oss-launch.md) owns the catalog proof and p
 
 ~~~productspec-scope
 in:
-  - Deliver a signed and notarized Claude Desktop runtime for macOS on Apple Silicon with pinned Docling, PDFium, ONNX layout weights, and Tesseract; add ChatGPT desktop only under a separately passed, named local conversation mode.
+  - Deliver signed and notarized packages for macOS on Apple Silicon across Claude Cowork, ChatGPT Work, local Claude Code, and Codex; independently verify bundled Docling and optional operator-run Core processing in every surface.
   - Disclose the bundled local vision model and automatic local OCR, preserve usable native text, and label OCR-derived evidence without requiring users to choose a mode.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Require no directory-path configuration in public installation; accept explicitly selected adapter-supported local documents through a verified file picker or handoff, with one artifact per import.
@@ -149,12 +153,12 @@ in:
   - Publish only supported native functional results; label token savings unmeasured unless the actual Desktop app exposes complete verified counters.
 out:
   - Do not invoke provider model APIs, use an agent SDK as a substitute for Desktop, buy API credits, or run separately metered trials.
-  - Do not build a managed endpoint, dummy or no-op service, remote connection, authentication client, upload bridge, signup flow, billing system, polling, dormant managed tools, or company document index.
+  - Do not build a managed endpoint, dummy service, managed authentication or upload bridge, signup flow, billing, dormant managed tools, or company document index.
   - Do not include a local language model, Docker, Cuttlefish, PyMuPDF, torch, torchvision, or docling-ibm-models in the distributed proof.
   - Do not implement ChatGPT web, mobile, remote execution, tunneling, Windows, Linux, or Intel Mac support in this proof.
   - Do not provide an operating-system sandbox or claim that a cloud assistant sees no document information.
   - Do not change existing core CLI, Python API, HTTP behavior, backend selection, password support, or default installation dependencies for assistant integration.
-  - Do not offer alternate backends, endpoint configuration, or credential setup in the first assistant profile.
+  - Do not let model tool arguments choose a backend, endpoint, credential, or processing destination. Bundled local processing uses Docling.
   - Do not make an embedding service, vector database, semantic summarizer, or answer-generating model part of this runtime.
 cut:
   - Support explicit files and recursive folder snapshots through one native chooser. Retain separate copied references and per-document jobs; paginate receipt entries without reopening selection. Native acceptance remains pending.
@@ -172,6 +176,44 @@ The assistant may have separate file and shell tools whose access OpenReading ca
 The current explicit directory form remains a developer-only fixture mechanism.
 An ordinary chat attachment is not assumed to reach local MCP or bypass the host upload limits.
 A public route without verified local file handoff cannot pass installation acceptance.
+
+## Optional operator-run Core destination
+
+Revision 18 adds an optional Core HTTP destination that you configure locally.
+A destination is where your selected bytes are processed. Bundled Docling remains the default.
+The Core destination may be your own process on localhost or an explicitly configured HTTPS service.
+A future OpenReading-operated service can use this same destination option when compatible and available.
+This requirement does not create, publish, or promise availability of such a service.
+Agent Tools never installs or manages that process. Its existing Core configuration chooses processing.
+This option is distinct from the unbuilt managed product.
+
+Before upload, selection shows the destination, file names, count, and total bytes for confirmation.
+Selected bytes and filenames reach that server. Its configured backends may use other services.
+Results remain in local evidence storage and enter the assistant when retrieved.
+Changing the destination invalidates consent for unprocessed selections. Existing jobs retain their approved destination.
+Server selection accepts regular files without claiming that every selected format is supported.
+It preserves the existing folder exclusions and individual file outcomes.
+
+The client uses the existing multipart parse API with a null backend ID.
+It preserves normalized values, partial status, exact uploaded-source identity, and unmeasured provenance.
+Structured-only results remain available through complete delivery, without fabricated quotes or pages.
+A server failure never silently invokes Docling or another destination.
+Shared connection or authorization failures stop later submissions; document rejections preserve sibling outcomes.
+
+Parse requests are never retried automatically. Cancellation ends local waiting and future dispatch only.
+Submitted server processing can continue. Interrupted work has an unknown remote outcome.
+The source limit is 100 MiB in server mode; the default decoded response limit is 128 MiB.
+These transport limits do not cap bundled Docling processing or change complete-result delivery budgets.
+Non-loopback servers require verified HTTPS. Redirects, credential-bearing URLs, queries, and fragments are refused.
+Optional existing bearer credentials stay in Keychain, outside tool arguments, argv, and job records.
+
+The source HTTP transport, private settings store, and native Settings window are implemented and tested offline.
+The Keychain wrapper is tested against a fake framework without accessing real credentials.
+The launcher, selection consent, serialized uploads, and completed-download recovery are implemented.
+Offline tests exercise the actual pinned Core retention and MCP retrieval interfaces.
+Frozen runtime and owner-operated native feature acceptance remain separate release gates.
+The owner-operated synthetic ChatGPT probe establishes loopback connectivity only.
+It does not establish the finished server destination or a frozen runtime.
 
 ## User Experience
 
@@ -230,7 +272,7 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 17 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 20 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
@@ -289,7 +331,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-21
   criterion: The public profile preserves usable native text and automatically reads eligible image text, including mixed pages, without an OCR setup choice; unreadable image text remains disclosed and no cloud or model-selected fallback is allowed; OCR, mixed and unknown text origins are visibly labeled in citations, all source provenance entries are handled without invented page attribution, and missing table text is disclosed.
 - id: AC-22
-  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no runtime downloads, and passes the frozen offline retrieval gate before native Desktop acceptance testing.
+  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no downloads during document processing after verified first-use setup, and passes the frozen offline retrieval gate before native Desktop acceptance testing.
 - id: AC-23
   criterion: Assistant launchers remain optional consumers of core; an isolated ordinary core installation preserves CLI, Python API, HTTP contracts, and backend selection without requiring Agent Tools, assistant settings, or local model assets.
 - id: AC-24
@@ -297,7 +339,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-25
   criterion: Shared setup semantics require explicit per-file user selection, an internally managed intake grant and automatic bundled OCR, refuse unknown backend or credential fields, and never infer access from the working directory or another client's settings; any host-shared registration is disclosed, the grant limits only OpenReading tools, and native evidence establishes local execution rather than a remote executor.
 - id: AC-26
-  criterion: ChatGPT desktop is supported only after a named application version and conversation mode completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; a Codex local thread is labeled as such and never passes the Chat conversation target.
+  criterion: ChatGPT Work is supported only after a named application version completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; Codex requires its own acceptance and cannot pass the Work target.
 - id: AC-27
   criterion: Every released wrapper exposes all implemented MCP tools from its pinned core version without a commercial filter; tool names, schemas and annotations match core after documented host qualification, descriptions and initialization instructions match the pinned core under equivalent profile settings, every tool has a functional case preserving core result contracts, and missing or changed tools fail pin-update and final package verification; existing checks supply this evidence without a duplicate test framework.
 - id: AC-28
@@ -312,6 +354,19 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: Public v1 supports adapter-declared formats through explicit multi-file and folder snapshot selection without granting live directory access; the user controls selection, each selected eligible file has a distinct result and discoverable job, physical-page provenance is never invented for unpaginated formats, explicit hidden-file choices are honored while hidden descendants are skipped, and unimplemented traversal or cancellation semantics block that feature's acceptance.
 - id: AC-33
   criterion: Analytics distinguish server-observed downloads, marketplace-reported installs and explicitly opted-in client events; default clients send no telemetry, local processing timings remain local, diagnostic sharing is explicit, and any future managed-service usage measurement belongs to separate service terms.
+
+- id: AC-34
+  criterion: Bundled Docling remains the default; an explicitly configured operator-run Core destination requires native selection consent bound to its configuration revision, sends selected bytes through the existing parse API, preserves individual results, and never silently changes destinations.
+- id: AC-35
+  criterion: Server transport refuses redirects and invalid TLS, bounds uploads and decoded responses, rejects duplicate-key or nonfinite JSON, never retries parsing automatically, and reports cancellation or interrupted submission without claiming remote cancellation; credentials never enter model arguments or persisted job snapshots.
+- id: AC-36
+  criterion: Server responses retain exact source identity, normalized values, partial status, warnings and truthful provenance; structured-only results remain available without invented quotes, while frozen and native acceptance independently verify settings, consent, reconnect, cancellation and complete delivery.
+
+- id: AC-37
+  criterion: All eight assistant/surface/destination cells in the required compatibility matrix pass independent exact-build native and clean-install acceptance; Claude Cowork, ChatGPT Work, local Claude Code, and Codex each support default bundled Docling without user-installed runtime prerequisites and optional operator-run Core processing; each server cell proves localhost and valid remote HTTPS, consent, credentials, failure recovery, and return to local mode; historical workflows and protocol checks retain their scope and cannot substitute for missing cell evidence.
+
+- id: AC-38
+  criterion: A small plugin provisions a pinned self-contained runtime without user-installed Python, Node, package managers, or manual server startup; setup verifies exact bytes before activation, reuses a versioned cache, refuses corrupt or incomplete downloads, and preserves default local Docling plus explicit optional Core-server settings; each native host independently proves startup feedback, timeout recovery, local and server workflows, and switching back to local.
 
 ~~~
 
