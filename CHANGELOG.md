@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased Claude plugin packaging
+
+- Add a build-only Claude plugin ZIP wrapper around a verified Docling chat extension. Native Cowork acceptance remains pending.
+
 ## Unreleased ChatGPT development plugin
 
 - Replace the unexpanded plugin command placeholder with an explicit working directory and relative executable path.

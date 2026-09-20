@@ -125,6 +125,8 @@ Full plugin installation acceptance, ordinary Chat, signing and clean-machine ch
 
 ## Per-client guides
 
+- [Claude Cowork plugin](claude-cowork/README.md): ZIP candidate assembly and pending manual installation.
+
 - [Claude Desktop](claude-desktop/README.md): partial owner-run Docling checks, manual developer setup, and historical package walkthrough.
 - [ChatGPT desktop](chatgpt/README.md): documented connection candidate and remaining verification.
 - [Claude Code](claude-code/README.md): historical marketplace and configuration evidence.
