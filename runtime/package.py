@@ -11,6 +11,7 @@ The chatgpt storage namespace remains unchanged, including existing intake and e
 WORKFLOW.md is a review copy; actual model instructions come from the pinned core server.
 The selected-documents variant removes the directory setting and adds a co-located GUI app.
 Its wrapper starts the verified worker without user-controlled shell interpolation.
+Both chat packages include a Settings helper bound to their own client namespace.
 The helper wrapper and plist have package hashes; signing remains a distribution gate.
 """
 
@@ -175,8 +176,7 @@ def _docling_runtime(runtime: Path, *, selection: bool = False, chat: bool = Fal
     return metadata
 
 
-def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
-    metadata = _docling_runtime(runtime, chat=True)
+def _server_destination(metadata: dict) -> None:
     if not {
         "_internal/runtime/server_profile.py",
         "_internal/runtime/server_imports.py",
@@ -192,6 +192,35 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
         raise ValueError(
             "Rebuild with optional server destination support before packaging Settings."
         )
+
+
+def _settings_helper(target: Path, client: str) -> tuple[Path, Path]:
+    contents = target / "OpenReading Settings.app/Contents"
+    executable = contents / "MacOS/openreading-settings"
+    executable.parent.mkdir(parents=True)
+    executable.write_text(
+        f'#!/bin/sh\nset -eu\nbase=$(/usr/bin/dirname "$0")\nexec "$base/../../../server/openreading-worker" --client {client} --destination-settings\n'
+    )
+    executable.chmod(0o755)
+    (contents / "Info.plist").write_bytes(
+        plistlib.dumps(
+            {
+                "CFBundleExecutable": "openreading-settings",
+                "CFBundleIdentifier": f"ai.openreading.settings.{client}.preview",
+                "CFBundleName": "OpenReading Settings",
+                "CFBundlePackageType": "APPL",
+                "CFBundleVersion": "1",
+                "CFBundleShortVersionString": "0.2.0",
+                "NSHighResolutionCapable": True,
+            }
+        )
+    )
+    return contents, executable
+
+
+def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
+    metadata = _docling_runtime(runtime, chat=True)
+    _server_destination(metadata)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     target = output / "plugins/openreading-local-documents"
@@ -201,26 +230,7 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     verify_release(target / "server")
     # Bind package-owned inputs separately; the unchanged runtime retains its own inventory.
     files = [".codex-plugin/plugin.json", ".mcp.json", "README.md"]
-    contents = target / "OpenReading Settings.app/Contents"
-    executable = contents / "MacOS/openreading-settings"
-    executable.parent.mkdir(parents=True)
-    executable.write_text(
-        '#!/bin/sh\nset -eu\nbase=$(/usr/bin/dirname "$0")\nexec "$base/../../../server/openreading-worker" --client chatgpt --destination-settings\n'
-    )
-    executable.chmod(0o755)
-    (contents / "Info.plist").write_bytes(
-        plistlib.dumps(
-            {
-                "CFBundleExecutable": "openreading-settings",
-                "CFBundleIdentifier": "ai.openreading.settings.chatgpt.preview",
-                "CFBundleName": "OpenReading Settings",
-                "CFBundlePackageType": "APPL",
-                "CFBundleVersion": "1",
-                "CFBundleShortVersionString": "0.2.0",
-                "NSHighResolutionCapable": True,
-            }
-        )
-    )
+    contents, executable = _settings_helper(target, "chatgpt")
     files.extend(
         path.relative_to(target).as_posix() for path in (executable, contents / "Info.plist")
     )
@@ -271,6 +281,8 @@ def package_docling_desktop(
     if selection and chat:
         raise ValueError("Choose one selection candidate mode.")
     metadata = _docling_runtime(runtime, selection=selection, chat=chat)
+    if chat:
+        _server_destination(metadata)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
@@ -330,11 +342,13 @@ def package_docling_desktop(
     if chat:
         manifest = json.loads((output / "manifest.json").read_text())
         manifest["name"] = "openreading-chat-selection-preview"
+        manifest["version"] = "0.2.0-alpha.2+server.20260920"
         manifest["display_name"] = "OpenReading Chat Documents (development)"
         manifest["long_description"] = (
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "
             "Ask OpenReading to choose local documents or folders. The configured adapter supplies the supported formats. "
-            "Ask a question in chat. OpenReading processes selected documents locally with automatic OCR where supported. "
+            "Bundled Docling processes selected documents locally with automatic OCR by default. "
+            "OpenReading Settings can select your own Core server, with confirmation before sending selected bytes. "
             "Selected copies and evidence remain locally until removed; requested document content enters "
             "your assistant context. OCR can misread words and identifiers. Verify important "
             "quotes against the printed page. Use Cancel in the file dialog to dismiss it; "
@@ -361,6 +375,11 @@ def package_docling_desktop(
         ]
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
+        contents, executable = _settings_helper(output, "claude-desktop")
+        helper_metadata = {
+            "helper_sha256": sha256(executable),
+            "helper_info_sha256": sha256(contents / "Info.plist"),
+        }
     # Bind the review materials without claiming these hashes authenticate a publisher.
     (output / "package-info.json").write_text(
         json.dumps(

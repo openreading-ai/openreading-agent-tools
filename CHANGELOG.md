@@ -2,6 +2,8 @@
 
 ## Optional server transport foundation
 
+- Include a client-bound Settings app in the Claude chat candidate as well as ChatGPT.
+
 - Preserve literal URL and filename text in the native upload confirmation.
 
 - Add a source HTTP client for one selected snapshot and an explicitly configured Core destination.

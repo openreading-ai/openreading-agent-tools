@@ -5,6 +5,18 @@ The selected reference returns through MCP without copying a path or configuring
 Automatic local OCR uses the bundled slim Docling pipeline and Tesseract assets.
 Native focus, accessibility, installation and cancellation acceptance remain to be verified.
 
+## Processing destination
+
+Bundled Docling remains the default. Server mode is optional and requires your separately running Core process.
+Open **OpenReading Settings.app** beside the unpacked candidate's manifest to choose your destination.
+Enter its URL and optional bearer token, test the connection, save, then restart the extension connection.
+The connection test sends no document. Tokens are stored in macOS Keychain, separately from ChatGPT settings.
+A loopback URL can use HTTP. Other destinations require verified HTTPS.
+Server mode confirms the destination, selected filenames and byte counts before sending their bytes.
+The server may use external providers. Local cancellation does not guarantee cancellation of server processing.
+No server error silently falls back to local parsing or retries a submitted document.
+The native Settings, Keychain and server-mode walkthrough remain acceptance checks for this candidate.
+
 ## Try the candidate
 
 Ask: "Use OpenReading to choose a local document, then find its totals."

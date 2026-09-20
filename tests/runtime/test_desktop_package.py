@@ -26,6 +26,16 @@ class DesktopPackageTests(unittest.TestCase):
             "_internal/openreading/adapters/docling_local/formats.py",
             "_internal/openreading/adapters/docling_local/unpaginated.py",
             "_internal/openreading/schemas/passage.v0.4.json",
+            "_internal/runtime/server_profile.py",
+            "_internal/runtime/server_imports.py",
+            "_internal/runtime/server_selection.py",
+            "_internal/runtime/server_transport.py",
+            "_internal/runtime/server_keychain.py",
+            "_internal/runtime/destination_settings.py",
+            "_internal/runtime/destination_ui.py",
+            "_internal/openreading/artifacts/retention.py",
+            "_internal/openreading/schemas/local-document.v0.5.json",
+            "_internal/openreading/schemas/import-job.v0.4.json",
             "_internal/runtime/native_selection.py",
             "_internal/runtime/snapshot_selection.py",
             "_internal/openreading/artifacts/document.py",
@@ -447,3 +457,50 @@ console.log(JSON.stringify(results));
                 with self.assertRaisesRegex(ValueError, "snapshot selection"):
                     self.operation()(source.root, output, chat=True)
                 self.assertFalse(output.exists())
+
+    def test_chat_settings_helper_remains_bound_to_claude_after_relocation(self):
+        import plistlib
+        import shutil
+
+        from test_chatgpt_package import ChatGPTPackageTests
+
+        fixtures = ChatGPTPackageTests()
+        self.addCleanup(fixtures.doCleanups)
+        source = fixtures.fixture()
+        worker = source.root / "openreading-worker"
+        worker.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\"\n")
+        source.metadata["files"] = inventory(source.root)
+        source.metadata["worker_sha256"] = sha256(worker)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temporary:
+            built = Path(temporary) / "built"
+            package.package_docling_desktop(source.root, built, chat=True)
+            moved = Path(temporary) / "installed café space"
+            shutil.move(built, moved)
+            contents = moved / "OpenReading Settings.app/Contents"
+            self.assertTrue(contents.is_dir(), "Claude server settings app is missing")
+            info = plistlib.loads((contents / "Info.plist").read_bytes())
+            helper = contents / "MacOS" / info["CFBundleExecutable"]
+            process = subprocess.run([str(helper)], capture_output=True, text=True, check=True)
+            self.assertEqual(
+                process.stdout.splitlines(),
+                ["--client", "claude-desktop", "--destination-settings"],
+            )
+            metadata = json.loads((moved / "package-info.json").read_text())
+            self.assertEqual(metadata["helper_sha256"], sha256(helper))
+            self.assertEqual(metadata["helper_info_sha256"], sha256(contents / "Info.plist"))
+
+    def test_chat_settings_refuses_runtime_without_server_support(self):
+        from test_chatgpt_package import ChatGPTPackageTests
+
+        fixtures = ChatGPTPackageTests()
+        self.addCleanup(fixtures.doCleanups)
+        source = fixtures.fixture()
+        (source.root / "_internal/runtime/server_profile.py").unlink()
+        source.metadata["files"] = inventory(source.root)
+        source.write_metadata()
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "candidate"
+            with self.assertRaisesRegex(ValueError, "server destination"):
+                package.package_docling_desktop(source.root, target, chat=True)
+            self.assertFalse(target.exists())
