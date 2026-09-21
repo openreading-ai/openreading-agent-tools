@@ -2,6 +2,8 @@
 
 ## Native settings integration candidate
 
+- Add a complete offline Claude setup package with an Application Support runtime cache and reversible fresh-state backups.
+
 - Color server connection results and disable server checks while bundled processing is selected.
 
 - Organize Settings into Processing, Storage and Advanced with independent saves and Restore defaults.

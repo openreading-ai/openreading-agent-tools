@@ -277,3 +277,18 @@ The control records remain in the original Application Support client directory.
 The existing `destination_settings.py` keeps bearer credentials in Keychain and stores references only.
 `public_profile.py` applies these choices to local and server processing without changing Core's tool catalog.
 The integrated build's native and release gaps are tracked in [native settings acceptance](../design/native-settings.md).
+
+## Fresh Claude setup package
+
+Build the offline setup directory with `python -m runtime.package --cowork-installer --runtime RUNTIME --output OUTPUT`.
+The directory includes a verified runtime, `Install OpenReading.command`, `OpenReading-Claude.zip`, and a synthetic test document.
+The setup command copies the runtime into Application Support before executing the packaged installer.
+Claude owns the plugin upload and local-connector approval through Customize > Plugins.
+The generated launcher starts from the home directory and uses a versioned Application Support runtime cache.
+It never depends on the downloaded setup directory after installation.
+
+`fresh_install.py` owns reset and backup behavior. It refuses active Claude workers, locked connections and unfinished imports.
+Prior Claude settings and the default data partition move into private backups, with original paths recorded for restoration.
+A failed backup operation restores earlier moves. Custom data directories, other clients and Keychain entries remain intact.
+The installer needs no user-installed Python or network download. It does not sign code or change macOS privacy permissions.
+This supports a fresh local-install trial; signed distribution and clean-machine acceptance remain separate gates.

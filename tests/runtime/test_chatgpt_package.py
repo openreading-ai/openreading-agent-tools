@@ -35,6 +35,7 @@ class ChatGPTPackageTests(unittest.TestCase):
             "_internal/runtime/app_settings.py",
             "_internal/runtime/storage_settings.py",
             "_internal/runtime/public_profile.py",
+            "_internal/runtime/fresh_install.py",
             "_internal/openreading/artifacts/retention.py",
             "_internal/openreading/schemas/local-document.v0.5.json",
             "_internal/openreading/schemas/agent-document-tool.v0.5.json",

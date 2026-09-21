@@ -193,3 +193,19 @@ The MCPB candidate still includes the directly opened Settings helper. Slash-com
 Save each tab explicitly and reconnect the document connector. Finish imports before moving data.
 Changes preserve the original store and never merge an occupied target client partition.
 Self-contained assembly does not establish Cowork archive-size or clean-install acceptance.
+
+## Fresh install on macOS Apple Silicon
+
+Use the complete offline setup directory. Quit Claude and close OpenReading windows before running `Install OpenReading.command`.
+The command preserves prior Claude settings and default retained data in a backup and prints its location.
+It installs the runtime in Application Support, then leaves plugin registration to Claude.
+Open Customize > Plugins > Add > Upload plugin and select the included `OpenReading-Claude.zip`.
+Enable the plugin, accept its local connector prompt, and open a new Cowork task.
+Run `/openreading-settings`, review all three tabs, and save any changes you want.
+Reconnect the document connector after saving. Import the included `OpenReading-test.md` through the native picker.
+Its reference is `OR-FRESH-001`; the expected total is 19 items.
+
+The package includes its runtime and model assets. It needs no user-installed Python or model download.
+Terminal may ask to read Downloads during setup. Runtime startup reads its Application Support installation afterward.
+Selecting a document in a protected folder can still require macOS permission.
+This development package remains ad-hoc signed. A fresh installation on the development Mac does not establish clean-machine acceptance.

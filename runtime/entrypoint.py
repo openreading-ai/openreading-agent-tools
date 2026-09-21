@@ -11,6 +11,8 @@ Absent destination settings keep bundled Docling. Explicit server settings use a
 The --destination-settings native window changes those choices without granting documents.
 The separate --settings-tools connector exposes its no-argument opener, including when
 invalid document settings refuse startup. Historical developer flags remain supported.
+The --fresh-install setup entry installs a verified Application Support runtime and backs
+up Claude state before a fresh trial. Claude still owns plugin registration and approval.
 The older selection modes reject directory configuration. MCP supplies private completed intake
 copies and ignores saved grants; developer OCR remains an explicit argument, default off.
 
@@ -61,6 +63,20 @@ def main(argv: list[str] | None = None) -> int:
                 {key: metadata[key] for key in ["release_version", "core_commit", "worker_sha256"]}
             )
         )
+        return 0
+    if metadata.get("format_version") == "2" and argv == ["--fresh-install"]:
+        from openreading.artifacts.limits import ArtifactError
+
+        from runtime.fresh_install import install
+
+        try:
+            receipt = install(root)
+        except (OSError, ValueError, ArtifactError) as error:
+            print(f"Fresh setup stopped: {error}", file=sys.stderr)
+            return 2
+        print("OpenReading runtime installed in Application Support.")
+        print("Prior Claude state backup: " + receipt["backup"])
+        print("Next: open Claude and upload the included OpenReading-Claude.zip plugin.")
         return 0
     if metadata.get("format_version") == "2" and argv[:1] == ["--internal-artifact-job"]:
         from openreading.artifacts.jobs import main as job_main

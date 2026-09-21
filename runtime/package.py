@@ -13,6 +13,8 @@ The selected-documents variant removes the directory setting and adds a co-locat
 Its wrapper starts the verified worker without user-controlled shell interpolation.
 Both chat packages include a Settings helper bound to their own client namespace.
 The helper wrapper and plist have package hashes; signing remains a distribution gate.
+The Cowork installer output separates a small native plugin upload from its bundled runtime.
+Setup stages execution outside Downloads and backs up existing Claude state before a fresh trial.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ import argparse
 import json
 import plistlib
 import shutil
+import zipfile
 from pathlib import Path
 
 from runtime.verify import sha256, verify_release
@@ -338,6 +341,132 @@ def package_cowork_plugin(runtime: Path, output: Path) -> Path:
     return output
 
 
+def package_cowork_installer(runtime: Path, output: Path) -> Path:
+    """Package an offline macOS setup command and Claude-owned plugin registration."""
+    metadata = _docling_runtime(runtime, chat=True)
+    _server_destination(metadata)
+    if "_internal/runtime/fresh_install.py" not in metadata["files"]:
+        raise ValueError("Rebuild with fresh-install support before packaging setup.")
+    output.mkdir(parents=True, exist_ok=False)
+    shutil.copytree(runtime, output / "runtime", symlinks=True)
+    worker_hash = metadata["worker_sha256"]
+    plugin = output / "plugin"
+    (plugin / ".claude-plugin").mkdir(parents=True)
+    (plugin / ".claude-plugin/plugin.json").write_text(
+        json.dumps(
+            {
+                "name": "openreading-local-documents",
+                "version": "0.2.0-alpha.7",
+                "description": "OpenReading document tools and native settings. Uses the accompanying offline runtime installer.",
+                "author": {"name": "OpenReading"},
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    (plugin / ".mcp.json").write_text(
+        json.dumps(
+            {
+                "mcpServers": {
+                    name: {"command": "/bin/sh", "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", flag]}
+                    for name, flag in (
+                        ("openreading", "--chat-documents"),
+                        ("openreading-settings", "--settings-tools"),
+                    )
+                }
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    launcher = plugin / "launch.sh"
+    launcher.write_text(
+        '#!/bin/sh\nset -eu\ncd "$HOME"\n'
+        f'worker="$HOME/Library/Application Support/OpenReading/agent-tools/runtime-cache/{worker_hash}/openreading-worker"\n'
+        'if [ ! -x "$worker" ]; then\n'
+        '  echo "Run Install OpenReading.command from the matching setup package first." >&2\n'
+        '  exit 2\nfi\nexec "$worker" --client claude-desktop "$@"\n'
+    )
+    launcher.chmod(0o755)
+    shutil.copytree(REPOSITORY / "skills", plugin / "skills")
+    (plugin / "README.md").write_text(
+        "# OpenReading for Claude\n\nRun the accompanying offline installer before uploading this plugin.\n"
+        "Use `/openreading-settings` for Processing, Storage and Advanced.\n"
+        "The runtime lives in Application Support and never executes from the downloaded setup folder.\n"
+        "This is a development build. Signing and clean-machine acceptance remain pending.\n"
+    )
+    with zipfile.ZipFile(output / "OpenReading-Claude.zip", "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(plugin.rglob("*")):
+            if path.is_file():
+                archive.write(path, path.relative_to(plugin))
+    setup = output / "Install OpenReading.command"
+    setup.write_text(
+        """#!/bin/sh
+set -eu
+package_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+install_base="$HOME/Library/Application Support/OpenReading/agent-tools"
+for folder in "$HOME/Library" "$HOME/Library/Application Support" "$HOME/Library/Application Support/OpenReading" "$install_base"; do
+  if [ -L "$folder" ]; then echo "Setup refuses a symbolic-link installation directory." >&2; exit 2; fi
+done
+mkdir -p "$install_base"
+stage=$(mktemp -d "$install_base/.setup.XXXXXXXX")
+trap 'rm -rf "$stage"' EXIT
+echo "Copying the bundled runtime into Application Support..."
+/usr/bin/ditto "$package_dir/runtime" "$stage/runtime"
+actual=$(LC_ALL=C /usr/bin/shasum -a 256 "$stage/runtime/openreading-worker")
+actual=${actual%% *}
+"""
+        + f'expected="{worker_hash}"\n'
+        + """if [ "$actual" != "$expected" ]; then echo "Runtime checksum failed. Setup stopped." >&2; exit 2; fi
+cd "$HOME"
+"$stage/runtime/openreading-worker" --fresh-install
+echo "Plugin to upload in Claude: $package_dir/OpenReading-Claude.zip"
+"""
+    )
+    setup.chmod(0o755)
+    (output / "OpenReading-test.md").write_text(
+        "# OpenReading fresh-install check\n\nReference: OR-FRESH-001\n\n"
+        "The test delivery contains 12 blue notebooks and 7 green folders.\n"
+        "The total is 19 items.\n"
+    )
+    (output / "README.txt").write_text(
+        "OPENREADING: FRESH CLAUDE INSTALL (macOS Apple Silicon)\n\n"
+        "1. Finish or cancel OpenReading imports. Remove old OpenReading plugins/extensions in Claude.\n"
+        "2. Quit Claude and close existing OpenReading Settings windows.\n"
+        "3. Double-click Install OpenReading.command. Wait for the installed message in Terminal.\n"
+        "4. Open Claude > Customize > Plugins > Add > Upload plugin. Select OpenReading-Claude.zip.\n"
+        "5. Enable the plugin and accept its local-connector prompt.\n"
+        "6. In a new Cowork task, run /openreading-settings.\n"
+        "7. Check Processing, Storage and Advanced. Defaults are bundled Docling, ~/.openreading,\n"
+        "   1000000 inline bytes and a 256 MiB server download limit. Save only changes you want.\n"
+        "8. Reconnect the document connector after saving. Ask Claude to import a local document\n"
+        "   with OpenReading and choose OpenReading-test.md. Ask for its reference and total.\n"
+        "   Expected: OR-FRESH-001 and 19 items.\n\n"
+        "Fresh setup backs up Claude's prior settings and default data partition. It does not delete them.\n"
+        "Other clients, custom data directories and Keychain items stay intact. The backup path is printed.\n"
+        "The installed runtime lives under ~/Library/Application Support/OpenReading/agent-tools/runtime-cache/.\n"
+        "Claude manages the uploaded plugin. No user-installed Python, model download or server is required.\n"
+        "After setup succeeds, the downloaded setup folder is not needed by the running plugin.\n"
+        "Terminal may request access to Downloads while reading this installer. Normal runtime startup\n"
+        "reads Application Support instead. Selecting documents in protected folders may require permission.\n\n"
+        "This is a development build with ad-hoc signing. Signed distribution and clean-machine acceptance\n"
+        "remain unverified. Optional Core server mode requires a separately running Core server.\n"
+    )
+    (output / "build.json").write_text(
+        json.dumps(
+            {
+                "distribution": "development-only",
+                "worker_sha256": worker_hash,
+                "core_commit": metadata["core_commit"],
+                "plugin_sha256": sha256(output / "OpenReading-Claude.zip"),
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return output
+
+
 def package_docling_desktop(
     runtime: Path, output: Path, *, selection: bool = False, chat: bool = False
 ) -> Path:
@@ -461,6 +590,11 @@ def main() -> int:
         help="assemble only a development Docling Desktop candidate for local checks",
     )
     targets.add_argument(
+        "--cowork-installer",
+        action="store_true",
+        help="assemble offline fresh setup plus the Claude plugin upload archive",
+    )
+    targets.add_argument(
         "--cowork-plugin",
         action="store_true",
         help="assemble a self-contained Cowork development plugin with native settings",
@@ -484,7 +618,9 @@ def main() -> int:
     args = parser.parse_args()
     if (args.selected_documents or args.chat_documents) and not args.docling_desktop:
         parser.error("Selection candidates require --docling-desktop")
-    if args.cowork_plugin:
+    if args.cowork_installer:
+        paths = {"cowork": package_cowork_installer(args.runtime.resolve(), args.output.resolve())}
+    elif args.cowork_plugin:
         paths = {"cowork": package_cowork_plugin(args.runtime.resolve(), args.output.resolve())}
     elif args.chatgpt_plugin:
         paths = {"chatgpt": package_chatgpt_plugin(args.runtime.resolve(), args.output.resolve())}

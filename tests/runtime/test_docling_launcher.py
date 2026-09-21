@@ -356,3 +356,12 @@ class DoclingLaunchTests(unittest.TestCase):
                 main(["--client", "chatgpt", "--settings-tools", "--input-root", str(self.grant)]),
                 2,
             )
+
+    def test_fresh_installer_dispatches_only_verified_bundle_and_reports_refusal(self):
+        with patch(
+            "runtime.fresh_install.install", return_value={"backup": "/synthetic/backup"}
+        ) as install:
+            self.assertEqual(main(["--fresh-install"]), 0)
+            install.assert_called_once_with(self.bundle)
+            install.side_effect = ValueError("Close existing connections")
+            self.assertEqual(main(["--fresh-install"]), 2)
