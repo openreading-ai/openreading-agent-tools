@@ -6,9 +6,11 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 20 requires all eight cells in the [compatibility matrix](README.md#required-compatibility-matrix).
+ProductSpec revision 21 requires all eight cells in the [compatibility matrix](README.md#required-compatibility-matrix).
 Claude Cowork, ChatGPT Work, local Claude Code, and Codex each need bundled Docling and optional server acceptance.
 Track each cell independently through the [matrix checklist](clients/README.md#matrix-acceptance); historical evidence never passes another surface.
+OS/architecture is a separate dimension in the [platform backlog](clients/README.md#platform-coverage).
+The current frozen package supports macOS Apple Silicon only; other platform ports remain unbuilt.
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.

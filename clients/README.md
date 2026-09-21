@@ -38,6 +38,32 @@ A clean configuration on a development machine does not replace a clean-machine 
 Signing and notarization remain release gates even after a development walkthrough succeeds.
 Test Claude first, then ChatGPT. Neither assistant is complete until its four cells pass.
 
+## Platform coverage
+
+Platform is the fourth dimension of the client/destination matrix. A platform names both an operating system and its CPU architecture.
+Plugin manifests describe registration. They do not make native binaries, file selection, credential storage, or installation behavior portable.
+Core source or protocol compatibility does not pass a packaged Agent Tools platform check.
+
+| Platform | Runtime package | Native acceptance | Remaining work |
+| --- | --- | --- | --- |
+| macOS Apple Silicon | Development candidate exists | Cowork local selection/import and OCR have owner-reported smoke passes; full matrix pending | Resolve repeated incomplete evidence retrieval; finish current local/server acceptance, signing and clean-machine checks |
+| macOS Intel | Not built | Pending | x86_64 runtime and native dependencies, launcher/platform selection, host and lifecycle checks |
+| Windows | Not built; target architectures pending | Pending | Runtime build, launcher, chooser, Settings, credential store, paths, signing and host-route checks |
+| Linux | Not built; target architectures pending | Pending | Runtime build, launcher, chooser, Settings, credential store, distribution compatibility and host-route checks |
+
+The current launcher explicitly accepts only Darwin arm64. No Windows, Linux or Intel Mac support is claimed.
+Check official host availability before starting each platform. Record an unavailable host route as blocked with its reason and date.
+Do not replace an unavailable desktop host with its code client and claim that cell passed.
+Select and record Windows and Linux target architectures before packaging; one architecture never establishes another.
+
+Repeat the matrix checklist for every available assistant/surface on each supported platform, with both local and server destinations.
+Server mode still requires a compatible local plugin runtime for selection, consent, credentials and retained evidence.
+It does not make the current macOS launcher runnable on Windows or Linux.
+
+Finish the current owner-operated macOS acceptance before implementing platform ports.
+Track other platforms now; do not mark the macOS candidate as a cross-platform release.
+All installs and native checks remain owner-operated. No platform entry authorizes hidden installation or changing host settings.
+
 ## Documented routes
 
 Checked on 2026-09-11. These are connection candidates, not a supported-client release list.

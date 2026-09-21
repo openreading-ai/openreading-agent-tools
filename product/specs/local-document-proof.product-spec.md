@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 20
+spec_revision: 21
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-20T00:00:00Z"
@@ -31,7 +31,10 @@ A convincing answer without a resolvable document and page reference cannot supp
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
 The first platform remains macOS on Apple Silicon.
-Revision 20 requires the [eight-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Operating system and CPU architecture form a fourth compatibility dimension.
+Intel macOS, Windows and Linux remain explicit platform backlog items in the [platform tracker](../../clients/README.md#platform-coverage).
+A portable plugin manifest or Core API never establishes a portable bundled runtime.
+Revision 21 requires the [eight-cell compatibility matrix](../../README.md#required-compatibility-matrix).
 Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
 Each surface must support default bundled Docling and an optional operator-run Core server.
 Ordinary Chat and cloud code sessions do not satisfy these targets. Grok remains future scope.
@@ -96,7 +99,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 20 requires eight independently tested client/destination combinations; managed v2 is post-launch and unbuilt.**
+**Review status: revision 21 requires eight independently tested client/destination combinations; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -272,7 +275,7 @@ Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
 
-The [implementation plan](../../design/implementation-plan.md) maps revision 20 work to these criteria.
+The [implementation plan](../../design/implementation-plan.md) maps revision 21 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.
 It clarifies AC-2, AC-9, AC-14, AC-19, AC-24, AC-25, and EVAL-1.
 A Claude-only release cannot claim completion of AC-26 or the full multi-client target.
@@ -367,6 +370,9 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 
 - id: AC-38
   criterion: A small plugin provisions a pinned self-contained runtime without user-installed Python, Node, package managers, or manual server startup; setup verifies exact bytes before activation, reuses a versioned cache, refuses corrupt or incomplete downloads, and preserves default local Docling plus explicit optional Core-server settings; each native host independently proves startup feedback, timeout recovery, local and server workflows, and switching back to local.
+
+- id: AC-39
+  criterion: Platform coverage is tracked independently for macOS Apple Silicon, macOS Intel, Windows and Linux; each claimed OS/architecture has an explicit host-route check, a compatible self-contained runtime, native chooser/settings/credential behavior, and independent clean-install, local/server and lifecycle acceptance for every available matrix surface; unavailable host routes remain blocked with dated evidence, unbuilt ports remain pending, and no Core or manifest compatibility claim substitutes for native package evidence.
 
 ~~~
 

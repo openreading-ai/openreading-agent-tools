@@ -1,7 +1,7 @@
-# Revision 20 implementation plan
+# Revision 21 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 20](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 21](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
 ## Required matrix acceptance order
 
@@ -32,6 +32,21 @@ Grok is deferred. No merge or publication is authorized by this plan.
 
 The [Cowork guide](../clients/claude-cowork/README.md) documents the implemented packaging entry point.
 Shared launcher tests do not establish native behavior in another host. Signing and clean-machine gates remain open.
+
+## Platform backlog, AC-39
+
+The [platform tracker](../clients/README.md#platform-coverage) keeps OS/architecture support separate from plugin format support.
+Finish the current manual macOS checks before implementing these ports.
+
+- [ ] Verify available Claude and ChatGPT desktop/code host routes for each target OS and record unavailable cells explicitly.
+- [ ] Select Windows and Linux CPU architectures, minimum OS/distribution versions and native dependency build targets.
+- [ ] Build an Intel Mac runtime and verify its platform-specific native dependencies.
+- [ ] Build Windows and Linux runtimes with the same local Docling and optional Core-server contracts.
+- [ ] Implement platform launchers, payload selection, chooser, Settings, credential storage and safe cache lifecycle.
+- [ ] Prepare the applicable signing/distribution process for each package.
+- [ ] Repeat clean installation, local and server processing, cancellation, reconnect, update and removal in every available matrix cell.
+
+Manifest validation or Core tests alone cannot complete any platform checkbox.
 
 ## Current launch sequence
 

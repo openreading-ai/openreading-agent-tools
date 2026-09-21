@@ -39,6 +39,15 @@ A client adapter owns only setup translation, launch metadata, workflow delivery
 It contains no parser, ranking algorithm, page mapping, account billing, or answer generation.
 A measurement adapter observes one model execution surface; it is not part of the shipped document runtime.
 
+## Platform portability boundary
+
+The [platform tracker](../clients/README.md#platform-coverage) owns the OS/architecture backlog and AC-39 evidence.
+Keep the runtime contract and evidence workflow shared, but build native binaries and dependencies separately per platform.
+Platform launchers select only a matching pinned payload. File selection, Settings and credential storage require native implementations.
+Optional Core-server processing does not remove the local client runtime or its consent and evidence-storage duties.
+Verify each host exists on the target platform before implementing its wrapper, then test both processing destinations independently.
+No platform port is implemented by this tracking update.
+
 ## 2. Connection choices and evidence levels
 
 The [client matrix](../clients/README.md) owns current documented routes and the limits of observed evidence.
