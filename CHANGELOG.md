@@ -2,6 +2,11 @@
 
 ## Unreleased Claude plugin packaging
 
+- Require broader retrieval when a field-label passage does not supply the requested value.
+  Distinguish match completion from page coverage and retained-text evidence from OCR accuracy.
+  Cowork packages carry the current shared workflow while preserving verified runtime inputs.
+  Owner-operated answer acceptance remains pending.
+
 - Replace the rejected layout-only download package with a small plugin and separate, checksum-pinned complete runtime.
   Check compressed and expanded plugin sizes. Preserve local Docling and explicit optional Core-server settings.
   Runtime publication and owner-operated native acceptance remain pending.

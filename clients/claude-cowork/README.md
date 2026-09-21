@@ -33,6 +33,14 @@ Ask OpenReading to select a synthetic document, import it, and quote its text wi
 Select it through OpenReading's chooser rather than attaching the original document to the conversation.
 Requested document content enters Claude's context; local processing does not keep those excerpts off its cloud model.
 
+For a focused field question, a label-only match is not evidence that its value is missing.
+The shared skill requests complete delivery to inspect the relevant page or section and discover supporting evidence IDs.
+A null search cursor means all matching passages were returned, not that the page was fully read.
+During manual acceptance, use a synthetic document whose label and value occupy separate blocks.
+Ask for the value without supplying its text or evidence ID. Record tool calls and the answer.
+Require the assistant to discover and cite the value, or disclose unavailable context without claiming OCR lost it.
+The updated guidance remains a candidate until this owner-operated test passes in a fresh task.
+
 The included OpenReading Settings app selects an optional Core destination or returns to local Docling.
 The unpacked `plugin` folder beside the ZIP provides a visible copy of that helper for manual settings checks.
 Changing settings requires reconnecting the tools. Server selection requires confirmation before sending the selected bytes.
@@ -53,6 +61,8 @@ uv run --frozen --project runtime python -m runtime.claude_plugin \
 
 The example hostname is a placeholder. Use an actual approved destination for an installable candidate.
 The builder verifies runtime inventory, source manifest, workflow, and Settings helper hashes.
+The output uses the current repository skill, with its own output hash and workflow version suffix.
+This allows guidance updates without changing the verified runtime or altering the input extension.
 It creates a small plugin ZIP, `candidate.json`, and the separate immutable payload under `runtime/`.
 The receipt binds the URL, payload digest and length, original Core identity, runtime inventory hash, and worker digest.
 Publish that exact payload at the recorded URL only after distribution approval, then independently verify its download.

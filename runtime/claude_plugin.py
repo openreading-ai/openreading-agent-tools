@@ -4,6 +4,9 @@ This build-only operation never installs a plugin, changes host settings, or sta
 any worker or helper. The input is an assembled extension, not an arbitrary archive.
 Its runtime inventory and package-owned hashes must verify before output is created.
 The source may pin an unmerged Core candidate; its exact identity remains in the receipt.
+The current shared skill replaces the source extension workflow after input verification.
+Its output hash and workflow version suffix distinguish guidance updates without rebuilding
+the parser or accepting an unverified change to the source extension.
 
 The plugin retains the claude-desktop namespace and its Settings helper so existing
 candidate data stays discoverable. Do not enable the extension and plugin together:
@@ -31,6 +34,7 @@ from runtime.verify import sha256, verify_release
 HELPER = "OpenReading Settings.app/Contents/MacOS/openreading-settings"
 PLIST = "OpenReading Settings.app/Contents/Info.plist"
 NAME = "openreading-local-documents"
+REPOSITORY = Path(__file__).resolve().parent.parent
 MAX_ARCHIVE_BYTES = 200_000_000
 MAX_EXPANDED_BYTES = 200_000_000
 
@@ -78,10 +82,10 @@ def build(extension: Path, output: Path, *, runtime_base_url: str | None = None)
         shutil.copy2(extension / name, destination)
     skill = target / "skills/read-local-document/SKILL.md"
     skill.parent.mkdir(parents=True)
-    shutil.copy2(extension / "WORKFLOW.md", skill)
+    shutil.copy2(REPOSITORY / "skills/read-local-document/SKILL.md", skill)
     manifest = {
         "name": NAME,
-        "version": source_manifest["version"],
+        "version": source_manifest["version"] + ".workflow.1",
         "description": "Read selected local documents with bundled Docling and exact evidence. Optional Core server processing.",
         "author": {"name": "OpenReading"},
         "skills": "./skills/",

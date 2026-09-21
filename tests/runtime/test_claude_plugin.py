@@ -58,7 +58,10 @@ class ClaudePluginTests(unittest.TestCase):
         self.assertEqual(server["command"], "${CLAUDE_PLUGIN_ROOT}/server/openreading-worker")
         self.assertEqual(server["args"], ["--client", "claude-desktop", "--chat-documents"])
         skill = target / manifest["skills"] / "read-local-document/SKILL.md"
-        self.assertEqual(skill.read_bytes(), (extension / "WORKFLOW.md").read_bytes())
+        self.assertEqual(
+            skill.read_bytes(),
+            (package.REPOSITORY / "skills/read-local-document/SKILL.md").read_bytes(),
+        )
         self.assertEqual(verify_release(target / "server"), verify_release(extension / "server"))
         with zipfile.ZipFile(archive) as packed:
             self.assertIsNone(packed.testzip())
@@ -83,6 +86,27 @@ class ClaudePluginTests(unittest.TestCase):
         resolved = server["command"].replace("${CLAUDE_PLUGIN_ROOT}", str(moved))
         self.assertTrue(Path(resolved).is_file())
         self.assertEqual(verify_release(moved / "server"), verify_release(extension / "server"))
+
+    def test_stale_extension_workflow_does_not_replace_current_shared_skill(self):
+        extension, output = self.fixture()
+        workflow = extension / "WORKFLOW.md"
+        workflow.write_text("Historical workflow from the frozen extension.\n")
+        info_path = extension / "package-info.json"
+        info = json.loads(info_path.read_text())
+        info["workflow_sha256"] = sha256(workflow)
+        info_path.write_text(json.dumps(info))
+        source_version = json.loads((extension / "manifest.json").read_text())["version"]
+        archive = self.module().build(extension, output)
+        current = package.REPOSITORY / "skills/read-local-document/SKILL.md"
+        name = "skills/read-local-document/SKILL.md"
+        with zipfile.ZipFile(archive) as packed:
+            self.assertEqual(packed.read(name), current.read_bytes())
+            manifest = json.loads(packed.read(".claude-plugin/plugin.json"))
+            self.assertNotEqual(manifest["version"], source_version)
+        receipt = json.loads((output / "candidate.json").read_text())
+        self.assertEqual(receipt["package_files"][name], sha256(current))
+        self.assertEqual(receipt["source_package_info_sha256"], sha256(info_path))
+        self.assertEqual(workflow.read_text(), "Historical workflow from the frozen extension.\n")
 
     def test_changed_inputs_and_existing_output_refuse_without_overwrite(self):
         module = self.module()
