@@ -6,6 +6,7 @@ The settings connector is separate from the complete pinned Core document catalo
 
 ## Remaining native gates
 
+- TODO: Review and refine the settings modal messaging with the owner before release. Cover labels, explanations, save feedback, and reconnect instructions.
 - Install the exact built package in each supported local host. Verify `/openreading-settings` discovery and opening.
 - Exercise storage selection, cancellation, saving, discarding, reconnect, and the default folder without editing JSON.
 - Preserve a readable synthetic artifact and completed job after moving data. Verify client isolation and rollback after a failed copy.
