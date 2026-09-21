@@ -1,7 +1,25 @@
-# Revision 17 implementation plan
+# Revision 19 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 17](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 19](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+
+## Required matrix acceptance order
+
+AC-37 and the [compatibility matrix](../README.md#required-compatibility-matrix) supersede older client prioritization below.
+Apply the [same acceptance checklist](../clients/README.md#matrix-acceptance) independently to each cell.
+Preserve earlier native results as partial evidence; repeat affected checks against the actual distributed candidate.
+
+- [ ] Claude Cowork with default bundled Docling.
+- [ ] Claude Cowork with optional operator-run Core server.
+- [ ] Local Claude Code with default bundled Docling.
+- [ ] Local Claude Code with optional operator-run Core server.
+- [ ] ChatGPT Work with default bundled Docling.
+- [ ] ChatGPT Work with optional operator-run Core server.
+- [ ] Local Codex with default bundled Docling.
+- [ ] Local Codex with optional operator-run Core server.
+
+A missing supported installation route is a blocker to record and resolve, never a reason to drop a cell.
+Grok is deferred. No merge, release, or new runtime implementation is part of this documentation update.
 
 ## Current launch sequence
 
