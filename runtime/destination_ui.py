@@ -95,8 +95,8 @@ class SettingsWindow:
         tabs.pack(fill="both", expand=True, padx=16, pady=16)
         general = ttk.Frame(tabs, padding=20)
         frame = ttk.Frame(tabs, padding=20)
-        tabs.add(general, text="Storage and delivery")
         tabs.add(frame, text="Document processing")
+        tabs.add(general, text="Storage and delivery")
         self.preferences_panel(general, controller, tk, ttk)
         ttk.Label(frame, text="Document processing", font=("Helvetica", 21, "bold")).pack(
             anchor="w"
