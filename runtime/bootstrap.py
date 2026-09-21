@@ -1,12 +1,14 @@
 """Download a pinned runtime while Claude can discover its document and settings tools.
 
-The native plugin contains this frozen stdlib-only launcher and exact tool catalogs.
+The native plugin contains this frozen stdlib-only launcher and verified local/server catalogs.
 Both connectors share an exclusive download lock and an immutable Application Support cache.
 HTTPS archive and worker digests bind the payload before extraction and execution.
 Runtime installation preserves all user settings, documents and Keychain entries.
 No document reaches the download endpoint. Warm launches require no network.
 An early tool call reports setup progress; retrying after setup forwards to the real worker.
 The proxy preserves asynchronous worker replies and cancellation notifications after setup.
+Before startup, discovery uses conservative combined descriptions and upload annotations.
+Once verified, discovery exposes the active profile verbatim and notifies previous callers.
 The temporary ngrok origin is a development route, not a released download service.
 """
 
@@ -154,8 +156,12 @@ def start_worker(manager, mode, protocol):
                 reply = json.loads(child.stdout.readline())
                 if "error" in reply or reply.get("id") != request["id"]:
                     raise ValueError("Runtime initialization failed.")
-        if reply.get("result") != manager.config["catalogs"][mode]:
+        allowed = manager.config.get("catalog_variants", {}).get(
+            mode, [manager.config["catalogs"][mode]]
+        )
+        if reply.get("result") not in allowed:
             raise ValueError("Runtime tool catalog differs from the installed plugin.")
+        child.catalog = reply["result"]
         return child
     except (OSError, ValueError):
         child.terminate()
@@ -172,6 +178,8 @@ def serve(manager, mode, incoming, outgoing):
     protocol = "2025-11-25"
     output_lock = threading.Lock()
     pending = set()
+    advertised = manager.config["catalogs"][mode]
+    catalog_sent = False
 
     def send(message):
         with output_lock:
@@ -196,6 +204,20 @@ def serve(manager, mode, incoming, outgoing):
             )
         pending.clear()
 
+    def connect():
+        nonlocal child, reader, advertised
+        if child is None and manager.root is not None:
+            try:
+                child = start_worker(manager, mode, protocol)
+                reader = threading.Thread(target=read_worker, daemon=True)
+                reader.start()
+                changed = advertised != child.catalog
+                advertised = child.catalog
+                if changed and catalog_sent:
+                    send({"jsonrpc": "2.0", "method": "notifications/tools/list_changed"})
+            except (OSError, ValueError) as error:
+                manager.status = f"OpenReading could not start: {error}. Retry this tool."
+
     try:
         for line in incoming:
             try:
@@ -215,21 +237,17 @@ def serve(manager, mode, incoming, outgoing):
                 protocol = request.get("params", {}).get("protocolVersion", protocol)
                 result = {
                     "protocolVersion": protocol,
-                    "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "openreading-bootstrap", "version": "0.2.0-alpha.8"},
+                    "capabilities": {"tools": {"listChanged": True}},
+                    "serverInfo": {"name": "openreading-bootstrap", "version": "0.2.0-alpha.9"},
                 }
             elif method == "tools/list":
-                result = manager.config["catalogs"][mode]
+                connect()
+                result = advertised
+                catalog_sent = True
             elif method == "ping":
                 result = {}
             elif method == "tools/call" and child is None:
-                if manager.root is not None:
-                    try:
-                        child = start_worker(manager, mode, protocol)
-                        reader = threading.Thread(target=read_worker, daemon=True)
-                        reader.start()
-                    except (OSError, ValueError) as error:
-                        manager.status = f"OpenReading could not start: {error}. Retry this tool."
+                connect()
                 if child is None:
                     result = {
                         "isError": True,

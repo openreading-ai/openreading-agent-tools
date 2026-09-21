@@ -2,6 +2,8 @@
 
 ## Native settings integration candidate
 
+- Accept both verified processing-mode catalogs and expose the active mode's descriptions and upload annotations to Claude.
+
 - Add a small native Claude plugin that downloads its verified runtime automatically through the development ngrok route.
 - Preserve settings and documents during setup, share concurrent downloads, and answer tool discovery while installation proceeds.
 

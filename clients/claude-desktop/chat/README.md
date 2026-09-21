@@ -200,6 +200,7 @@ Open Customize > Plugins > Add > Upload plugin and select `OpenReading-Claude-Pl
 Enable the plugin, accept its local connector prompt, and open a new Cowork task.
 The plugin automatically downloads and verifies its runtime and models into Application Support.
 Tool discovery remains available during setup. Early tool calls report progress and can retry after completion.
+Both bundled and server processing are supported. The connector publishes the active mode's descriptions and upload annotations after startup.
 Run `/openreading-settings`, review all three tabs, and save any changes you want.
 Reconnect the document connector after saving. Import a synthetic local document through the native picker.
 

@@ -1,5 +1,6 @@
 """Native plugin startup stays responsive while a verified runtime downloads."""
 
+import copy
 import hashlib
 import io
 import json
@@ -227,6 +228,59 @@ for line in sys.stdin:
             ):
                 bootstrap.start_worker(manager, "--settings-tools", "2025-11-25")
             child.terminate.assert_called_once()
+
+    def test_verified_server_catalog_keeps_upload_annotations_and_is_advertised(self):
+        local = self.config["catalogs"]["--settings-tools"]
+        server = copy.deepcopy(local)
+        server["tools"][0].update(
+            description="Uploads to your configured Core server.",
+            annotations={"openWorldHint": True, "idempotentHint": False},
+        )
+        self.config["catalog_variants"] = {"--settings-tools": [local, server]}
+        manager = bootstrap.Manager(self.config, self.root)
+        manager.root = self.root
+        child = MagicMock()
+        child.stdout = io.StringIO(
+            json.dumps({"id": 0, "result": {}})
+            + "\n"
+            + json.dumps({"id": 1, "result": server})
+            + "\n"
+        )
+        with patch.object(bootstrap.subprocess, "Popen", return_value=child):
+            accepted = bootstrap.start_worker(manager, "--settings-tools", "2025-11-25")
+        self.assertEqual(accepted.catalog, server)
+        child.terminate.assert_not_called()
+        incoming = io.StringIO('{"id":2,"method":"tools/list"}\n')
+        output = io.StringIO()
+        child.stdout = io.StringIO()
+        with (
+            patch.object(manager, "start"),
+            patch.object(bootstrap, "start_worker", return_value=child),
+        ):
+            bootstrap.serve(manager, "--settings-tools", incoming, output)
+        self.assertEqual(json.loads(output.getvalue())["result"], server)
+
+    def test_completed_setup_notifies_catalog_change_before_returning_active_tools(self):
+        manager = bootstrap.Manager(self.config, self.root)
+        active = {"tools": [{"name": "openreading_open_settings", "description": "verified"}]}
+        child = MagicMock(catalog=active)
+        child.stdout = io.StringIO()
+        output = io.StringIO()
+
+        def incoming():
+            yield '{"id":1,"method":"tools/list"}\n'
+            manager.root = self.root
+            yield '{"id":2,"method":"tools/list"}\n'
+
+        with (
+            patch.object(manager, "start"),
+            patch.object(bootstrap, "start_worker", return_value=child),
+        ):
+            bootstrap.serve(manager, "--settings-tools", incoming(), output)
+        replies = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(replies[0]["result"], self.config["catalogs"]["--settings-tools"])
+        self.assertEqual(replies[1]["method"], "notifications/tools/list_changed")
+        self.assertEqual(replies[2]["result"], active)
 
     def test_protocol_errors_and_failed_worker_are_reported(self):
         manager = bootstrap.Manager(self.config, self.root)

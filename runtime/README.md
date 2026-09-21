@@ -289,7 +289,10 @@ Later launches verify the cached runtime without contacting the download endpoin
 The build command is `python -m runtime.bootstrap_package --runtime RUNTIME --bootstrap BINARY --output OUTPUT --url HTTPS_URL`.
 It produces a small plugin ZIP and a separate runtime archive for the supplied HTTPS address.
 Development downloads use the owner's temporary ngrok endpoint. Durable GitHub hosting follows the OSS release decision.
-The exact archive catalogs are collected from the frozen worker and checked again before forwarding tool calls.
+The exact local and server catalogs are collected from the frozen worker and checked before forwarding tool calls.
+Before startup, discovery describes both destinations and retains conservative upload annotations.
+After startup, Claude receives the active profile verbatim, with a catalog-change notification when needed.
+Changing processing mode requires reconnecting the document connector. Both approved modes remain valid for the same pinned runtime.
 Native and clean-machine acceptance remain separate gates.
 
 ## Historical offline setup package
