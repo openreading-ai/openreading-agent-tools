@@ -57,7 +57,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn("runtime/openreading-worker", names)
                 manifest = json.loads(zipped.read(".claude-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "openreading-local-documents")
-                self.assertEqual(manifest["version"], "0.2.0-alpha.15")
+                self.assertEqual(manifest["version"], "0.2.0-alpha.16")
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])

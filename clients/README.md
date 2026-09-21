@@ -13,6 +13,14 @@ Claude Desktop 2.2553.1 accepts the alpha.15 archive preview without the nested-
 The 28,600,502-byte ZIP has SHA-256 `4cebc54794f87fd19c14d62ad9a5505a4e7f14fc265d92d2b86c2f2e3c795d2c`.
 The check selected the archive and verified its preview. Upload, installation and native document testing remain pending for this build.
 
+## Claude device discovery, September 21, 2026
+
+Claude Desktop 2.2553.1 can announce both plugin connectors while a fresh chat cannot discover their tools through cloud connector search.
+The native Settings request must follow the host's device-connection flow before resolving the device-qualified opener.
+A fresh-chat trial with the alpha.16 skill instructions and installed alpha.15 worker called the opener successfully without changing settings.
+A discovery-only trial correctly stopped when device activation conflicted with its permission constraints. Missing session tools do not prove a missing installation.
+Alpha.16 packages these instructions for both skills. Its installed slash-command acceptance remains a separate owner test.
+
 ## Matrix acceptance
 
 The [required compatibility matrix](../README.md#required-compatibility-matrix) is the current product target.

@@ -2,6 +2,8 @@
 
 ## Server-only connector candidate
 
+- Discover local plugin tools through Claude's connected device before reporting unavailable settings or selection.
+- Report session discovery failures without falsely claiming the installed package lacks a connector.
 - Remove the nested Python standard-library ZIP that caused Claude to reject alpha.14 uploads.
 - Reject nested ZIP contents during packaging before producing an upload candidate.
 - Package a parser-free Claude connector directly, with no Docling, OCR binaries, model assets or runtime download.
