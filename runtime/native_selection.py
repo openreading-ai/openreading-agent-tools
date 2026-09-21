@@ -34,7 +34,7 @@ panel.canChooseFiles = true;
 panel.canChooseDirectories = true;
 panel.allowsMultipleSelection = true;
 panel.resolvesAliases = false;
-panel.allowedFileTypes = __ADAPTER_EXTENSIONS__;
+__ADAPTER_FILTER__
 panel.treatsFilePackagesAsDirectories = false;
 app.activateIgnoringOtherApps(true);
 var result = null;
@@ -55,8 +55,11 @@ def adapter_extensions() -> tuple[str, ...]:
 
 def command(extensions=("pdf",)) -> list[str]:
     script = _SCRIPT.replace(
-        "__ADAPTER_EXTENSIONS__",
-        json.dumps(None if extensions is None else checked_extensions(extensions)),
+        "__ADAPTER_FILTER__",
+        # JavaScript null becomes NSNull, not nil. A new unfiltered panel needs no setter.
+        ""
+        if extensions is None
+        else f"panel.allowedFileTypes = {json.dumps(checked_extensions(extensions))};",
     )
     if extensions is None:
         script = script.replace(

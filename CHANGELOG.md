@@ -2,6 +2,8 @@
 
 ## Native settings integration candidate
 
+- Fix the native server-mode picker failing before display when an absent file-type filter was bridged as NSNull.
+
 - Continue from document or folder selection into processing every selected file without an extra conversational confirmation.
 - Keep explicit selection-only tests, native server consent, cancellation and per-file progress in the workflow.
 
