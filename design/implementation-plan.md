@@ -1,5 +1,8 @@
 # Revision 19 implementation plan
 
+Revision 27 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
+
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
 **Contracts:** [ProductSpec revision 19](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 

@@ -131,16 +131,14 @@ class Manager:
 
 DESTINATION_CHANGED = (
     "OpenReading processing settings changed or cannot be read. "
-    "Reconnect the OpenReading document connector before selecting or importing documents. "
+    "Quit and reopen your app, then open the OpenReading file picker before importing documents. "
     "This request did not select or process any documents. Existing jobs keep their original destination."
 )
 
 
-def destination_stamp(home):
+def destination_stamp(home, client="claude-desktop"):
     """Compare saved bytes without importing the runtime or exposing credential references."""
-    path = home / (
-        "Library/Application Support/OpenReading/agent-tools/claude-desktop/destination.json"
-    )
+    path = home / (f"Library/Application Support/OpenReading/agent-tools/{client}/destination.json")
     try:
         fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     except FileNotFoundError:
@@ -153,9 +151,10 @@ def destination_stamp(home):
 
 
 def start_worker(manager, mode, protocol):
-    stamp = destination_stamp(manager.home) if mode == "--chat-documents" else None
+    client = getattr(manager, "client", "claude-desktop")
+    stamp = destination_stamp(manager.home, client) if mode == "--chat-documents" else None
     child = subprocess.Popen(
-        [str(manager.root / "openreading-worker"), "--client", "claude-desktop", mode],
+        [str(manager.root / "openreading-worker"), "--client", client, mode],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         text=True,
@@ -188,7 +187,7 @@ def start_worker(manager, mode, protocol):
         )
         if reply.get("result") not in allowed:
             raise ValueError("Runtime tool catalog differs from the installed plugin.")
-        if mode == "--chat-documents" and destination_stamp(manager.home) != stamp:
+        if mode == "--chat-documents" and destination_stamp(manager.home, client) != stamp:
             raise ValueError(DESTINATION_CHANGED)
         child.destination_stamp = stamp
         child.catalog = reply["result"]
@@ -228,7 +227,7 @@ def serve(manager, mode, incoming, outgoing):
                     "id": identifier,
                     "error": {
                         "code": -32603,
-                        "message": "OpenReading worker stopped. Reconnect its connector.",
+                        "message": "OpenReading worker stopped. Quit and reopen your app to retry.",
                     },
                 }
             )
@@ -236,6 +235,7 @@ def serve(manager, mode, incoming, outgoing):
 
     def connect():
         nonlocal child, reader, advertised
+        manager.start()
         if child is None and manager.root is not None:
             try:
                 child = start_worker(manager, mode, protocol)
@@ -268,7 +268,11 @@ def serve(manager, mode, incoming, outgoing):
                 result = {
                     "protocolVersion": protocol,
                     "capabilities": {"tools": {"listChanged": True}},
-                    "serverInfo": {"name": "openreading-bootstrap", "version": "0.2.0-alpha.12"},
+                    "serverInfo": getattr(
+                        manager,
+                        "server_info",
+                        {"name": "openreading-bootstrap", "version": "0.2.0-alpha.12"},
+                    ),
                 }
             elif method == "tools/list":
                 connect()
@@ -307,7 +311,12 @@ def serve(manager, mode, incoming, outgoing):
                     }
                 ):
                     try:
-                        current = destination_stamp(manager.home) == child.destination_stamp
+                        current = (
+                            destination_stamp(
+                                manager.home, getattr(manager, "client", "claude-desktop")
+                            )
+                            == child.destination_stamp
+                        )
                     except (OSError, ValueError):
                         current = False
                     if not current:
@@ -336,7 +345,7 @@ def serve(manager, mode, incoming, outgoing):
                                 "id": identifier,
                                 "error": {
                                     "code": -32603,
-                                    "message": "OpenReading worker stopped. Reconnect its connector.",
+                                    "message": "OpenReading worker stopped. Quit and reopen your app to retry.",
                                 },
                             }
                         )

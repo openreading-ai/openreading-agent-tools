@@ -364,3 +364,12 @@ class ServerImportTests(unittest.TestCase):
         value = json.loads(path.read_bytes())
         path.write_text(json.dumps(value, ensure_ascii=True))
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+
+    def test_server_failure_reports_safe_reason_without_claiming_local_processing(self):
+        self.service.transport = httpx.MockTransport(lambda request: httpx.Response(403))
+        with self.assertRaises(ArtifactError) as raised:
+            self.service.import_document(self.references[0])
+        error = raised.exception.envelope().error
+        self.assertEqual(error.code, "parse_failed")
+        self.assertIn("403", error.message)
+        self.assertFalse(error.retryable)

@@ -249,12 +249,20 @@ The broader `tests/runtime` lane uses the historical `runtime` pin, including tr
 The server lane exercises the current Core service through MCP, including synchronous progress notifications.
 Both lanes contribute to the existing line and branch coverage requirements.
 
+## Server-only Claude candidate
+
+Build the current plugin through [the server connector environment](server_client/README.md).
+It preserves the plugin identity and includes the connector directly, without parsing engines or downloads.
+Existing server settings and client data remain in place. Missing or legacy local-mode settings require server setup.
+The server handles parsing and OCR. The connector retains selection, consent, jobs, retrieval, citations, exports and settings.
+Historical Docling builders below remain reproducible at tag `bundled-docling-2.126.0-checkpoint`.
+
 ## Native settings and public storage
 
 Ask to open OpenReading Settings or select `/openreading-settings` in a plugin with the settings connector.
 The tabs are **Processing**, **Storage**, and **Advanced**, in that order.
-Processing selects bundled Docling or your Core server, with its URL, token and connection check.
-**Test connection** is disabled for bundled processing. Success appears green and failure appears red.
+Processing configures your Core server URL, token and connection check. No bundled-parser choice is available.
+**Test connection** sends no document. Success appears green and failure appears red.
 Feedback retains descriptive text, and changes during a check invalidate its displayed result.
 Storage selects the local directory for intermediate processing values, retained documents and exported results.
 Advanced sets the file-delivery threshold and maximum downloaded server response, defaulting to 256 MiB.

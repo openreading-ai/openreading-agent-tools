@@ -127,13 +127,9 @@ class WindowTests(unittest.TestCase):
             self.assertEqual(window.save_button.options["state"], "normal")
             self.assertEqual(window.status_label.options["foreground"], window.error_color)
 
-    def test_bundled_mode_never_tests_server_and_switching_during_check_stays_disabled(self):
+    def test_server_setup_and_restoring_during_check_does_not_report_stale_success(self):
         window, controller, executor = self.make()
-        self.assertEqual(window.check_button.options["state"], "disabled")
-        window.check()
-        executor.submit.assert_not_called()
-        window.mode.set("server")
-        window.processing_changed()
+        self.assertEqual(window.mode.get(), "server")
         self.assertEqual(window.check_button.options["state"], "normal")
         future = Future()
         executor.submit.return_value = future
@@ -143,7 +139,7 @@ class WindowTests(unittest.TestCase):
         window.restore_destination()
         future.set_result({})
         window.poll()
-        self.assertEqual(window.check_button.options["state"], "disabled")
+        self.assertEqual(window.check_button.options["state"], "normal")
         self.assertNotIn("passed", window.status.get())
         self.assertEqual(window.status_label.options["foreground"], "")
 
@@ -199,7 +195,7 @@ class WindowTests(unittest.TestCase):
         window.budget.set("8192")
         window.response_mib.set("4")
         window.restore_destination()
-        self.assertEqual(window.mode.get(), "local")
+        self.assertEqual(window.mode.get(), "server")
         self.assertEqual(window.url.get(), "http://127.0.0.1:8787")
         self.assertEqual(window.token.get(), "")
         self.assertEqual(window.budget.get(), "8192")

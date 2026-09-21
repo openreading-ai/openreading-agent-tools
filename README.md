@@ -10,7 +10,7 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 19 requires all eight combinations below. Unsigned development packages and historical workflow evidence exist; complete native acceptance and signed distribution remain pending.**
+**Status: revision 27 uses an operator-run OpenReading Core server for every client. The Claude server-only development candidate is implemented; full native acceptance and signed distribution remain pending.**
 The Docling corpus, retrieval/restart checks, citation checker and historical offline accounting are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The [P0 developer build](runtime/p0/README.md) bundles Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
@@ -21,27 +21,24 @@ The source license above does not describe bundled dependency licenses.
 
 ## Required compatibility matrix
 
-The target has three dimensions: assistant, surface, and processing destination.
-Two assistants, two surfaces, and two destinations produce eight required acceptance cases.
+The target has four client surfaces, each connected to an operator-run Core server.
 Desktop means Claude Cowork or ChatGPT Work. Code means Claude Code or Codex running locally.
 Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok comes later.
 
-| Assistant | Desktop: bundled Docling (default) | Desktop: operator server (optional) | Code: bundled Docling (default) | Code: operator server (optional) |
-| --- | --- | --- | --- | --- |
-| Claude | Cowork: pending | Cowork: pending | Claude Code: partial | Claude Code: pending |
-| ChatGPT | Work: partial | Work: pending | Codex: partial | Codex: pending |
+| Client | Core server acceptance |
+| --- | --- |
+| Claude Cowork | Partial: earlier localhost workflow; current server-only package acceptance pending |
+| Claude Code | Pending |
+| ChatGPT Work | Pending |
+| Codex | Pending |
 
-**Partial** means an earlier native workflow has evidence, but current packaged acceptance remains incomplete.
-**Pending** means this exact combination has not completed native acceptance. Neither status means unsupported.
-Earlier Claude Desktop Chat extension checks do not pass the Cowork cells.
-Earlier server protocol checks and the ChatGPT connection probe do not pass full server acceptance.
-The [client evidence and acceptance checklist](clients/README.md#matrix-acceptance) defines how each cell passes.
-All eight cells must pass before this compatibility target is complete.
-
-Users install OpenReading through the host's supported installation flow and receive the default local runtime.
-They need no separate Python, Node, uv, terminal setup, runtime installer, or GitHub checkout.
-Packages share the processing runtime; host-specific packaging is allowed and must be tested separately.
-Choosing server mode is optional. Operating that server is outside plugin installation.
+Earlier bundled-parser results remain historical evidence. They do not pass a server-backed cell.
+The [client acceptance checklist](clients/README.md#matrix-acceptance) defines each cell's requirements.
+Users install a small connector through the host flow and configure a Core server URL.
+The connector includes its own runtime, with no parser, model download or separate Python installation.
+The operator installs and runs Core separately, on localhost or a remote HTTPS endpoint.
+The [server connector build](runtime/server_client/README.md) pins the client dependencies.
+The tag `bundled-docling-2.126.0-checkpoint` preserves the previous bundled implementation.
 
 ## The first proof
 

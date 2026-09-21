@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 26
+spec_revision: 27
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-21T00:00:00Z"
@@ -20,7 +20,7 @@ applies_to:
 
 People already using an AI assistant want answers from local documents without becoming Python operators.
 A developer can install OpenReading and run a parser today.
-A nondeveloper should not need to install an interpreter, resolve native dependencies, or keep a server terminal open.
+The assistant user installs a connector without an interpreter or parser dependencies. An operator supplies a running OpenReading Core server.
 
 Sending the whole parsed document into the assistant can still consume substantial model context.
 Parsing locally changes where extraction happens.
@@ -31,9 +31,9 @@ A convincing answer without a resolvable document and page reference cannot supp
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
 The first platform remains macOS on Apple Silicon.
-Revision 19 requires the [eight-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Revision 27 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
 Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
-Each surface must support default bundled Docling and an optional operator-run Core server.
+Each surface connects to a required operator-run Core server. No parser or model is bundled with the connector.
 Ordinary Chat and cloud code sessions do not satisfy these targets. Grok remains future scope.
 A supported client means one recorded application version, execution mode, and connection path that passes the functional checks.
 Support for one desktop mode does not establish support for its web, mobile, or remotely executed modes.
@@ -62,10 +62,10 @@ Owner-operated candidate checks cover folder selection and multiple imports in t
 The repeated native folder check matches expected aggregate skip counts; the earlier discrepancy remains unexplained.
 Signed clean-machine installation and lifecycle acceptance remain pending.
 Each client connects to the same runtime through its tested local MCP interface.
-Setup discloses local retention, automatic local OCR and shared document content without asking for a directory or OCR choice.
+Setup requires an explicit server URL and discloses local retention and uploads. The server owns parser and OCR configuration.
 A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
 You ask to open a local document, select it, and receive its reference in chat without copying a path or prompt.
-OpenReading parses the file locally, keeps the extraction on disk, and returns a short receipt.
+The configured Core server parses selected files after Process. The connector retains the extraction locally and returns a short receipt.
 The assistant requests complete normalized content with automatic delivery or uses optional search and exact reads.
 A 1,000,000-byte configurable budget measures the entire serialized MCP response, including escaping and request ID.
 A fitting result is sent intact. The host may present it inline or save it into a file accessible through its existing tools.
@@ -80,20 +80,19 @@ A receipt is a small record identifying the extracted document and its available
 Provenance is the information connecting that evidence to the exact source bytes and physical page.
 Neither is an LLM-generated summary.
 
-The first distributed backend is an in-process Docling profile with local ONNX layout inference.
-PDFium supplies preflight and rendering; bundled Tesseract automatically reads eligible image text while preserving usable native text.
-The bundle includes its layout weights and selected OCR language data, with no runtime download.
-PyMuPDF remains available in core but is excluded from this distributed bundle.
-A backend is the engine that reads a document, wrapped by OpenReading core.
-The configured adapter owns supported formats through the [core adapter catalog](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md).
-The chooser and folder traversal consume that adapter declaration, with no independent PDF-only product restriction.
-Native acceptance uses mixed-format fixtures; historical PDF-only results retain their original scope.
+Revision 27 removes the distributed parsing engine while preserving Agent Tools features.
+The plugin embeds a small native connector, with no parser libraries, models, OCR executable or runtime download.
+The operator configures the Core server's backend policy independently; Core retains its full adapter catalog.
+Existing server settings, credentials, storage choices and artifacts survive an upgrade.
+Absent or legacy local-mode settings require an explicit server save, with no silent localhost activation or parser fallback.
+The previous implementation is preserved by tag `bundled-docling-2.126.0-checkpoint`.
+Historical engine-specific criteria below remain records of that implementation; revision 27's server-only criteria govern current distribution.
 
 Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 19 requires eight independently tested client/destination combinations; managed v2 is post-launch and unbuilt.**
+**Review status: revision 27 requires four independently tested server-backed client surfaces; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -136,8 +135,8 @@ The [OSS launch design](../../design/oss-launch.md) owns the catalog proof and p
 
 ~~~productspec-scope
 in:
-  - Deliver signed and notarized packages for macOS on Apple Silicon across Claude Cowork, ChatGPT Work, local Claude Code, and Codex; independently verify bundled Docling and optional operator-run Core processing in every surface.
-  - Disclose the bundled local vision model and automatic local OCR, preserve usable native text, and label OCR-derived evidence without requiring users to choose a mode.
+  - Deliver signed and notarized server connector packages for macOS on Apple Silicon across Claude Cowork, ChatGPT Work, local Claude Code, and Codex; independently verify operator-run Core processing in every surface.
+  - Preserve server-reported text, OCR labels, warnings, partial status and provenance without inventing local parser results.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Require no directory-path configuration in public installation; accept explicitly selected adapter-supported local documents through a verified file picker or handoff, with one artifact per import.
   - Expose the complete implemented MCP tool catalog of the pinned core release; including import, complete normalized retrieval, search, read, local selection and background start/status/list/cancel, with bounded replies.
@@ -367,14 +366,14 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: Server responses retain exact source identity, normalized values, partial status, warnings and truthful provenance; structured-only results remain available without invented quotes, while frozen and native acceptance independently verify settings, consent, reconnect, cancellation and complete delivery.
 
 - id: AC-37
-  criterion: All eight assistant/surface/destination cells in the required compatibility matrix pass independent exact-build native and clean-install acceptance; Claude Cowork, ChatGPT Work, local Claude Code, and Codex each support default bundled Docling without user-installed runtime prerequisites and optional operator-run Core processing; each server cell proves localhost and valid remote HTTPS, consent, credentials, failure recovery, and return to local mode; historical workflows and protocol checks retain their scope and cannot substitute for missing cell evidence.
+  criterion: All four client cells pass independent exact-build native and clean-install acceptance. Claude Cowork, ChatGPT Work, local Claude Code, and Codex connect to an operator-run Core server without user-installed connector runtime prerequisites. Each cell proves localhost and valid remote HTTPS, consent, credentials, failure recovery and refusal without a configured server. Historical bundled workflows and protocol checks cannot substitute for missing cell evidence.
 
 - id: AC-38
-  criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, local or server processing, server credentials, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, credentials stay in Keychain, and cancelled or discarded edits leave saved values unchanged.
+  criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, server URL, server credentials, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, credentials stay in Keychain, and cancelled or discarded edits leave saved values unchanged.
 - id: AC-41
-  criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. First activation automatically downloads and verifies the pinned runtime and models over HTTPS into Application Support. Tool discovery stays responsive during setup and early calls report progress. Concurrent connectors share one installation. Failed or interrupted downloads cannot become executable installations. Later launches reuse verified files without network access. Settings, documents, other clients and credentials remain untouched. Development uses the owner's local ngrok endpoint; GitHub distribution follows the OSS release. Native and clean-machine acceptance are independently verified.
+  criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. The archive embeds its verified parser-free connector with no model or runtime download. Tool discovery and Settings remain available before server setup. Missing, malformed or legacy local-mode settings refuse document work with setup guidance. Existing server settings, credentials, storage choices and documents remain intact. No parser or OCR executable is bundled or used as fallback. Native and clean-machine acceptance are independently verified.
 - id: AC-40
-  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Server connection tests are disabled in bundled mode, with green success and red failure feedback retaining descriptive text. Storage offers application storage, recommended .openreading and a chosen folder. Reopening preserves the saved choice and reports active, pending or blocked status with the reason. Abandoned launch profiles do not block moves; live connections and unfinished imports do.
+  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Processing presents server URL, optional credentials, test, save and restore controls without a bundled-parser choice. Connection tests use green success and red failure feedback with descriptive text. Storage offers application storage, recommended .openreading and a chosen folder. Reopening preserves the saved choice and reports active, pending or blocked status with the reason. Abandoned launch profiles do not block moves; live connections and unfinished imports do.
 - id: AC-42
   criterion: After successful selection, the assistant reports the queued file count and offers Process or Add more. Process starts the queue or an explicit subset. Add more preserves the previous references and appends new selections, then reports the new total and waits again. It starts each item once, tracks every job, follows selection pagination and reports completed, failed and skipped counts. An absent analysis question does not block processing. Explicit selection-only requests, cancelled or empty selection and declined native server consent start no imports. Shared connection or authorization failures stop later server submissions without automatic retries of uncertain work.
 - id: AC-39

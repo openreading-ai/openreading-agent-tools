@@ -38,6 +38,19 @@ from runtime.server_transport import (
 )
 
 
+class ServerProcessingFailed(ArtifactError):
+    """Preserve the transport's fixed diagnostic without exposing server response bodies."""
+
+    def __init__(self, message):
+        super().__init__("parse_failed")
+        self.message = message
+
+    def envelope(self):
+        value = super().envelope()
+        value.error.message = self.message
+        return value
+
+
 class SelectionStopped(ArtifactError):
     """Explain refusal of a consumed selection without exposing transport diagnostics."""
 
@@ -176,8 +189,8 @@ class ServerArtifactService(ArtifactService):
                 return self._retain(path, result, cancelled)
         except SelectionError:
             raise ArtifactError("access_denied") from None
-        except DestinationError:
+        except DestinationError as error:
             check()
-            raise ArtifactError("parse_failed") from None
+            raise ServerProcessingFailed(str(error)) from None
         except (ValueError, OSError):
             raise ArtifactError("parse_failed") from None

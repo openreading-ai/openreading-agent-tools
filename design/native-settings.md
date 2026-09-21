@@ -1,6 +1,6 @@
 # Native settings release acceptance
 
-ProductSpec revisions 20 and 21 add AC-38, AC-39 and AC-40 to the existing client matrix.
+ProductSpec revision 27 preserves native settings and document features in a server-only connector.
 The source contracts live in `runtime/app_settings.py`, `storage_settings.py`, and `settings_server.py`.
 The settings connector is separate from the complete pinned Core document catalog.
 
@@ -9,11 +9,10 @@ The settings connector is separate from the complete pinned Core document catalo
 - Revision 26 requires saved storage choices and active, pending or blocked status to survive reopening.
 - Verify an abandoned legacy launch record permits migration while a live connection or unfinished import still refuses it.
 - Verify the assistant reports the selected queue, preserves it across Add more, and waits for Process before importing.
-- Revision 24 replaces the manual setup flow with a small native plugin and automatic HTTPS runtime download.
-- Verify cold download through the temporary ngrok endpoint, interrupted-download retry, concurrent connectors and offline warm launch.
+- Revision 27 replaces runtime provisioning with a direct plugin containing the parser-free connector.
 - Verify actual Claude upload, first activation and settings opening with the exact small plugin archive.
-- Switch between bundled and server processing, reconnect, and verify file selection with the active catalog and truthful upload annotations.
-- Publish a durable runtime download location through GitHub only after the OSS release decision.
+- Verify the server-only package refuses missing or legacy local configuration, preserves prior data, and exposes the server catalog with truthful upload annotations.
+- Verify installation requires no runtime or model download. No ngrok runtime service is required for the server-only package.
 
 - TODO: Review and refine the settings modal messaging with the owner before release. Cover labels, explanations, save feedback, and reconnect instructions.
 - Install the exact built package in each supported local host. Verify `/openreading-settings` discovery and opening.

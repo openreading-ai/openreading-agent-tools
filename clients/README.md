@@ -2,7 +2,8 @@
 
 Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
-OpenReading has one proposed Docling runtime and separately tested client connections.
+Revision 27 ships a server connector with separately tested client connections.
+Bundled Docling evidence and routes below are historical and preserved by tag bundled-docling-2.126.0-checkpoint.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
 
@@ -14,7 +15,7 @@ The dated records below preserve earlier results without promoting them to a new
 Claude Code and Codex have September 16 local workflow evidence; ChatGPT Work has September 17 local workflow evidence.
 Claude Desktop Chat extension evidence does not establish Cowork support.
 
-Each of the eight cells requires its own recorded acceptance result:
+Each of the four server-backed cells requires its own recorded acceptance result:
 
 1. Record the application version, exact surface, OS/architecture, package hash, runtime hash, and Core commit.
 2. Install through the supported host flow from a clean client configuration. Preserve existing user data before resetting it.
@@ -26,17 +27,17 @@ Each of the eight cells requires its own recorded acceptance result:
 6. Restart, update, remove, and reinstall. Record retained-data behavior and actual host permission prompts.
 7. Record failures and evidence locations. A protocol harness, another surface, or a different package cannot pass this cell.
 
-For every local cell, absent settings must select bundled Docling. Verify processing offline after installation, without a running Core server.
-For every server cell, test settings and credentials, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
+Absent settings and old bundled-parser preferences must request server setup without selecting or uploading documents.
+For every cell, test settings and credentials, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
 Check consent cancellation, exact uploaded bytes, authentication/TLS refusal, no automatic resubmission, and stopped-selection recovery.
 Server results must preserve partial status, warnings, and provenance. Local cancellation must not claim remote processing stopped.
-Switch back to bundled Docling and verify the next import uses it; no failure may silently change the destination.
+Change the saved server and verify stale selections are refused. No failure may invoke a local parser.
 Only synthetic documents are used for server acceptance. Server operation remains the operator's responsibility.
 
 Use `pending`, `partial`, `blocked` with a reason, or `passed` with exact-build evidence for each cell.
 A clean configuration on a development machine does not replace a clean-machine prerequisite check.
 Signing and notarization remain release gates even after a development walkthrough succeeds.
-Test Claude first, then ChatGPT. Neither assistant is complete until its four cells pass.
+Test Claude first, then ChatGPT. Neither assistant is complete until its two client cells pass.
 
 ## Documented routes
 

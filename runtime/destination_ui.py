@@ -128,12 +128,14 @@ class SettingsWindow:
         self.future, self.closing = None, False
         from runtime.destination_settings import DestinationSettings
 
-        status = "Bundled Docling is the default. Saving affects new document selections."
+        status = "Save your Core server URL to enable document processing. No parser is bundled with this plugin."
         try:
             current = controller.current()
         except ValueError as error:
             current = DestinationSettings()
             status = str(error)
+        if current.destination is not None:
+            status = "Using your saved server. Test connection checks metadata without sending a document."
         root.title("OpenReading Settings")
         root.geometry("720x700")
         root.minsize(680, 680)
@@ -148,26 +150,17 @@ class SettingsWindow:
         self.preferences_panel(general, controller, tk, ttk)
         self.advanced_panel(advanced, controller, tk, ttk)
         ttk.Label(frame, text="Processing", font=("Helvetica", 21, "bold")).pack(anchor="w")
-        self.mode = tk.StringVar(value=current.mode)
+        self.mode = tk.StringVar(value="server")
         self.url = tk.StringVar(
             value=current.destination.base_url if current.destination else "http://127.0.0.1:8787"
         )
         self.token = tk.StringVar(value="")
         self.clear = tk.BooleanVar(value=False)
-        ttk.Radiobutton(
+        ttk.Label(
             frame,
-            text="Bundled Docling on this Mac",
-            variable=self.mode,
-            value="local",
-            command=self.processing_changed,
-        ).pack(anchor="w", pady=(12, 0))
-        ttk.Radiobutton(
-            frame,
-            text="Your OpenReading Core server",
-            variable=self.mode,
-            value="server",
-            command=self.processing_changed,
-        ).pack(anchor="w", pady=(8, 12))
+            text="Connect to OpenReading Core running on this Mac or a remote server.",
+            wraplength=570,
+        ).pack(anchor="w", pady=(12, 16))
         ttk.Label(frame, text="Server URL").pack(anchor="w")
         ttk.Entry(frame, textvariable=self.url).pack(fill="x", pady=(4, 12))
         ttk.Label(frame, text="Optional server bearer token (stored in macOS Keychain)").pack(
@@ -188,7 +181,7 @@ class SettingsWindow:
         ).pack(anchor="w")
         ttk.Label(
             frame,
-            text="Server mode sends selected file bytes to this URL after your confirmation. The server may use external providers. Start and configure your server separately. Connection checks send no document.",
+            text="Selected documents are sent to this server when you choose Process. The server may use external providers. Start and configure your server separately. Connection checks send no document.",
             wraplength=570,
             justify="left",
         ).pack(anchor="w")
@@ -225,11 +218,7 @@ class SettingsWindow:
 
     def processing_changed(self):
         self.update_check_button()
-        self.show_status(
-            "Bundled Docling runs on this Mac. No server connection is needed."
-            if self.mode.get() == "local"
-            else "Test your Core server connection before saving the destination."
-        )
+        self.show_status("Test your Core server connection before saving the destination.")
 
     def preferences_panel(self, frame, controller, tk, ttk):
         self.storage_folders = controller.storage_choices()
@@ -419,7 +408,7 @@ class SettingsWindow:
             self.token.set("")
             self.clear.set(False)
             self.show_status(
-                "Saved. Restart the plugin connection before selecting documents. Existing jobs keep their original destination."
+                "Saved. Quit and reopen your app, then open the OpenReading file picker. Existing jobs keep their original destination."
             )
         except ValueError as error:
             self.show_status(str(error))
@@ -427,7 +416,7 @@ class SettingsWindow:
             self.show_status("Cannot save settings. Check local permissions and Keychain access.")
 
     def restore_destination(self):
-        self.mode.set("local")
+        self.mode.set("server")
         self.url.set("http://127.0.0.1:8787")
         self.token.set("")
         self.clear.set(True)
@@ -465,9 +454,7 @@ class SettingsWindow:
         self.future = None
         self.save_button.configure(state="normal")
         self.update_check_button()
-        if self.mode.get() != "server":
-            self.processing_changed()
-        elif self.checked_values != (self.url.get(), self.token.get(), self.clear.get()):
+        if self.checked_values != (self.url.get(), self.token.get(), self.clear.get()):
             self.show_status("Server settings changed during the check. Test the connection again.")
         if self.closing:
             self.close()

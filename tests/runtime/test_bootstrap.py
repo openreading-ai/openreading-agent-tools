@@ -296,7 +296,7 @@ for line in sys.stdin:
                 self.assertEqual(replies[0], {"forwarded": True})
                 for result in replies[1:4]:
                     self.assertTrue(result.get("isError"), result)
-                    self.assertIn("Reconnect", result["content"][0]["text"])
+                    self.assertIn("Quit and reopen", result["content"][0]["text"])
                 self.assertEqual(replies[4:], [{"forwarded": True}] * 3)
 
     def test_startup_destination_race_terminates_worker(self):
@@ -309,7 +309,7 @@ for line in sys.stdin:
         with (
             patch.object(bootstrap, "destination_stamp", side_effect=[None, b"changed"]),
             patch.object(bootstrap.subprocess, "Popen", return_value=child),
-            self.assertRaisesRegex(ValueError, "Reconnect"),
+            self.assertRaisesRegex(ValueError, "Quit and reopen"),
         ):
             bootstrap.start_worker(manager, mode, "2025-11-25")
         child.terminate.assert_called_once()
