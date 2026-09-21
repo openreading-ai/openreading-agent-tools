@@ -144,7 +144,7 @@ def package(runtime, bootstrap, output, url, *, existing_archive=None):
         json.dumps(
             {
                 "name": "openreading-local-documents",
-                "version": "0.2.0-alpha.9",
+                "version": "0.2.0-alpha.10",
                 "description": "OpenReading document processing and native settings. Downloads its verified runtime automatically on first use. Development candidate.",
                 "author": {"name": "OpenReading"},
             },

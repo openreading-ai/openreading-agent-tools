@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 24
+spec_revision: 25
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-21T00:00:00Z"
@@ -375,6 +375,8 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. First activation automatically downloads and verifies the pinned runtime and models over HTTPS into Application Support. Tool discovery stays responsive during setup and early calls report progress. Concurrent connectors share one installation. Failed or interrupted downloads cannot become executable installations. Later launches reuse verified files without network access. Settings, documents, other clients and credentials remain untouched. Development uses the owner's local ngrok endpoint; GitHub distribution follows the OSS release. Native and clean-machine acceptance are independently verified.
 - id: AC-40
   criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Server connection tests are disabled in bundled mode, with green success and red failure feedback retaining descriptive text.
+- id: AC-42
+  criterion: The assistant workflow continues from successful file or folder selection into processing all selected items, respecting an explicit subset, without an extra import question. It starts each item once, tracks every job, follows selection pagination and reports completed, failed and skipped counts. An absent analysis question does not block processing. Explicit selection-only requests, cancelled or empty selection and declined native server consent start no imports. Shared connection or authorization failures stop later server submissions without automatic retries of uncertain work.
 - id: AC-39
   criterion: New public sessions default to ~/.openreading with separate client partitions and exports beneath the selected data folder; reconnect applies storage changes only with no conflicting connection or unfinished import, preserves readable artifact identities through intake rebinding, retains the original copy, refuses occupied target partitions and fails without switching the active pointer when migration fails.
 
@@ -400,6 +402,22 @@ The runtime evidence table describes historical revision 1 checks only; changed 
     - Capture the pinned core scope guidance in initialize.instructions. Register a focused-question case separately from the explicit complete-read cases.
     - A focused task does not start unrequested full reconstruction. A complete-result task uses automatic delivery and the actual access route; it does not keep paging after reporting a complete local export. Byte counts do not establish token counts.
     - For AC-30, register a small synthetic OCR-code PDF, an accepted large tool result that the host saves to a file, and a result exceeding the configured response budget. Verify intact content hashes, printed code, origins, warnings and exact citations. Record actual host-created file access, local export fallback, replies and approvals separately. Native behavior cannot be inferred from source or frozen stdio checks.
+
+- id: EVAL-3
+  type: human_review
+  evaluator: human
+  pass_threshold: 1
+  cases:
+    - input: Ask to open OpenReading file selection, then select eight synthetic documents across multiple selection pages without an analysis question.
+      expected: Start each selected document once without an import question, report observed progress and finish with per-file outcomes and complete counts.
+    - input: Ask to test the picker only without processing, then select a synthetic folder.
+      expected: Return the selection result without starting any import.
+    - input: Select synthetic documents in server mode, then decline the native transfer confirmation.
+      expected: Start no import and report cancellation without reopening the picker or asking for another confirmation.
+  checks:
+    - Use synthetic inputs through the native host and retain observed tool calls. Static skill validation does not prove assistant behavior.
+    - Repeat normal selection in bundled and server modes. Native server consent remains mandatory before any upload.
+    - Confirm a shared server failure stops later submissions and an uncertain import is not automatically retried.
 
 - id: EVAL-2
   type: human_review

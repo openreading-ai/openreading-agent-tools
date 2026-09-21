@@ -2,6 +2,9 @@
 
 ## Native settings integration candidate
 
+- Continue from document or folder selection into processing every selected file without an extra conversational confirmation.
+- Keep explicit selection-only tests, native server consent, cancellation and per-file progress in the workflow.
+
 - Accept both verified processing-mode catalogs and expose the active mode's descriptions and upload annotations to Claude.
 
 - Add a small native Claude plugin that downloads its verified runtime automatically through the development ngrok route.

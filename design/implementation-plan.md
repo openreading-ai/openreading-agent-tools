@@ -400,3 +400,9 @@ The remaining release checks are in [native settings acceptance](native-settings
 - Build the exact frozen downloader and host only the runtime archive through the owner's existing ngrok tunnel.
 - Verify the cold download and forwarding path before the owner's native upload and settings acceptance.
 - Keep durable GitHub hosting and clean-machine distribution as later release gates.
+
+## Selection continuation, revision 25
+
+- Make successful selection continue into imports in the shared skill, preserving native server consent and explicit selection-only requests.
+- Package the workflow update without changing the frozen downloader or document runtime.
+- Run EVAL-3 in the native host with synthetic multi-file and folder inputs. Confirm complete counts and no extra import question.

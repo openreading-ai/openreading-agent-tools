@@ -21,6 +21,8 @@ The native Settings, Keychain and server-mode walkthrough remain acceptance chec
 
 Ask: "Use OpenReading to choose a local document, then find its totals."
 Approve the selection tool if your host asks. Choose supported documents or folders in "OpenReading: Choose documents or folders".
+The workflow continues into processing each selected file without another import question. It reports job progress and per-file outcomes.
+An explicit request to test selection only stops at the receipt. Cancelling selection or declining server consent starts no imports.
 The configured [core adapter](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md) supplies the format filter.
 Folder snapshots skip unsupported entries, hidden descendants, packages and symlinks, and report those counts.
 An explicitly selected hidden file is eligible. Duplicate basenames retain separate copied references and artifacts.
