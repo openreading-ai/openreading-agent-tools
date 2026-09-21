@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 18
+spec_revision: 20
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-19T00:00:00Z"
+updated_at: "2026-09-20T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -30,11 +30,11 @@ Readers also need to check answers against the source.
 A convincing answer without a resolvable document and page reference cannot support that review.
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
-The first intended user runs Claude Desktop on a Mac with Apple Silicon.
-ChatGPT desktop remains a primary product target, with each conversation mode subject to its own local-execution proof.
-The desired nondeveloper route is a Chat conversation; Work requires separate proof of local execution.
-A Codex local thread is a developer target and cannot satisfy the Chat conversation goal.
-Claude Code and Codex are developer integration targets using the same engine and evidence contracts.
+The first platform remains macOS on Apple Silicon.
+Revision 19 requires the [eight-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
+Each surface must support default bundled Docling and an optional operator-run Core server.
+Ordinary Chat and cloud code sessions do not satisfy these targets. Grok remains future scope.
 A supported client means one recorded application version, execution mode, and connection path that passes the functional checks.
 Support for one desktop mode does not establish support for its web, mobile, or remotely executed modes.
 
@@ -71,7 +71,7 @@ A 1,000,000-byte configurable budget measures the entire serialized MCP response
 A fitting result is sent intact. The host may present it inline or save it into a file accessible through its existing tools.
 A larger result is saved as complete JSON under Downloads/OpenReading, with its byte count, hash and warning summary.
 The host's local-file capability or an explicit user attachment supplies access; a local path alone does not.
-Manual attachment sends exported content to the assistant host. Cowork is optional, and no execution environment is bundled.
+Manual attachment sends exported content to the assistant host. Claude Cowork is a required surface, but no host execution environment is bundled.
 This delivery budget never limits document processing and never silently truncates normalized content.
 Requested content enters the assistant context; full retrieval can include all retained extracted text.
 Neither route changes the configured parser or infers document relationships.
@@ -93,7 +93,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 18 OSS launch v1; managed v2 is post-launch and unbuilt.**
+**Review status: revision 19 requires eight independently tested client/destination combinations; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -136,7 +136,7 @@ The [OSS launch design](../../design/oss-launch.md) owns the catalog proof and p
 
 ~~~productspec-scope
 in:
-  - Deliver a signed and notarized Claude Desktop runtime for macOS on Apple Silicon with pinned Docling, PDFium, ONNX layout weights, and Tesseract; add ChatGPT desktop only under a separately passed, named local conversation mode.
+  - Deliver signed and notarized packages for macOS on Apple Silicon across Claude Cowork, ChatGPT Work, local Claude Code, and Codex; independently verify bundled Docling and optional operator-run Core processing in every surface.
   - Disclose the bundled local vision model and automatic local OCR, preserve usable native text, and label OCR-derived evidence without requiring users to choose a mode.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Require no directory-path configuration in public installation; accept explicitly selected adapter-supported local documents through a verified file picker or handoff, with one artifact per import.
@@ -209,6 +209,15 @@ Offline tests exercise the actual pinned Core retention and MCP retrieval interf
 Frozen runtime and owner-operated native feature acceptance remain separate release gates.
 The owner-operated synthetic ChatGPT probe establishes loopback connectivity only.
 It does not establish the finished server destination or a frozen runtime.
+
+## Native settings
+
+Revision 20 adds optional native settings without making directory configuration part of installation.
+Use `/openreading-settings` or ask to open OpenReading settings.
+The window separates storage and delivery from document processing.
+Storage changes apply at reconnect after existing imports finish. Original data copies remain intact.
+Each client keeps a separate partition. Changing a data folder never grants access to source documents.
+Native acceptance for the integrated package remains independent of the earlier disposable probe.
 
 ## User Experience
 
@@ -334,7 +343,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-25
   criterion: Shared setup semantics require explicit per-file user selection, an internally managed intake grant and automatic bundled OCR, refuse unknown backend or credential fields, and never infer access from the working directory or another client's settings; any host-shared registration is disclosed, the grant limits only OpenReading tools, and native evidence establishes local execution rather than a remote executor.
 - id: AC-26
-  criterion: ChatGPT desktop is supported only after a named application version and conversation mode completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; a Codex local thread is labeled as such and never passes the Chat conversation target.
+  criterion: ChatGPT Work is supported only after a named application version completes the AC-1 clean-machine walkthrough using a tested nondeveloper setup route and local execution; Codex requires its own acceptance and cannot pass the Work target.
 - id: AC-27
   criterion: Every released wrapper exposes all implemented MCP tools from its pinned core version without a commercial filter; tool names, schemas and annotations match core after documented host qualification, descriptions and initialization instructions match the pinned core under equivalent profile settings, every tool has a functional case preserving core result contracts, and missing or changed tools fail pin-update and final package verification; existing checks supply this evidence without a duplicate test framework.
 - id: AC-28
@@ -356,6 +365,14 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   criterion: Server transport refuses redirects and invalid TLS, bounds uploads and decoded responses, rejects duplicate-key or nonfinite JSON, never retries parsing automatically, and reports cancellation or interrupted submission without claiming remote cancellation; credentials never enter model arguments or persisted job snapshots.
 - id: AC-36
   criterion: Server responses retain exact source identity, normalized values, partial status, warnings and truthful provenance; structured-only results remain available without invented quotes, while frozen and native acceptance independently verify settings, consent, reconnect, cancellation and complete delivery.
+
+- id: AC-37
+  criterion: All eight assistant/surface/destination cells in the required compatibility matrix pass independent exact-build native and clean-install acceptance; Claude Cowork, ChatGPT Work, local Claude Code, and Codex each support default bundled Docling without user-installed runtime prerequisites and optional operator-run Core processing; each server cell proves localhost and valid remote HTTPS, consent, credentials, failure recovery, and return to local mode; historical workflows and protocol checks retain their scope and cannot substitute for missing cell evidence.
+
+- id: AC-38
+  criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, local or server processing, server credentials, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, credentials stay in Keychain, and cancelled or discarded edits leave saved values unchanged.
+- id: AC-39
+  criterion: New public sessions default to ~/.openreading with separate client partitions and exports beneath the selected data folder; reconnect applies storage changes only with no conflicting connection or unfinished import, preserves readable artifact identities through intake rebinding, retains the original copy, refuses occupied target partitions and fails without switching the active pointer when migration fails.
 
 ~~~
 

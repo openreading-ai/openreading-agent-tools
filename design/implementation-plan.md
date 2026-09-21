@@ -1,7 +1,25 @@
-# Revision 17 implementation plan
+# Revision 19 implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
-**Contracts:** [ProductSpec revision 17](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+**Contracts:** [ProductSpec revision 19](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
+
+## Required matrix acceptance order
+
+AC-37 and the [compatibility matrix](../README.md#required-compatibility-matrix) supersede older client prioritization below.
+Apply the [same acceptance checklist](../clients/README.md#matrix-acceptance) independently to each cell.
+Preserve earlier native results as partial evidence; repeat affected checks against the actual distributed candidate.
+
+- [ ] Claude Cowork with default bundled Docling.
+- [ ] Claude Cowork with optional operator-run Core server.
+- [ ] Local Claude Code with default bundled Docling.
+- [ ] Local Claude Code with optional operator-run Core server.
+- [ ] ChatGPT Work with default bundled Docling.
+- [ ] ChatGPT Work with optional operator-run Core server.
+- [ ] Local Codex with default bundled Docling.
+- [ ] Local Codex with optional operator-run Core server.
+
+A missing supported installation route is a blocker to record and resolve, never a reason to drop a cell.
+Grok is deferred. No merge, release, or new runtime implementation is part of this documentation update.
 
 ## Current launch sequence
 
@@ -363,3 +381,14 @@ At core `e25b101`, the frozen candidate preserves the OCR code and reconstructs 
 Each job survives its first MCP server process. Recorded supervisors and parser processes exit.
 The eight-tool catalogs match; two retrieval restarts reproduce 51 exact reads each.
 Both repository gates pass. Native progress UI remains open. The uncapped frozen candidate at core `56c1a6f` completes the 251-page owner document and returns readable normalized content. This does not establish extraction accuracy or 10,000-page support.
+
+## Native settings integration, revision 20
+
+- [x] Add a separate no-argument Settings connector and namespaced workflow skill without changing Core's catalog.
+- [x] Persist private storage and delivery choices outside the data root, with defaults and invalid-input tests.
+- [x] Apply client storage changes at reconnect, protect live connections and jobs, and preserve readable artifacts through migration.
+- [x] Extend the native controls and exercise saving through the real window with an isolated home.
+- [x] Complete the repository verification gate and frozen candidate protocol checks.
+- [ ] Record exact-build Cowork and Work installation, native Keychain and clean-machine acceptance independently.
+
+The remaining release checks are in [native settings acceptance](native-settings.md).

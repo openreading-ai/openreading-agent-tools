@@ -1,7 +1,8 @@
 """Launch the nine Core tools against one explicit operator-run HTTP destination.
 
 Only verified native entry points supply metadata and settings to this module.
-The source grant remains the client's completed selection intake; exports use Downloads.
+The source grant remains the client's completed selection intake. Public exports use its
+selected data partition. Historical direct launchers retain their Downloads export path.
 Detached children reconstruct fixed roots, limits and retaining-runtime identity.
 Serialized execution contains a client name and nonsecret destination snapshot, never code.
 Settings changes never reroute a running transfer. Unsubmitted stale approvals are refused.
@@ -26,18 +27,17 @@ from runtime.server_selection import ServerSelectionProvider, ServerSelectionSto
 from runtime.server_transport import UPLOAD_BYTES
 
 
-def config_for(client, settings):
+def config_for(client, settings, *, root=None):
     from openreading.artifacts.limits import ExternalLimits, ProfileConfig
 
     if settings.mode != "server" or settings.destination is None:
         raise ValueError("Configure an explicit Core server destination.")
-    selection = ServerSelectionStore(client)
+    root = root or client_root(client) / "v2"
+    selection = ServerSelectionStore(client, data_root=root)
     limits = ExternalLimits(
         source_bytes=UPLOAD_BYTES, extraction_bytes=settings.destination.response_bytes
     )
-    return ProfileConfig(
-        selection.prepare(), client_root(client) / "v2/artifacts", limits
-    ), selection
+    return ProfileConfig(selection.prepare(), root / "artifacts", limits), selection
 
 
 def identity_for(metadata):
@@ -59,10 +59,15 @@ def launch(args, metadata, settings):
     from openreading.artifacts.jobs import ImportExecution
     from openreading.mcp_server.main import serve
 
-    config, selection = config_for(args.client, settings)
+    root = getattr(args, "runtime_data_root", None)
+    config, selection = config_for(args.client, settings, root=root)
     execution = ImportExecution(
         (sys.executable, "--internal-server-job"),
-        {"client": args.client, "destination": settings.wire()},
+        {
+            "client": args.client,
+            "destination": settings.wire(),
+            **({"storage_root": str(root)} if root is not None else {}),
+        },
     )
     asyncio.run(
         serve(
@@ -70,7 +75,9 @@ def launch(args, metadata, settings):
             selection_provider=ServerSelectionProvider(selection, settings),
             selection_timeout_seconds=None,
             document_response_bytes=args.document_response_bytes,
-            document_export_root=Path.home() / "Downloads/OpenReading",
+            document_export_root=(root / "exports")
+            if root is not None
+            else Path.home() / "Downloads/OpenReading",
             service_factory=lambda config: ServerArtifactService(
                 config, settings=settings, selection=selection, identity=identity_for(metadata)
             ),
@@ -85,10 +92,20 @@ def job_main(argv, metadata):
 
     def factory(request):
         snapshot = request["execution"]
-        if not isinstance(snapshot, dict) or set(snapshot) != {"client", "destination"}:
+        if not isinstance(snapshot, dict) or set(snapshot) not in (
+            {"client", "destination"},
+            {"client", "destination", "storage_root"},
+        ):
             raise ValueError("Invalid server job configuration.")
         settings = decode_settings(snapshot["destination"])
-        config, selection = config_for(snapshot["client"], settings)
+        root = None
+        if "storage_root" in snapshot:
+            from runtime.storage_settings import data_root
+
+            root = data_root(snapshot["client"])
+            if snapshot["storage_root"] != str(root):
+                raise ValueError("The job data location differs from its retained client store.")
+        config, selection = config_for(snapshot["client"], settings, root=root)
         if (
             request["input_root"] != str(config.input_root)
             or request["artifact_root"] != str(config.artifact_root)

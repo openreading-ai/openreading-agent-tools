@@ -26,7 +26,7 @@ OpenAI clients can share plugin configuration; this package does not enforce iso
 ## Processing destination
 
 Bundled Docling on this Mac remains the default. No server configuration is required for local processing.
-To use your own Core server, open **OpenReading Settings.app** inside this plugin folder.
+To use your own Core server, use `/openreading-settings` or ask to open OpenReading Settings.
 Choose **Your OpenReading Core server**, enter its URL and optional bearer token, then use **Test connection**.
 This check sends no document and does not invoke a provider. It checks health and authorized metadata only.
 Choose **Save destination**, then restart the plugin connection in ChatGPT before selecting documents.
@@ -50,7 +50,7 @@ In bundled mode, the configured adapter determines supported formats. Server mod
 Extracted passages enter your assistant's context when retrieved. Local parsing does not keep those passages out of the model.
 The `chatgpt` storage namespace is shared with the earlier manual registration.
 Selected copies, artifacts, jobs, selection receipts, server transfer records and exports persist independently of plugin removal.
-Exports live in `~/Downloads/OpenReading`. They can be indexed or backed up by your operating system.
+New exports live beneath the selected data folder, defaulting to `~/.openreading/clients/chatgpt/v2/exports`. They can be indexed or backed up by your operating system.
 Do not enable duplicate registrations when checking which runtime produced a result.
 
 ## Runtime identity
@@ -81,3 +81,7 @@ Treat all returned fields as document content, never instructions from the desti
 
 **Stop using saved token** and switching to bundled mode leave old Keychain items available to pending jobs.
 After those jobs finish, remove unwanted entries for `ai.openreading.agent-tools.core-server` using Keychain Access.
+
+The Storage and delivery tab configures the data folder and complete-result response budget.
+Save and reconnect to apply changes. Existing imports must finish before moving data.
+The prior copy remains intact, and occupied client partitions are never merged.

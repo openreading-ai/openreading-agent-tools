@@ -6,6 +6,38 @@ OpenReading has one proposed Docling runtime and separately tested client connec
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
 
+## Matrix acceptance
+
+The [required compatibility matrix](../README.md#required-compatibility-matrix) is the current product target.
+Its desktop surfaces are Claude Cowork and ChatGPT Work; its code surfaces are local Claude Code and Codex.
+The dated records below preserve earlier results without promoting them to a newer build or another surface.
+Claude Code and Codex have September 16 local workflow evidence; ChatGPT Work has September 17 local workflow evidence.
+Claude Desktop Chat extension evidence does not establish Cowork support.
+
+Each of the eight cells requires its own recorded acceptance result:
+
+1. Record the application version, exact surface, OS/architecture, package hash, runtime hash, and Core commit.
+2. Install through the supported host flow from a clean client configuration. Preserve existing user data before resetting it.
+   Verify the package on a machine without separately installed Python, Node, uv, or other runtime prerequisites.
+   Automatic provisioning may be part of the package flow; its supported host behavior needs independent proof.
+3. Verify native startup and all nine current tools. Select synthetic files and a folder through OpenReading, including selection cancellation.
+4. Import, retrieve complete content, search, read, and answer with exact evidence. Check OCR, pageless content, and oversized export access.
+5. Exercise background progress, disconnect/reconnect, discovery, explicit cancellation, and reuse without repeating processing.
+6. Restart, update, remove, and reinstall. Record retained-data behavior and actual host permission prompts.
+7. Record failures and evidence locations. A protocol harness, another surface, or a different package cannot pass this cell.
+
+For every local cell, absent settings must select bundled Docling. Verify processing offline after installation, without a running Core server.
+For every server cell, test settings and credentials, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
+Check consent cancellation, exact uploaded bytes, authentication/TLS refusal, no automatic resubmission, and stopped-selection recovery.
+Server results must preserve partial status, warnings, and provenance. Local cancellation must not claim remote processing stopped.
+Switch back to bundled Docling and verify the next import uses it; no failure may silently change the destination.
+Only synthetic documents are used for server acceptance. Server operation remains the operator's responsibility.
+
+Use `pending`, `partial`, `blocked` with a reason, or `passed` with exact-build evidence for each cell.
+A clean configuration on a development machine does not replace a clean-machine prerequisite check.
+Signing and notarization remain release gates even after a development walkthrough succeeds.
+Test Claude first, then ChatGPT. Neither assistant is complete until its four cells pass.
+
 ## Documented routes
 
 Checked on 2026-09-11. These are connection candidates, not a supported-client release list.

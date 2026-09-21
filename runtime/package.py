@@ -53,7 +53,11 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
             )
         shutil.copytree(runtime, target / "server", symlinks=True)
         if client != "claude-desktop":
-            shutil.copytree(REPOSITORY / "skills", target / "skills")
+            shutil.copytree(
+                REPOSITORY / "skills",
+                target / "skills",
+                ignore=shutil.ignore_patterns("openreading-settings"),
+            )
         verify_release(target / "server")
         paths[client] = target
     claude = output / "claude-code/.claude-plugin/marketplace.json"
@@ -185,6 +189,10 @@ def _server_destination(metadata: dict) -> None:
         "_internal/runtime/server_keychain.py",
         "_internal/runtime/destination_settings.py",
         "_internal/runtime/destination_ui.py",
+        "_internal/runtime/settings_server.py",
+        "_internal/runtime/app_settings.py",
+        "_internal/runtime/storage_settings.py",
+        "_internal/runtime/public_profile.py",
         "_internal/openreading/artifacts/retention.py",
         "_internal/openreading/schemas/local-document.v0.5.json",
         "_internal/openreading/schemas/agent-document-tool.v0.5.json",
@@ -276,6 +284,60 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     return target
 
 
+def package_cowork_plugin(runtime: Path, output: Path) -> Path:
+    """Assemble a self-contained local Cowork candidate with a separate Settings connector."""
+    metadata = _docling_runtime(runtime, chat=True)
+    _server_destination(metadata)
+    if output.exists():
+        raise ValueError("Choose a new package output directory.")
+    (output / ".claude-plugin").mkdir(parents=True)
+    (output / ".claude-plugin/plugin.json").write_text(
+        json.dumps(
+            {
+                "name": "openreading-local-documents",
+                "version": "0.2.0-alpha.6",
+                "description": "Local document tools and native OpenReading Settings. Development candidate.",
+                "author": {"name": "OpenReading"},
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    servers = {}
+    for name, flag in (
+        ("openreading", "--chat-documents"),
+        ("openreading-settings", "--settings-tools"),
+    ):
+        servers[name] = {
+            "command": "${CLAUDE_PLUGIN_ROOT}/server/openreading-worker",
+            "args": ["--client", "claude-desktop", flag],
+        }
+    (output / ".mcp.json").write_text(json.dumps({"mcpServers": servers}, indent=2) + "\n")
+    shutil.copytree(runtime, output / "server", symlinks=True)
+    shutil.copytree(REPOSITORY / "skills", output / "skills")
+    shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
+    _settings_helper(output, "claude-desktop")
+    verify_release(output / "server")
+    files = {
+        p.relative_to(output).as_posix(): sha256(p)
+        for p in output.rglob("*")
+        if p.is_file() and "server" not in p.relative_to(output).parts
+    }
+    (output / "package-info.json").write_text(
+        json.dumps(
+            {
+                "distribution": "development-only",
+                "core_commit": metadata["core_commit"],
+                "worker_sha256": metadata["worker_sha256"],
+                "package_files": files,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return output
+
+
 def package_docling_desktop(
     runtime: Path, output: Path, *, selection: bool = False, chat: bool = False
 ) -> Path:
@@ -357,22 +419,11 @@ def package_docling_desktop(
             "does not establish public installation or measured token savings."
             "\n\nOpenReading Managed: Coming soon"
         )
-        manifest["user_config"] = {
-            "document_response_bytes": {
-                "type": "number",
-                "title": "Complete result response budget (bytes)",
-                "description": "Advanced delivery setting. Enter a whole number of at least 4096. Default 1000000 counts the serialized MCP response. Larger results are saved under Downloads/OpenReading; document processing is not limited.",
-                "default": 1_000_000,
-                "min": 4096,
-                "required": False,
-            }
-        }
+        manifest["user_config"] = {}
         manifest["server"]["mcp_config"]["args"] = [
             "--client",
             "claude-desktop",
             "--chat-documents",
-            "--document-response-bytes",
-            "${user_config.document_response_bytes}",
         ]
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
@@ -410,6 +461,11 @@ def main() -> int:
         help="assemble only a development Docling Desktop candidate for local checks",
     )
     targets.add_argument(
+        "--cowork-plugin",
+        action="store_true",
+        help="assemble a self-contained Cowork development plugin with native settings",
+    )
+    targets.add_argument(
         "--chatgpt-plugin",
         action="store_true",
         help="assemble a development ChatGPT local plugin marketplace without host registration",
@@ -428,7 +484,9 @@ def main() -> int:
     args = parser.parse_args()
     if (args.selected_documents or args.chat_documents) and not args.docling_desktop:
         parser.error("Selection candidates require --docling-desktop")
-    if args.chatgpt_plugin:
+    if args.cowork_plugin:
+        paths = {"cowork": package_cowork_plugin(args.runtime.resolve(), args.output.resolve())}
+    elif args.chatgpt_plugin:
         paths = {"chatgpt": package_chatgpt_plugin(args.runtime.resolve(), args.output.resolve())}
     elif args.docling_desktop:
         paths = {

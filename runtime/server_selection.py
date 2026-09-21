@@ -30,8 +30,8 @@ from runtime.server_transport import UPLOAD_BYTES
 
 
 class ServerSelectionStore(SelectionStore):
-    def __init__(self, client, *, home=None):
-        super().__init__(client, home=home)
+    def __init__(self, client, *, home=None, data_root=None):
+        super().__init__(client, home=home, data_root=data_root)
         self.client, self.home = client, home
         self.extensions = None
         self.approvals = self.root.parent / "server/approvals"

@@ -6,9 +6,11 @@ profile or backend. Explicit directory arguments are never interpreted by a shel
 The internal child dispatch uses the same frozen executable and verified inventory.
 Format 2 supports --select-document for the GUI and --selected-documents for MCP.
 The separate --chat-documents candidate installs a trusted local chooser and automatic OCR.
-It reads only the separate destination setting and refuses directory or OCR overrides.
+It reads native destination, storage and delivery preferences and refuses directory or OCR overrides.
 Absent destination settings keep bundled Docling. Explicit server settings use approved snapshots.
-The --destination-settings native window changes that choice without granting documents.
+The --destination-settings native window changes those choices without granting documents.
+The separate --settings-tools connector exposes its no-argument opener, including when
+invalid document settings refuse startup. Historical developer flags remain supported.
 The older selection modes reject directory configuration. MCP supplies private completed intake
 copies and ignores saved grants; developer OCR remains an explicit argument, default off.
 
@@ -86,11 +88,16 @@ def main(argv: list[str] | None = None) -> int:
         parser.add_argument(
             "--document-response-bytes",
             type=int,
-            default=1_000_000,
+            default=None,
             help="advanced complete-result delivery budget in serialized MCP bytes; default 1000000",
         )
         parser.add_argument("--ocr", help="setup-only OCR: on/true or off/false; default off")
         selection = parser.add_mutually_exclusive_group()
+        selection.add_argument(
+            "--settings-tools",
+            action="store_true",
+            help="serve the native settings opener over stdio MCP",
+        )
         selection.add_argument(
             "--destination-settings",
             action="store_true",
@@ -118,10 +125,22 @@ def main(argv: list[str] | None = None) -> int:
         "--input-root", type=Path, help="explicit document directory; no default grant"
     )
     args = parser.parse_args(argv)
+    args.explicit_delivery = docling and args.document_response_bytes is not None
+    if docling and not args.explicit_delivery:
+        args.document_response_bytes = 1_000_000
     try:
         if docling:
             if args.document_response_bytes < 4096:
                 raise ValueError("Document response bytes must be at least 4096.")
+            if args.settings_tools:
+                if args.input_root is not None or args.configure or args.ocr is not None:
+                    raise ValueError("Settings tools accept no document or OCR configuration.")
+                import asyncio
+
+                from runtime.settings_server import serve
+
+                asyncio.run(serve(args.client))
+                return 0
             if args.destination_settings:
                 if args.input_root is not None or args.configure or args.ocr is not None:
                     raise ValueError(
@@ -144,28 +163,15 @@ def main(argv: list[str] | None = None) -> int:
                 from runtime.selection import SelectionStore
 
                 if args.chat_documents:
-                    from runtime.destination_settings import read_destination
+                    from runtime.public_profile import launch as public_launch
 
-                    destination = read_destination(args.client)
-                    if destination.mode == "server":
-                        from runtime.server_profile import launch as server_launch
-
-                        return server_launch(args, metadata, destination)
-                    from runtime.native_selection import adapter_extensions
-
-                    store = SelectionStore(args.client, extensions=adapter_extensions())
-                else:
-                    store = SelectionStore(args.client)
+                    return public_launch(args, root, metadata)
+                store = SelectionStore(args.client)
                 if args.select_document:
                     from runtime.selection_ui import run
 
                     return run(store)
                 args.input_root = store.prepare()
-                if args.chat_documents:
-                    from runtime.native_selection import SnapshotSelectionProvider
-
-                    args.ocr = "true"
-                    return launch(args, root, selection_provider=SnapshotSelectionProvider(store))
             return launch(args, root)
         if args.configure:
             if args.input_root is None:

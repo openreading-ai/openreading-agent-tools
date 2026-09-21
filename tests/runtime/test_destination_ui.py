@@ -65,3 +65,15 @@ class SettingsControllerTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.controller.save("server", "http://localhost", "", False, response_mib=value)
             self.assertEqual(self.controller.current(), saved)
+
+    def test_storage_and_delivery_are_saved_without_changing_processing(self):
+        self.assertTrue(
+            hasattr(self.controller, "preferences"), "Missing native preferences controls"
+        )
+        folder = self.home / "Downloads/Chosen"
+        self.controller.save_preferences(str(folder), "8192")
+        self.assertEqual(self.controller.preferences().data_folder, folder)
+        self.assertEqual(self.controller.preferences().document_response_bytes, 8192)
+        self.assertEqual(self.controller.current().mode, "local")
+        with self.assertRaises(ValueError):
+            self.controller.save_preferences(str(folder), "3.5")

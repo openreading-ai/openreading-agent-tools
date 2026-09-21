@@ -1,5 +1,13 @@
 # Changelog
 
+## Native settings integration candidate
+
+- Add `/openreading-settings` with native storage, delivery, processing and credential controls.
+- Default public data and exports to client partitions beneath `~/.openreading`.
+- Copy and rebind retained evidence at reconnect while preserving the original store and refusing active imports.
+- Keep Settings available independently of document startup and preserve the pinned Core tool catalog.
+- Track exact-build host, accessibility and distribution acceptance separately under ProductSpec revision 20.
+
 - Harden optional server progress, Unicode consent rows, cached responses and stopped-selection recovery.
 - Expose the response download budget and clarify retained-token and storage behavior.
 

@@ -248,3 +248,25 @@ The offline gate keeps historical runtime tests on their original Core pin.
 The broader `tests/runtime` lane uses the historical `runtime` pin, including transport and Settings tests.
 The server lane exercises the current Core service through MCP, including synchronous progress notifications.
 Both lanes contribute to the existing line and branch coverage requirements.
+
+## Native settings and public storage
+
+Ask to open OpenReading Settings or select `/openreading-settings` in a plugin with the settings connector.
+Choose storage and delivery preferences in the first tab. Configure local or server processing in the second tab.
+Use **Save storage and delivery** or **Save destination** for that tab. **Discard changes** reloads saved values.
+Reconnect the document connector after saving. Finish or cancel imports before moving storage.
+The separate settings connector remains available when invalid preferences prevent document startup.
+
+Public sessions default to `~/.openreading/clients/CLIENT/v2`, including an `exports` directory.
+An optional selected folder replaces `~/.openreading`; it never becomes a source-document grant.
+An existing installation keeps its location until preferences are explicitly saved.
+After that request, private intake and evidence are copied when the connection can migrate safely.
+The old copy remains intact. An occupied target partition is refused rather than merged.
+Historical developer directory/OCR setup and version 1 storage keep their original paths.
+The control records remain in the original Application Support client directory.
+
+`app_settings.py` defines persisted defaults and validation. `storage_settings.py` owns switching and rollback.
+`settings_server.py` exposes only `openreading_open_settings`, with no configuration arguments.
+The existing `destination_settings.py` keeps bearer credentials in Keychain and stores references only.
+`public_profile.py` applies these choices to local and server processing without changing Core's tool catalog.
+The integrated build's native and release gaps are tracked in [native settings acceptance](../design/native-settings.md).

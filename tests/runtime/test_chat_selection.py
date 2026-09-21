@@ -270,7 +270,10 @@ class ChatSelectionTests(unittest.IsolatedAsyncioTestCase):
         ):
             self.assertEqual(main(["--client", "claude-desktop", "--chat-documents"]), 0)
         args = launch.call_args.args[0]
-        self.assertEqual(args.input_root, self.store.grant)
+        self.assertEqual(
+            args.input_root,
+            self.store.grant,
+        )
         self.assertEqual(args.ocr, "true")
         self.assertIsInstance(
             launch.call_args.kwargs["selection_provider"], self.module().LocalSelectionProvider

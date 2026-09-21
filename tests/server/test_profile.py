@@ -105,3 +105,44 @@ class ServerProfileTests(unittest.TestCase):
             importlib.metadata.distribution("openreading").read_text("direct_url.json")
         )
         self.assertEqual(installed["vcs_info"]["commit_id"], expected)
+
+    def test_native_data_root_is_snapshotted_and_mismatched_children_are_refused(self):
+        from dataclasses import asdict
+
+        from runtime.destination_settings import DestinationSettings
+        from runtime.server_profile import config_for, job_main, launch
+        from runtime.storage_settings import storage_session
+
+        with self.assertRaises(ValueError):
+            config_for("chatgpt", DestinationSettings())
+        with storage_session("chatgpt") as root:
+            args = SimpleNamespace(
+                client="chatgpt", document_response_bytes=8192, runtime_data_root=root
+            )
+            with patch("openreading.mcp_server.main.serve", AsyncMock()) as serve:
+                launch(args, self.metadata, self.settings)
+            config = serve.call_args.args[0]
+            options = serve.call_args.kwargs
+            self.assertEqual(options["document_export_root"], root / "exports")
+            self.assertEqual(options["document_response_bytes"], 8192)
+            request = {
+                "execution": options["execution"].snapshot,
+                "input_root": str(config.input_root),
+                "artifact_root": str(config.artifact_root),
+                "limits": asdict(config.limits),
+                "docling": None,
+            }
+
+            def run(argv, *, service_factory):
+                service = service_factory(request)
+                service.close()
+                bad = {
+                    **request,
+                    "execution": {**request["execution"], "storage_root": "/elsewhere"},
+                }
+                with self.assertRaisesRegex(ValueError, "data location"):
+                    service_factory(bad)
+                return 0
+
+            with patch("openreading.artifacts.jobs.main", side_effect=run):
+                self.assertEqual(job_main(["synthetic"], self.metadata), 0)

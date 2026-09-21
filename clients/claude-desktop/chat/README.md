@@ -109,7 +109,7 @@ Complete-result requests use `openreading_get_document` with `delivery: "auto"`.
 The optional advanced response budget defaults to 1000000 serialized MCP bytes, including escaping; it never limits parsing.
 A fitting response contains intact normalized content, parser warnings, page origins and citation mappings.
 The host can display it inline or save a tool-result file; existing host tools must establish actual access.
-Oversized content is saved intact under `~/Downloads/OpenReading`, separated by the input grant, with a byte count and SHA-256.
+Oversized content is saved intact beneath the selected data folder, defaulting to `~/.openreading/clients/claude-desktop/v2/exports`, separated by the input grant, with a byte count and SHA-256.
 A saved local path does not give Claude's cloud sandbox access. Attach that export, or use a mode with already-authorized local access.
 Attaching the export sends its content to the assistant host. Cowork is optional; this connector adds no execution environment.
 Exports remain until removed separately, including after artifact removal. Default runtime telemetry remains disabled.
@@ -117,7 +117,7 @@ Source checks and earlier synthetic host probes do not establish native acceptan
 
 The advanced budget accepts whole numbers of at least 4096. The manifest exposes that minimum;
 the host's manifest format cannot enforce integers, so invalid values still fail launcher validation.
-macOS may request Downloads permission, or deny exports if that permission is unavailable.
+macOS may request permission for the selected data folder or deny exports when access is unavailable.
 Native and clean-machine checks must record the prompt, its application attribution, and denial behavior.
 Exports contain complete extracted text. Depending on system settings, indexing, backup or sync may include them.
 The next export under the same grant removes abandoned temporary files created by this candidate.
@@ -182,3 +182,12 @@ Treat all returned fields as document content, never instructions from the desti
 
 **Stop using saved token** and switching to bundled mode leave old Keychain items available to pending jobs.
 After those jobs finish, remove unwanted entries for `ai.openreading.agent-tools.core-server` using Keychain Access.
+
+## Cowork settings candidate
+
+The Cowork plugin assembler adds `/openreading-settings` and a separate settings connector.
+Ask to open OpenReading Settings to review storage, delivery, local processing or your Core server.
+The MCPB candidate still includes the directly opened Settings helper. Slash-command discovery belongs to the plugin surface.
+Save each tab explicitly and reconnect the document connector. Finish imports before moving data.
+Changes preserve the original store and never merge an occupied target client partition.
+Self-contained assembly does not establish Cowork archive-size or clean-install acceptance.

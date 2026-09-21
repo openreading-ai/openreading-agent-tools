@@ -13,11 +13,13 @@ Docling, PDFium, CPU ONNX layout inference, and automatically selected local Tes
 The bundle includes Python, verified layout weights, OCR data, and required native libraries.
 It excludes PyMuPDF and the prohibited dependencies listed in the engine design.
 
-Claude Desktop is the first release target on macOS Apple Silicon.
-ChatGPT desktop Chat conversations remain a conditional primary target pending experiment E1 in the [probe plan](native-probes.md).
-Work conversations require independent proof of local execution; a Codex local thread is a separate developer target.
-Release only the modes that pass, without presenting a Claude-only release as completion of the full target.
-Claude Code and Codex remain developer targets and potential measurement surfaces.
+Revision 19 requires the [eight-cell compatibility matrix](../README.md#required-compatibility-matrix) on macOS Apple Silicon.
+Desktop targets are Claude Cowork and ChatGPT Work; code targets are local Claude Code and Codex.
+Every surface must support bundled Docling by default and an optional operator-run Core HTTP destination.
+Host-specific manifests or archives may share one runtime, but each installation route requires independent evidence.
+Users receive the runtime through installation without separate developer tools, server setup, or a GitHub checkout.
+Existing Desktop Chat extension checks do not establish Cowork acceptance. Ordinary Chat and Grok remain outside this matrix.
+The [matrix checklist](../clients/README.md#matrix-acceptance) governs acceptance; older target ordering below is historical where it conflicts.
 The [client matrix](../clients/README.md#owner-operated-candidate-checks-september-16-2026) records owner-operated candidate workflows and separates them from clean-machine distribution acceptance.
 Each supported entry names the application, version, execution mode, platform, and connection method.
 A shared model provider does not make two applications equivalent.
@@ -40,7 +42,7 @@ A measurement adapter observes one model execution surface; it is not part of th
 The [client matrix](../clients/README.md) owns current documented routes and the limits of observed evidence.
 Recheck official guidance before implementing each connection because host capabilities can change.
 The first target is local execution in a named desktop mode, not every product carrying the same brand.
-ChatGPT web, mobile, secure tunnels, public endpoints, and remote workers remain outside this proof.
+Web/mobile and cloud code execution remain outside this matrix. An optional operator-run processing destination may use localhost or remote HTTPS.
 A connection restriction blocks that client criterion; it never authorizes uploading a local document elsewhere.
 
 Use four separate evidence levels:

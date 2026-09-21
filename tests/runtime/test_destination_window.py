@@ -20,6 +20,9 @@ class Widget:
     def set(self, value):
         self.value = value
 
+    def add(self, *args, **kwargs):
+        pass
+
     def pack(self, **kwargs):
         pass
 
@@ -31,6 +34,12 @@ class WindowTests(unittest.TestCase):
     def make(self, broken=False):
         self.assertTrue(hasattr(destination_ui, "SettingsWindow"), "Missing settings window")
         controller = Mock()
+        from pathlib import Path
+
+        from runtime.app_settings import Preferences
+
+        controller.home = Path("/synthetic")
+        controller.preferences.return_value = Preferences(Path("/synthetic/.openreading"))
         controller.current.return_value = DestinationSettings()
         if broken:
             controller.current.side_effect = ValueError("Invalid destination settings")
@@ -38,6 +47,7 @@ class WindowTests(unittest.TestCase):
             **{
                 name: Widget
                 for name in (
+                    "Notebook",
                     "Frame",
                     "Label",
                     "Entry",
@@ -107,3 +117,46 @@ class WindowTests(unittest.TestCase):
             self.assertEqual(destination_ui.run("chatgpt"), 0)
             self.assertEqual(window.call_args.args[1].client, "chatgpt")
             root.return_value.mainloop.assert_called_once()
+
+    def test_folder_choice_cancel_save_and_discard(self):
+        window, controller, _ = self.make()
+        original = window.folder.get()
+        with patch("tkinter.filedialog.askdirectory", return_value=""):
+            window.choose_folder()
+        self.assertEqual(window.folder.get(), original)
+        with patch("tkinter.filedialog.askdirectory", return_value="/synthetic/chosen"):
+            window.choose_folder()
+        self.assertEqual(window.folder.get(), "/synthetic/chosen")
+        controller.save_preferences.assert_not_called()
+        window.save_preferences()
+        controller.save_preferences.assert_called_once_with("/synthetic/chosen", "1000000")
+        window.discard_preferences()
+        self.assertEqual(window.folder.get(), original)
+        self.assertIn("discarded", window.preference_status.get())
+        for error in (ValueError("invalid folder"), OSError("private failure")):
+            controller.save_preferences.side_effect = error
+            window.save_preferences()
+            self.assertNotIn("private failure", window.preference_status.get())
+        controller.preferences.side_effect = ValueError("bad saved preferences")
+        window.discard_preferences()
+        self.assertEqual(window.preference_status.get(), "bad saved preferences")
+
+    def test_discard_destination_restores_local_and_server_values_without_saving(self):
+        from runtime.server_transport import ServerDestination
+
+        window, controller, _ = self.make()
+        window.url.set("https://changed.invalid")
+        window.token.set("not saved")
+        window.discard_destination()
+        self.assertEqual(window.mode.get(), "local")
+        self.assertEqual(window.token.get(), "")
+        controller.current.return_value = DestinationSettings(
+            "server", "r", ServerDestination("http://localhost:8787", "r", 4194304)
+        )
+        window.discard_destination()
+        self.assertEqual(window.url.get(), "http://localhost:8787")
+        self.assertEqual(window.response_mib.get(), "4")
+        controller.save.assert_not_called()
+        controller.current.side_effect = ValueError("broken settings")
+        window.discard_destination()
+        self.assertEqual(window.status.get(), "broken settings")
