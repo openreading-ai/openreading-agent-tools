@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 20
+spec_revision: 21
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-20T00:00:00Z"
+updated_at: "2026-09-21T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -197,7 +197,7 @@ Shared connection or authorization failures stop later submissions; document rej
 
 Parse requests are never retried automatically. Cancellation ends local waiting and future dispatch only.
 Submitted server processing can continue. Interrupted work has an unknown remote outcome.
-The source limit is 100 MiB in server mode; the default decoded response limit is 128 MiB.
+The source limit is 100 MiB in server mode; the default decoded response limit is 256 MiB.
 These transport limits do not cap bundled Docling processing or change complete-result delivery budgets.
 Non-loopback servers require verified HTTPS. Redirects, credential-bearing URLs, queries, and fragments are refused.
 Optional existing bearer credentials stay in Keychain, outside tool arguments, argv, and job records.
@@ -371,6 +371,8 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 
 - id: AC-38
   criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, local or server processing, server credentials, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, credentials stay in Keychain, and cancelled or discarded edits leave saved values unchanged.
+- id: AC-40
+  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion.
 - id: AC-39
   criterion: New public sessions default to ~/.openreading with separate client partitions and exports beneath the selected data folder; reconnect applies storage changes only with no conflicting connection or unfinished import, preserves readable artifact identities through intake rebinding, retains the original copy, refuses occupied target partitions and fails without switching the active pointer when migration fails.
 

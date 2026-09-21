@@ -6,6 +6,10 @@ The selected directory is a storage destination, never a source grant. Each clie
 its own partition beneath it. Saving requests a switch; storage_session applies it only
 when previous connections and import supervisors have stopped. Environment variables do
 not select settings. The OS home directory locates the private control record.
+
+Advanced limits live separately in CLIENT/advanced.json. Saving those limits must not
+request a storage move or apply unsaved server credentials. When absent, legacy limits
+remain effective; new installations allow one million inline bytes and 256 MiB downloads.
 """
 
 from __future__ import annotations
@@ -27,6 +31,64 @@ from runtime.configuration import client_root
 class Preferences:
     data_folder: Path
     document_response_bytes: int = 1_000_000
+
+
+@dataclass(frozen=True)
+class Limits:
+    document_response_bytes: int = 1_000_000
+    server_response_bytes: int = 256 * 1024 * 1024
+
+
+def validate_limits(budget, maximum):
+    if type(budget) is not int or not 4096 <= budget <= 1_000_000_000:
+        raise ValueError("Response file threshold must be from 4096 to 1000000000 bytes.")
+    if type(maximum) is not int or maximum < 1024 * 1024:
+        raise ValueError("Maximum downloaded response must be at least 1 MiB.")
+    return Limits(budget, maximum)
+
+
+def read_limits(client, *, home=None):
+    path = client_root(client, home=home) / "advanced.json"
+    if not path.exists() and not path.is_symlink():
+        from runtime.destination_settings import read_destination
+
+        destination = read_destination(client, home=home).destination
+        return Limits(
+            read_preferences(client, home=home).document_response_bytes,
+            destination.response_bytes if destination else Limits().server_response_bytes,
+        )
+    try:
+        value = json.loads(safe_read(path, 16384))
+        if (
+            not isinstance(value, dict)
+            or set(value) != {"schema_version", "document_response_bytes", "server_response_bytes"}
+            or type(value["schema_version"]) is not int
+            or value["schema_version"] != 1
+        ):
+            raise ValueError
+        return validate_limits(value["document_response_bytes"], value["server_response_bytes"])
+    except (ValueError, OSError, ArtifactError):
+        raise ValueError(
+            "Cannot read Advanced settings. Open OpenReading Settings to repair them."
+        ) from None
+
+
+def save_limits(client, budget, maximum, *, home=None):
+    value = validate_limits(budget, maximum)
+    try:
+        write_private(
+            client_root(client, home=home) / "advanced.json",
+            {
+                "schema_version": 1,
+                "document_response_bytes": value.document_response_bytes,
+                "server_response_bytes": value.server_response_bytes,
+            },
+        )
+    except (ArtifactError, OSError):
+        raise ValueError(
+            "Cannot save Advanced settings. Check local permissions and free space."
+        ) from None
+    return value
 
 
 def validate(folder, budget):

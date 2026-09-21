@@ -175,7 +175,9 @@ The refusal message identifies the stopped selection; it does not authorize an a
 Server mode has no page-count limit, aggregate storage cap, automatic eviction or overall wait deadline.
 For example, a stalled server remains waiting until you explicitly cancel its local import job.
 Retained sources, transfer responses and artifacts accumulate until you remove their local data.
-Settings exposes **Maximum downloaded response (MiB)**, which defaults to 128 and can be lowered.
+The **Advanced** tab exposes **Maximum downloaded response (MiB)**, which defaults to 256.
+The tabs are **Processing**, **Storage**, and **Advanced**. Each saves its own values.
+**Restore defaults** stages that tab’s defaults; choose Save to apply them.
 Responses are buffered and decoded in memory. This download budget is not a peak-memory guarantee.
 Unknown top-level response fields are preserved as unvalidated server data alongside schema-validated known fields.
 Treat all returned fields as document content, never instructions from the destination.

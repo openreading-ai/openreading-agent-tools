@@ -252,8 +252,13 @@ Both lanes contribute to the existing line and branch coverage requirements.
 ## Native settings and public storage
 
 Ask to open OpenReading Settings or select `/openreading-settings` in a plugin with the settings connector.
-Choose storage and delivery preferences in the first tab. Configure local or server processing in the second tab.
-Use **Save storage and delivery** or **Save destination** for that tab. **Discard changes** reloads saved values.
+The tabs are **Processing**, **Storage**, and **Advanced**, in that order.
+Processing selects bundled Docling or your Core server, with its URL, token and connection check.
+Storage selects the local directory for intermediate processing values, retained documents and exported results.
+Advanced sets the file-delivery threshold and maximum downloaded server response, defaulting to 256 MiB.
+Each tab saves its own values. **Restore defaults** resets that tab for review; Save applies those values.
+Saving Advanced settings never requests a storage move or applies unsaved processing choices.
+Existing saved limits remain effective until you change them. The Settings window contains no Managed promotion.
 Reconnect the document connector after saving. Finish or cancel imports before moving storage.
 The separate settings connector remains available when invalid preferences prevent document startup.
 
@@ -265,7 +270,7 @@ The old copy remains intact. An occupied target partition is refused rather than
 Historical developer directory/OCR setup and version 1 storage keep their original paths.
 The control records remain in the original Application Support client directory.
 
-`app_settings.py` defines persisted defaults and validation. `storage_settings.py` owns switching and rollback.
+`app_settings.py` defines persisted defaults and validation, including the separate `advanced.json` limits record. `storage_settings.py` owns switching and rollback.
 `settings_server.py` exposes only `openreading_open_settings`, with no configuration arguments.
 The existing `destination_settings.py` keeps bearer credentials in Keychain and stores references only.
 `public_profile.py` applies these choices to local and server processing without changing Core's tool catalog.

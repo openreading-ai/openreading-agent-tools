@@ -36,10 +36,11 @@ class WindowTests(unittest.TestCase):
         controller = Mock()
         from pathlib import Path
 
-        from runtime.app_settings import Preferences
+        from runtime.app_settings import Limits, Preferences
 
         controller.home = Path("/synthetic")
         controller.preferences.return_value = Preferences(Path("/synthetic/.openreading"))
+        controller.limits.return_value = Limits()
         controller.current.return_value = DestinationSettings()
         if broken:
             controller.current.side_effect = ValueError("Invalid destination settings")
@@ -69,7 +70,7 @@ class WindowTests(unittest.TestCase):
         window.token.set("synthetic")
         window.save()
         controller.save.assert_called_once_with(
-            "server", "http://localhost:8787", "synthetic", False, response_mib="128"
+            "server", "http://localhost:8787", "synthetic", False
         )
         self.assertEqual(window.token.get(), "")
         self.assertIn("Saved", window.status.get())
@@ -128,35 +129,47 @@ class WindowTests(unittest.TestCase):
             window.choose_folder()
         self.assertEqual(window.folder.get(), "/synthetic/chosen")
         controller.save_preferences.assert_not_called()
-        window.save_preferences()
-        controller.save_preferences.assert_called_once_with("/synthetic/chosen", "1000000")
-        window.discard_preferences()
+        window.save_storage()
+        controller.save_storage.assert_called_once_with("/synthetic/chosen")
+        window.restore_storage()
         self.assertEqual(window.folder.get(), original)
-        self.assertIn("discarded", window.preference_status.get())
+        self.assertIn("default", window.preference_status.get())
         for error in (ValueError("invalid folder"), OSError("private failure")):
-            controller.save_preferences.side_effect = error
-            window.save_preferences()
+            controller.save_storage.side_effect = error
+            window.save_storage()
             self.assertNotIn("private failure", window.preference_status.get())
-        controller.preferences.side_effect = ValueError("bad saved preferences")
-        window.discard_preferences()
-        self.assertEqual(window.preference_status.get(), "bad saved preferences")
 
-    def test_discard_destination_restores_local_and_server_values_without_saving(self):
-        from runtime.server_transport import ServerDestination
-
+    def test_restore_defaults_is_scoped_and_does_not_save(self):
         window, controller, _ = self.make()
+        window.mode.set("server")
         window.url.set("https://changed.invalid")
         window.token.set("not saved")
-        window.discard_destination()
+        window.budget.set("8192")
+        window.response_mib.set("4")
+        window.restore_destination()
         self.assertEqual(window.mode.get(), "local")
+        self.assertEqual(window.url.get(), "http://127.0.0.1:8787")
         self.assertEqual(window.token.get(), "")
-        controller.current.return_value = DestinationSettings(
-            "server", "r", ServerDestination("http://localhost:8787", "r", 4194304)
-        )
-        window.discard_destination()
-        self.assertEqual(window.url.get(), "http://localhost:8787")
-        self.assertEqual(window.response_mib.get(), "4")
+        self.assertEqual(window.budget.get(), "8192")
+        window.mode.set("server")
+        window.restore_advanced()
+        self.assertEqual(window.mode.get(), "server")
+        self.assertEqual(window.budget.get(), "1000000")
+        self.assertEqual(window.response_mib.get(), "256")
         controller.save.assert_not_called()
-        controller.current.side_effect = ValueError("broken settings")
-        window.discard_destination()
-        self.assertEqual(window.status.get(), "broken settings")
+        controller.save_advanced.assert_not_called()
+
+    def test_three_tabs_and_advanced_save(self):
+        with patch.object(Widget, "add") as add:
+            window, controller, _ = self.make()
+        self.assertEqual(
+            [call.kwargs["text"] for call in add.call_args_list],
+            ["Processing", "Storage", "Advanced"],
+        )
+        window.save_advanced()
+        controller.save_advanced.assert_called_once_with("1000000", "256")
+        self.assertIn("Saved", window.advanced_status.get())
+        for error in (ValueError("invalid size"), OSError("private failure")):
+            controller.save_advanced.side_effect = error
+            window.save_advanced()
+            self.assertNotIn("private failure", window.advanced_status.get())

@@ -2,6 +2,9 @@
 
 ## Native settings integration candidate
 
+- Organize Settings into Processing, Storage and Advanced with independent saves and Restore defaults.
+- Move response limits into Advanced, default server downloads to 256 MiB, and remove Managed from Settings.
+
 - Add `/openreading-settings` with native storage, delivery, processing and credential controls.
 - Default public data and exports to client partitions beneath `~/.openreading`.
 - Copy and rebind retained evidence at reconnect while preserving the original store and refusing active imports.

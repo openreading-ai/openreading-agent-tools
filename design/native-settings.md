@@ -1,6 +1,6 @@
 # Native settings release acceptance
 
-ProductSpec revision 20 adds AC-38 and AC-39 to the existing client matrix.
+ProductSpec revisions 20 and 21 add AC-38, AC-39 and AC-40 to the existing client matrix.
 The source contracts live in `runtime/app_settings.py`, `storage_settings.py`, and `settings_server.py`.
 The settings connector is separate from the complete pinned Core document catalog.
 
@@ -8,7 +8,7 @@ The settings connector is separate from the complete pinned Core document catalo
 
 - TODO: Review and refine the settings modal messaging with the owner before release. Cover labels, explanations, save feedback, and reconnect instructions.
 - Install the exact built package in each supported local host. Verify `/openreading-settings` discovery and opening.
-- Exercise storage selection, cancellation, saving, discarding, reconnect, and the default folder without editing JSON.
+- Exercise storage selection, cancellation, saving, restoring defaults, reconnect, and the default folder without editing JSON.
 - Preserve a readable synthetic artifact and completed job after moving data. Verify client isolation and rollback after a failed copy.
 - Confirm unfinished jobs and concurrent connections prevent migration, then finish them and retry.
 - Verify native Keychain save, preservation, anonymous mode, and server connection testing without documents.

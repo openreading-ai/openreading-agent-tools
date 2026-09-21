@@ -102,7 +102,7 @@ def save_destination(
     *,
     base_url: str = "",
     token: str | None = None,
-    response_bytes: int = 128 * 1024 * 1024,
+    response_bytes: int = 256 * 1024 * 1024,
     home: Path | None = None,
     keychain=None,
 ) -> DestinationSettings:

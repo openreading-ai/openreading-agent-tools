@@ -68,7 +68,8 @@ class SettingsControllerTests(unittest.TestCase):
 
     def test_storage_and_delivery_are_saved_without_changing_processing(self):
         self.assertTrue(
-            hasattr(self.controller, "preferences"), "Missing native preferences controls"
+            hasattr(self.controller, "preferences"),
+            "Missing native preferences controls",
         )
         folder = self.home / "Downloads/Chosen"
         self.controller.save_preferences(str(folder), "8192")
@@ -77,3 +78,23 @@ class SettingsControllerTests(unittest.TestCase):
         self.assertEqual(self.controller.current().mode, "local")
         with self.assertRaises(ValueError):
             self.controller.save_preferences(str(folder), "3.5")
+
+    def test_tab_saves_preserve_other_tabs_and_advanced_survives_local_mode(self):
+        from runtime.configuration import client_root
+
+        self.assertTrue(hasattr(self.controller, "save_advanced"))
+        self.controller.save_advanced("8192", "256")
+        self.assertFalse((client_root("chatgpt", home=self.home) / "preferences.json").exists())
+        self.assertEqual(self.controller.limits().server_response_bytes, 256 * 1024 * 1024)
+        self.controller.save_storage(str(self.home / "chosen"))
+        self.assertEqual(self.controller.limits().document_response_bytes, 8192)
+        self.controller.save("server", "http://localhost:8787", "synthetic", False)
+        saved = self.controller.current()
+        self.assertEqual(saved.destination.response_bytes, 256 * 1024 * 1024)
+        self.controller.save_advanced("16384", "512")
+        self.assertEqual(self.controller.current(), saved)
+        self.assertEqual(self.controller.preferences().data_folder, self.home / "chosen")
+        for budget, maximum in [("bad", "256"), ("8192", "0"), ("4095", "256")]:
+            with self.assertRaises(ValueError):
+                self.controller.save_advanced(budget, maximum)
+        self.assertEqual(self.controller.limits().server_response_bytes, 512 * 1024 * 1024)

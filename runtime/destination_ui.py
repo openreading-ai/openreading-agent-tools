@@ -12,7 +12,14 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from runtime.app_settings import Preferences, read_preferences, save_preferences
+from runtime.app_settings import (
+    Limits,
+    Preferences,
+    read_limits,
+    read_preferences,
+    save_limits,
+    save_preferences,
+)
 from runtime.destination_settings import read_destination, save_destination
 from runtime.server_transport import ServerDestination, check_connection
 
@@ -37,18 +44,45 @@ class Controller:
     def current(self):
         return read_destination(self.client, home=self.home)
 
-    def save(self, mode, url, token, clear, *, response_mib="128"):
+    def limits(self):
+        return read_limits(self.client, home=self.home)
+
+    def save_storage(self, folder):
+        try:
+            budget = self.preferences().document_response_bytes
+        except ValueError:
+            budget = Limits().document_response_bytes
+        return self.save_preferences(folder, str(budget))
+
+    def save_advanced(self, budget, response_mib):
+        if not str(budget).isascii() or not str(budget).isdecimal():
+            raise ValueError("Response file threshold must be a whole number of bytes.")
+        maximum = self.download_bytes(response_mib)
+        return save_limits(self.client, int(budget), maximum, home=self.home)
+
+    @staticmethod
+    def download_bytes(response_mib):
         if (
             not str(response_mib).isascii()
             or not str(response_mib).isdecimal()
             or int(response_mib) < 1
         ):
             raise ValueError("Maximum downloaded response must be a positive whole number of MiB.")
+        return int(response_mib) * 1024 * 1024
+
+    def save(self, mode, url, token, clear, *, response_mib=None):
+        maximum = (
+            self.download_bytes(response_mib)
+            if response_mib is not None
+            else self.limits().server_response_bytes
+            if mode == "server"
+            else Limits().server_response_bytes
+        )
         return save_destination(
             self.client,
             mode,
             base_url=url,
-            response_bytes=int(response_mib) * 1024 * 1024,
+            response_bytes=maximum,
             token="" if clear else token or None,
             home=self.home,
             keychain=self.keychain,
@@ -95,20 +129,16 @@ class SettingsWindow:
         tabs.pack(fill="both", expand=True, padx=16, pady=16)
         general = ttk.Frame(tabs, padding=20)
         frame = ttk.Frame(tabs, padding=20)
-        tabs.add(frame, text="Document processing")
-        tabs.add(general, text="Storage and delivery")
+        advanced = ttk.Frame(tabs, padding=20)
+        tabs.add(frame, text="Processing")
+        tabs.add(general, text="Storage")
+        tabs.add(advanced, text="Advanced")
         self.preferences_panel(general, controller, tk, ttk)
-        ttk.Label(frame, text="Document processing", font=("Helvetica", 21, "bold")).pack(
-            anchor="w"
-        )
+        self.advanced_panel(advanced, controller, tk, ttk)
+        ttk.Label(frame, text="Processing", font=("Helvetica", 21, "bold")).pack(anchor="w")
         self.mode = tk.StringVar(value=current.mode)
         self.url = tk.StringVar(
             value=current.destination.base_url if current.destination else "http://127.0.0.1:8787"
-        )
-        self.response_mib = tk.StringVar(
-            value=str((current.destination.response_bytes + 1024 * 1024 - 1) // (1024 * 1024))
-            if current.destination
-            else "128"
         )
         self.token = tk.StringVar(value="")
         self.clear = tk.BooleanVar(value=False)
@@ -133,21 +163,13 @@ class SettingsWindow:
         ttk.Label(
             frame,
             text="Old tokens remain in Keychain for pending jobs. Remove them in Keychain Access after those jobs finish.",
-            wraplength=600,
+            wraplength=570,
             justify="left",
         ).pack(anchor="w")
-        ttk.Label(frame, text="Maximum downloaded response (MiB)").pack(anchor="w", pady=(12, 0))
-        ttk.Entry(frame, textvariable=self.response_mib).pack(fill="x", pady=(4, 4))
-        ttk.Label(
-            frame,
-            text="Responses are buffered in memory. Lower this limit to reduce memory use; it is not a memory cap.",
-            wraplength=600,
-            justify="left",
-        ).pack(anchor="w", pady=(0, 12))
         ttk.Label(
             frame,
             text="Server mode sends selected file bytes to this URL after your confirmation. The server may use external providers. Start and configure your server separately. Connection checks send no document.",
-            wraplength=600,
+            wraplength=570,
             justify="left",
         ).pack(anchor="w")
         row = ttk.Frame(frame)
@@ -156,9 +178,9 @@ class SettingsWindow:
         self.check_button.pack(side="left")
         self.save_button = ttk.Button(row, text="Save destination", command=self.save)
         self.save_button.pack(side="left", padx=12)
-        ttk.Button(row, text="Discard changes", command=self.discard_destination).pack(side="left")
+        ttk.Button(row, text="Restore defaults", command=self.restore_destination).pack(side="left")
         self.status = tk.StringVar(value=status)
-        ttk.Label(frame, textvariable=self.status, wraplength=600, justify="left").pack(anchor="w")
+        ttk.Label(frame, textvariable=self.status, wraplength=570, justify="left").pack(anchor="w")
         root.protocol("WM_DELETE_WINDOW", self.close)
 
     def preferences_panel(self, frame, controller, tk, ttk):
@@ -173,54 +195,38 @@ class SettingsWindow:
         except ValueError as error:
             message = str(error)
         self.folder = tk.StringVar(value=str(current.data_folder))
-        self.budget = tk.StringVar(value=str(current.document_response_bytes))
         self.preference_status = tk.StringVar(value=message)
-        ttk.Label(frame, text="OpenReading data", font=("Helvetica", 21, "bold")).pack(anchor="w")
+        ttk.Label(frame, text="Storage", font=("Helvetica", 21, "bold")).pack(anchor="w")
         ttk.Label(
             frame,
-            text="Selected copies, retained documents and exports live here. Each client has its own partition.",
-            wraplength=620,
+            text="Local directory where OpenReading can store intermediate processing values.",
+            wraplength=570,
         ).pack(anchor="w", pady=(12, 8))
-        ttk.Label(frame, textvariable=self.folder, wraplength=620).pack(anchor="w", pady=(4, 12))
+        ttk.Label(frame, textvariable=self.folder, wraplength=570).pack(anchor="w", pady=(4, 12))
         row = ttk.Frame(frame)
         row.pack(fill="x")
         ttk.Button(row, text="Choose folder…", command=self.choose_folder).pack(side="left")
         ttk.Button(
             row,
-            text="Use default folder",
-            command=lambda: self.folder.set(str((controller.home or Path.home()) / ".openreading")),
+            text="Restore defaults",
+            command=self.restore_storage,
         ).pack(side="left", padx=12)
         ttk.Label(
             frame,
             text="The next connection copies data into a fresh client partition. The old copy stays intact. Existing OpenReading partitions are never merged or overwritten.",
-            wraplength=620,
+            wraplength=570,
         ).pack(anchor="w", pady=16)
-        ttk.Label(frame, text="Complete result response budget (bytes)").pack(
-            anchor="w", pady=(16, 4)
-        )
-        ttk.Entry(frame, textvariable=self.budget).pack(fill="x")
-        ttk.Label(
-            frame,
-            text="Default: 1000000. Larger results are delivered as files inside the data folder. This does not limit document processing.",
-            wraplength=620,
-        ).pack(anchor="w", pady=(4, 20))
         row = ttk.Frame(frame)
         row.pack(fill="x")
-        ttk.Button(row, text="Save storage and delivery", command=self.save_preferences).pack(
-            side="left"
-        )
-        ttk.Button(row, text="Discard changes", command=self.discard_preferences).pack(
-            side="left", padx=12
-        )
-        ttk.Label(frame, textvariable=self.preference_status, wraplength=620).pack(
+        ttk.Button(row, text="Save storage", command=self.save_storage).pack(side="left")
+        ttk.Label(frame, textvariable=self.preference_status, wraplength=570).pack(
             anchor="w", pady=16
         )
         ttk.Label(
             frame,
             text="OCR is automatic with bundled Docling. Source documents still require explicit file selection.",
-            wraplength=620,
+            wraplength=570,
         ).pack(anchor="w", pady=12)
-        ttk.Label(frame, text="OpenReading Managed: Coming soon").pack(anchor="w", pady=12)
 
     def choose_folder(self):
         from tkinter import filedialog
@@ -232,9 +238,71 @@ class SettingsWindow:
             self.folder.set(selected)
             self.preference_status.set("Folder selected. Save to request this change.")
 
-    def save_preferences(self):
+    def advanced_panel(self, frame, controller, tk, ttk):
+        message = "Save applies these limits after reconnecting OpenReading."
         try:
-            self.controller.save_preferences(self.folder.get(), self.budget.get())
+            limits = controller.limits()
+        except ValueError as error:
+            limits = Limits()
+            message = str(error)
+        self.budget = tk.StringVar(value=str(limits.document_response_bytes))
+        self.response_mib = tk.StringVar(
+            value=str((limits.server_response_bytes + 1048575) // 1048576)
+        )
+        self.advanced_status = tk.StringVar(value=message)
+        ttk.Label(frame, text="Advanced", font=("Helvetica", 21, "bold")).pack(anchor="w")
+        ttk.Label(
+            frame,
+            text="Max size of response before writing files in storage for Claude to use (bytes)",
+            wraplength=570,
+            justify="left",
+        ).pack(anchor="w", pady=(20, 4))
+        ttk.Entry(frame, textvariable=self.budget).pack(fill="x")
+        ttk.Label(
+            frame,
+            text="Default: 1000000 bytes. Larger responses are saved as files in your storage directory for Claude to use.",
+            wraplength=570,
+            justify="left",
+        ).pack(anchor="w", pady=(4, 20))
+        ttk.Label(frame, text="Maximum downloaded response (MiB)").pack(anchor="w")
+        ttk.Entry(frame, textvariable=self.response_mib).pack(fill="x", pady=(4, 4))
+        ttk.Label(
+            frame,
+            text="Default: 256 MiB. Applies to Core server responses. Larger downloads stop with an error.",
+            wraplength=570,
+            justify="left",
+        ).pack(anchor="w", pady=(4, 20))
+        row = ttk.Frame(frame)
+        row.pack(fill="x")
+        ttk.Button(row, text="Save advanced settings", command=self.save_advanced).pack(side="left")
+        ttk.Button(row, text="Restore defaults", command=self.restore_advanced).pack(
+            side="left", padx=12
+        )
+        ttk.Label(frame, textvariable=self.advanced_status, wraplength=570, justify="left").pack(
+            anchor="w", pady=16
+        )
+
+    def save_advanced(self):
+        try:
+            self.controller.save_advanced(self.budget.get(), self.response_mib.get())
+            self.advanced_status.set("Saved. Reconnect OpenReading to apply these limits.")
+        except ValueError as error:
+            self.advanced_status.set(str(error))
+        except Exception:
+            self.advanced_status.set(
+                "Cannot save Advanced settings. Check local permissions and free space."
+            )
+
+    def restore_advanced(self):
+        self.budget.set(str(Limits().document_response_bytes))
+        self.response_mib.set(str(Limits().server_response_bytes // 1048576))
+        self.advanced_status.set(
+            "Advanced defaults restored. Choose Save advanced settings to apply them."
+        )
+
+    def save_storage(self):
+        try:
+            self.controller.save_storage(self.folder.get())
             self.preference_status.set(
                 "Saved. Reconnect OpenReading to apply these preferences. The previous data copy stays intact."
             )
@@ -245,14 +313,9 @@ class SettingsWindow:
                 "Cannot save preferences. Check local permissions and free space."
             )
 
-    def discard_preferences(self):
-        try:
-            current = self.controller.preferences()
-            self.folder.set(str(current.data_folder))
-            self.budget.set(str(current.document_response_bytes))
-            self.preference_status.set("Unsaved changes discarded.")
-        except ValueError as error:
-            self.preference_status.set(str(error))
+    def restore_storage(self):
+        self.folder.set(str((self.controller.home or Path.home()) / ".openreading"))
+        self.preference_status.set("Storage default restored. Choose Save storage to apply it.")
 
     def save(self):
         try:
@@ -261,7 +324,6 @@ class SettingsWindow:
                 self.url.get(),
                 self.token.get(),
                 self.clear.get(),
-                response_mib=self.response_mib.get(),
             )
             self.token.set("")
             self.clear.set(False)
@@ -273,23 +335,12 @@ class SettingsWindow:
         except Exception:
             self.status.set("Cannot save settings. Check local permissions and Keychain access.")
 
-    def discard_destination(self):
-        try:
-            current = self.controller.current()
-            self.mode.set(current.mode)
-            self.url.set(
-                current.destination.base_url if current.destination else "http://127.0.0.1:8787"
-            )
-            self.response_mib.set(
-                str((current.destination.response_bytes + 1024 * 1024 - 1) // (1024 * 1024))
-                if current.destination
-                else "128"
-            )
-            self.token.set("")
-            self.clear.set(False)
-            self.status.set("Unsaved changes discarded.")
-        except ValueError as error:
-            self.status.set(str(error))
+    def restore_destination(self):
+        self.mode.set("local")
+        self.url.set("http://127.0.0.1:8787")
+        self.token.set("")
+        self.clear.set(True)
+        self.status.set("Processing defaults restored. Choose Save destination to apply them.")
 
     def check(self):
         self.save_button.configure(state="disabled")

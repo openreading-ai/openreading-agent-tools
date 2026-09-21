@@ -35,7 +35,7 @@ UPLOAD_BYTES = 100 * 1024 * 1024
 class ServerDestination:
     base_url: str
     revision: str
-    response_bytes: int = 128 * 1024 * 1024
+    response_bytes: int = 256 * 1024 * 1024
 
     def __post_init__(self):
         url = urlsplit(self.base_url)
