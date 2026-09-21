@@ -14,7 +14,6 @@ from pathlib import Path
 
 from runtime.app_settings import (
     Limits,
-    Preferences,
     read_limits,
     read_preferences,
     save_limits,
@@ -32,6 +31,19 @@ class Controller:
         from runtime.storage_settings import data_root
 
         return data_root(self.client, home=self.home)
+
+    def storage_view(self):
+        from runtime.storage_settings import storage_view
+
+        return storage_view(self.client, home=self.home)
+
+    def storage_choices(self):
+        from runtime.configuration import client_root
+
+        return {
+            "application": client_root(self.client, home=self.home).parent,
+            "recommended": (self.home or Path.home()) / ".openreading",
+        }
 
     def preferences(self):
         return read_preferences(self.client, home=self.home)
@@ -220,17 +232,16 @@ class SettingsWindow:
         )
 
     def preferences_panel(self, frame, controller, tk, ttk):
-        message = "Changes apply after reconnecting OpenReading. Existing imports must finish before moving data."
+        self.storage_folders = controller.storage_choices()
+        self.storage_dirty = False
         try:
-            current = controller.preferences()
+            view = controller.storage_view()
+            folder, message = view["folder"], view["message"]
         except ValueError as error:
-            current = Preferences((controller.home or Path.home()) / ".openreading")
+            folder = self.storage_folders["recommended"]
             message = str(error)
-        try:
-            message += " Current data: " + str(controller.storage_root())
-        except ValueError as error:
-            message = str(error)
-        self.folder = tk.StringVar(value=str(current.data_folder))
+        self.folder = tk.StringVar(value=str(folder))
+        self.storage_choice = tk.StringVar(value=self.storage_kind(folder))
         self.preference_status = tk.StringVar(value=message)
         ttk.Label(frame, text="Storage", font=("Helvetica", 21, "bold")).pack(anchor="w")
         ttk.Label(
@@ -238,7 +249,19 @@ class SettingsWindow:
             text="Local directory where OpenReading can store intermediate processing values.",
             wraplength=570,
         ).pack(anchor="w", pady=(12, 8))
-        ttk.Label(frame, textvariable=self.folder, wraplength=570).pack(anchor="w", pady=(4, 12))
+        for value, label in (
+            ("application", "Application storage"),
+            ("recommended", ".openreading (recommended)"),
+            ("custom", "Another folder"),
+        ):
+            ttk.Radiobutton(
+                frame,
+                text=label,
+                variable=self.storage_choice,
+                value=value,
+                command=self.storage_changed,
+            ).pack(anchor="w", pady=3)
+        ttk.Label(frame, textvariable=self.folder, wraplength=570).pack(anchor="w", pady=(8, 12))
         row = ttk.Frame(frame)
         row.pack(fill="x")
         ttk.Button(row, text="Choose folder…", command=self.choose_folder).pack(side="left")
@@ -249,20 +272,47 @@ class SettingsWindow:
         ).pack(side="left", padx=12)
         ttk.Label(
             frame,
-            text="The next connection copies data into a fresh client partition. The old copy stays intact. Existing OpenReading partitions are never merged or overwritten.",
+            text="Save your choice, then reconnect OpenReading. Existing imports must finish before data moves. The previous copy stays intact.",
             wraplength=570,
         ).pack(anchor="w", pady=16)
         row = ttk.Frame(frame)
         row.pack(fill="x")
         ttk.Button(row, text="Save storage", command=self.save_storage).pack(side="left")
-        ttk.Label(frame, textvariable=self.preference_status, wraplength=570).pack(
-            anchor="w", pady=16
+        self.preference_label = ttk.Label(
+            frame, textvariable=self.preference_status, wraplength=570
         )
-        ttk.Label(
-            frame,
-            text="OCR is automatic with bundled Docling. Source documents still require explicit file selection.",
-            wraplength=570,
-        ).pack(anchor="w", pady=12)
+        self.preference_label.pack(anchor="w", pady=16)
+        self.root.after(1500, self.refresh_storage)
+
+    def storage_kind(self, folder):
+        return next(
+            (key for key, path in self.storage_folders.items() if Path(folder) == path), "custom"
+        )
+
+    def storage_changed(self):
+        choice = self.storage_choice.get()
+        if choice == "custom":
+            self.choose_folder()
+            return
+        self.folder.set(str(self.storage_folders[choice]))
+        self.storage_dirty = True
+        self.preference_status.set("Unsaved choice. Choose Save storage to apply it.")
+
+    def refresh_storage(self):
+        if self.closing:
+            return
+        if not self.storage_dirty:
+            try:
+                view = self.controller.storage_view()
+                self.folder.set(str(view["folder"]))
+                self.storage_choice.set(self.storage_kind(view["folder"]))
+                self.preference_status.set(view["message"])
+                self.preference_label.configure(
+                    foreground=self.error_color if view["state"] == "blocked" else ""
+                )
+            except Exception:
+                self.preference_status.set("Cannot read storage status. Reopen Settings to retry.")
+        self.root.after(1500, self.refresh_storage)
 
     def choose_folder(self):
         from tkinter import filedialog
@@ -272,7 +322,9 @@ class SettingsWindow:
         )
         if selected:
             self.folder.set(selected)
-            self.preference_status.set("Folder selected. Save to request this change.")
+            self.storage_dirty = True
+            self.preference_status.set("Unsaved choice. Choose Save storage to apply it.")
+        self.storage_choice.set(self.storage_kind(self.folder.get()))
 
     def advanced_panel(self, frame, controller, tk, ttk):
         message = "Save applies these limits after reconnecting OpenReading."
@@ -339,9 +391,8 @@ class SettingsWindow:
     def save_storage(self):
         try:
             self.controller.save_storage(self.folder.get())
-            self.preference_status.set(
-                "Saved. Reconnect OpenReading to apply these preferences. The previous data copy stays intact."
-            )
+            self.storage_dirty = False
+            self.preference_status.set(self.controller.storage_view()["message"])
         except ValueError as error:
             self.preference_status.set(str(error))
         except Exception:
@@ -351,6 +402,8 @@ class SettingsWindow:
 
     def restore_storage(self):
         self.folder.set(str((self.controller.home or Path.home()) / ".openreading"))
+        self.storage_choice.set("recommended")
+        self.storage_dirty = True
         self.preference_status.set("Storage default restored. Choose Save storage to apply it.")
 
     def save(self):

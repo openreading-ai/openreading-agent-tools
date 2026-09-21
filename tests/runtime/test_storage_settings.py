@@ -1,9 +1,11 @@
 """Storage switches preserve data and refuse concurrent writers or occupied targets."""
 
 import importlib.util
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from runtime.app_settings import save_preferences
@@ -67,6 +69,85 @@ class StorageSettingsTests(unittest.TestCase):
             self.assertEqual((root / "retained.txt").read_text(), "legacy")
         self.assertEqual((legacy / "retained.txt").read_text(), "legacy")
 
+    def test_abandoned_legacy_profile_does_not_block_move_or_follow_data(self):
+        legacy = client_root("chatgpt", home=self.home) / "v2"
+        launch = legacy / "launch/abandoned"
+        launch.mkdir(parents=True)
+        (launch / "profile.json").write_text("{}")
+        (legacy / "retained.txt").write_text("kept")
+        save_preferences("chatgpt", self.home / ".openreading", 8192, home=self.home)
+        with patch(
+            "subprocess.run",
+            return_value=SimpleNamespace(returncode=0, stdout=f"{os.getpid()} python", stderr=""),
+        ):
+            with self.api.storage_session("chatgpt", home=self.home) as new:
+                self.assertEqual((new / "retained.txt").read_text(), "kept")
+                self.assertFalse((new / "launch").exists())
+        self.assertTrue((launch / "profile.json").exists())
+
+    def test_saved_choice_and_blocking_reason_survive_reopening(self):
+        legacy = client_root("chatgpt", home=self.home) / "v2"
+        legacy.mkdir(parents=True)
+        initial = self.api.storage_view("chatgpt", home=self.home)
+        self.assertEqual(initial["folder"], legacy.parent.parent)
+        self.assertEqual(initial["state"], "active")
+        save_preferences("chatgpt", self.home / ".openreading", 8192, home=self.home)
+        self.assertEqual(self.api.storage_view("chatgpt", home=self.home)["state"], "pending")
+        with patch.object(self.api, "migrate", side_effect=ValueError("Synthetic move blocked")):
+            with self.assertRaisesRegex(ValueError, "Synthetic"):
+                with self.api.storage_session("chatgpt", home=self.home):
+                    pass
+        blocked = self.api.storage_view("chatgpt", home=self.home)
+        self.assertEqual(blocked["folder"], self.home / ".openreading")
+        self.assertEqual(blocked["state"], "blocked")
+        self.assertIn("Synthetic move blocked", blocked["message"])
+        with self.api.storage_session("chatgpt", home=self.home):
+            pass
+        self.assertEqual(self.api.storage_view("chatgpt", home=self.home)["state"], "active")
+
+    def test_application_storage_choice_keeps_existing_partition(self):
+        legacy = client_root("chatgpt", home=self.home) / "v2"
+        legacy.mkdir(parents=True)
+        save_preferences("chatgpt", legacy.parent.parent, 8192, home=self.home)
+        with self.api.storage_session("chatgpt", home=self.home) as active:
+            self.assertEqual(active, legacy)
+
+    def test_profile_lease_and_legacy_inspection_fail_closed(self):
+        import fcntl
+        import subprocess
+
+        launch = client_root("chatgpt", home=self.home) / "v2/launch/test"
+        launch.mkdir(parents=True)
+        profile = launch / "profile.json"
+        profile.write_text("{}")
+        lease = launch / "session.lock"
+        with lease.open("w") as opened:
+            fcntl.flock(opened, fcntl.LOCK_EX)
+            self.assertTrue(self.api.profile_in_use(profile))
+        self.assertFalse(self.api.profile_in_use(profile))
+        lease.unlink()
+        for result in [
+            SimpleNamespace(returncode=2, stdout="", stderr="failed"),
+            SimpleNamespace(returncode=0, stdout="unparseable\n123 unknown", stderr=""),
+            OSError("missing"),
+            subprocess.TimeoutExpired("ps", 5),
+        ]:
+            with patch(
+                "subprocess.run",
+                **(
+                    {"side_effect": result}
+                    if isinstance(result, Exception)
+                    else {"return_value": result}
+                ),
+            ):
+                with self.assertRaisesRegex(ValueError, "Cannot verify"):
+                    self.api.profile_in_use(profile)
+        with patch(
+            "subprocess.run",
+            return_value=SimpleNamespace(returncode=0, stdout=f"123 worker {profile}", stderr=""),
+        ):
+            self.assertTrue(self.api.profile_in_use(profile))
+
     def test_nonterminal_jobs_and_symlinks_block_migration(self):
         import json
 
@@ -97,9 +178,17 @@ class StorageSettingsTests(unittest.TestCase):
         legacy.mkdir(parents=True)
         (legacy / "profile.json").write_text("{}")
         save_preferences("chatgpt", self.home / ".openreading", 8192, home=self.home)
-        with self.assertRaisesRegex(ValueError, "connection"):
-            with self.api.storage_session("chatgpt", home=self.home):
-                pass
+        with patch(
+            "subprocess.run",
+            return_value=SimpleNamespace(
+                returncode=0,
+                stdout="999999 /app/openreading-worker --client chatgpt --chat-documents",
+                stderr="",
+            ),
+        ):
+            with self.assertRaisesRegex(ValueError, "connection"):
+                with self.api.storage_session("chatgpt", home=self.home):
+                    pass
 
     def test_nested_target_and_pointer_failure_preserve_previous_store(self):
         with self.api.storage_session("chatgpt", home=self.home) as old:

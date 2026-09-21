@@ -42,6 +42,15 @@ class WindowTests(unittest.TestCase):
         from runtime.app_settings import Limits, Preferences
 
         controller.home = Path("/synthetic")
+        controller.storage_choices.return_value = {
+            "application": Path("/synthetic/Application Support"),
+            "recommended": Path("/synthetic/.openreading"),
+        }
+        controller.storage_view.return_value = {
+            "folder": Path("/synthetic/.openreading"),
+            "state": "active",
+            "message": "Using this folder.",
+        }
         controller.preferences.return_value = Preferences(Path("/synthetic/.openreading"))
         controller.limits.return_value = Limits()
         controller.current.return_value = DestinationSettings()
@@ -201,6 +210,42 @@ class WindowTests(unittest.TestCase):
         self.assertEqual(window.response_mib.get(), "256")
         controller.save.assert_not_called()
         controller.save_advanced.assert_not_called()
+
+    def test_storage_choice_waits_for_save_and_refreshes_applied_status(self):
+        from pathlib import Path
+
+        window, controller, _ = self.make()
+        window.storage_choice.set("application")
+        window.storage_changed()
+        self.assertEqual(window.folder.get(), "/synthetic/Application Support")
+        window.refresh_storage()
+        self.assertEqual(window.folder.get(), "/synthetic/Application Support")
+        controller.save_storage.assert_not_called()
+        controller.storage_view.return_value = {
+            "folder": Path("/synthetic/Application Support"),
+            "state": "pending",
+            "message": "Move pending.",
+        }
+        window.save_storage()
+        self.assertEqual(window.preference_status.get(), "Move pending.")
+        controller.storage_view.return_value.update(
+            state="blocked", message="Move blocked: close connection."
+        )
+        window.refresh_storage()
+        self.assertEqual(window.preference_label.options["foreground"], window.error_color)
+        controller.storage_view.return_value.update(state="active", message="Using this folder.")
+        window.refresh_storage()
+        self.assertEqual(window.preference_status.get(), "Using this folder.")
+        self.assertEqual(window.storage_choice.get(), "application")
+        window.storage_choice.set("custom")
+        with patch("tkinter.filedialog.askdirectory", return_value=""):
+            window.storage_changed()
+        self.assertEqual(window.storage_choice.get(), "application")
+        controller.storage_view.side_effect = ValueError("broken")
+        window.refresh_storage()
+        self.assertIn("Cannot read", window.preference_status.get())
+        window.closing = True
+        window.refresh_storage()
 
     def test_three_tabs_and_advanced_save(self):
         with patch.object(Widget, "add") as add:

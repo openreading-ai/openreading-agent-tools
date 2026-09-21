@@ -6,6 +6,9 @@ The settings connector is separate from the complete pinned Core document catalo
 
 ## Remaining native gates
 
+- Revision 26 requires saved storage choices and active, pending or blocked status to survive reopening.
+- Verify an abandoned legacy launch record permits migration while a live connection or unfinished import still refuses it.
+- Verify the assistant reports the selected queue, preserves it across Add more, and waits for Process before importing.
 - Revision 24 replaces the manual setup flow with a small native plugin and automatic HTTPS runtime download.
 - Verify cold download through the temporary ngrok endpoint, interrupted-download retry, concurrent connectors and offline warm launch.
 - Verify actual Claude upload, first activation and settings opening with the exact small plugin archive.

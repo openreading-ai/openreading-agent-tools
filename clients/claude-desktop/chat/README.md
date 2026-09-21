@@ -21,7 +21,7 @@ The native Settings, Keychain and server-mode walkthrough remain acceptance chec
 
 Ask: "Use OpenReading to choose a local document, then find its totals."
 Approve the selection tool if your host asks. Choose supported documents or folders in "OpenReading: Choose documents or folders".
-The workflow continues into processing each selected file without another import question. It reports job progress and per-file outcomes.
+The workflow reports the queued count and offers Process or Add more. Process starts imports and reports job progress and per-file outcomes.
 An explicit request to test selection only stops at the receipt. Cancelling selection or declining server consent starts no imports.
 The configured [core adapter](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md) supplies the format filter.
 Folder snapshots skip unsupported entries, hidden descendants, packages and symlinks, and report those counts.
@@ -193,6 +193,10 @@ The Cowork plugin assembler adds `/openreading-settings` and a separate settings
 Ask to open OpenReading Settings to review storage, delivery, local processing or your Core server.
 The MCPB candidate still includes the directly opened Settings helper. Slash-command discovery belongs to the plugin surface.
 Save each tab explicitly and reconnect the document connector. Finish imports before moving data.
+Storage offers Application storage, recommended .openreading, and another folder.
+The selected option persists. Status distinguishes Using this folder, Move pending, and Move blocked with its reason.
+Reconnecting applies a pending move after live document connections and imports finish.
+Abandoned launch records stay in the original copy and do not prevent migration once no matching worker is running.
 Changes preserve the original store and never merge an occupied target client partition.
 Self-contained assembly does not establish Cowork archive-size or clean-install acceptance.
 
@@ -205,6 +209,9 @@ Tool discovery remains available during setup. Early tool calls report progress 
 Both bundled and server processing are supported. The connector publishes the active mode's descriptions and upload annotations after startup.
 Run `/openreading-settings`, review all three tabs, and save any changes you want.
 Reconnect the document connector after saving. Import a synthetic local document through the native picker.
+Selection queues the files. The assistant reports the count and offers Process or Add more.
+Choose Process to start imports, or Add more to append selections and review the updated count.
+Native Add files approval permits the displayed destination but does not itself submit documents.
 Saving a processing destination blocks new selections and imports on the previous plugin connection until reconnect.
 For example, switching from bundled Docling to a Core server cannot keep processing new files locally.
 Existing jobs keep their original destination. Their status, cancellation and retained results remain accessible.

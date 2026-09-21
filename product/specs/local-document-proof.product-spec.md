@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 25
+spec_revision: 26
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-21T00:00:00Z"
@@ -374,9 +374,9 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-41
   criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. First activation automatically downloads and verifies the pinned runtime and models over HTTPS into Application Support. Tool discovery stays responsive during setup and early calls report progress. Concurrent connectors share one installation. Failed or interrupted downloads cannot become executable installations. Later launches reuse verified files without network access. Settings, documents, other clients and credentials remain untouched. Development uses the owner's local ngrok endpoint; GitHub distribution follows the OSS release. Native and clean-machine acceptance are independently verified.
 - id: AC-40
-  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Server connection tests are disabled in bundled mode, with green success and red failure feedback retaining descriptive text.
+  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Server connection tests are disabled in bundled mode, with green success and red failure feedback retaining descriptive text. Storage offers application storage, recommended .openreading and a chosen folder. Reopening preserves the saved choice and reports active, pending or blocked status with the reason. Abandoned launch profiles do not block moves; live connections and unfinished imports do.
 - id: AC-42
-  criterion: The assistant workflow continues from successful file or folder selection into processing all selected items, respecting an explicit subset, without an extra import question. It starts each item once, tracks every job, follows selection pagination and reports completed, failed and skipped counts. An absent analysis question does not block processing. Explicit selection-only requests, cancelled or empty selection and declined native server consent start no imports. Shared connection or authorization failures stop later server submissions without automatic retries of uncertain work.
+  criterion: After successful selection, the assistant reports the queued file count and offers Process or Add more. Process starts the queue or an explicit subset. Add more preserves the previous references and appends new selections, then reports the new total and waits again. It starts each item once, tracks every job, follows selection pagination and reports completed, failed and skipped counts. An absent analysis question does not block processing. Explicit selection-only requests, cancelled or empty selection and declined native server consent start no imports. Shared connection or authorization failures stop later server submissions without automatic retries of uncertain work.
 - id: AC-39
   criterion: New public sessions default to ~/.openreading with separate client partitions and exports beneath the selected data folder; reconnect applies storage changes only with no conflicting connection or unfinished import, preserves readable artifact identities through intake rebinding, retains the original copy, refuses occupied target partitions and fails without switching the active pointer when migration fails.
 
@@ -409,7 +409,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
   pass_threshold: 1
   cases:
     - input: Ask to open OpenReading file selection, then select eight synthetic documents across multiple selection pages without an analysis question.
-      expected: Start each selected document once without an import question, report observed progress and finish with per-file outcomes and complete counts.
+      expected: Report eight files ready and offer Process or Add more. Start no import until Process. Add more retains the earlier queue. Process starts each queued item once and reports observed progress and per-file outcomes.
     - input: Ask to test the picker only without processing, then select a synthetic folder.
       expected: Return the selection result without starting any import.
     - input: Select synthetic documents in server mode, then decline the native transfer confirmation.

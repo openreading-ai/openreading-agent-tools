@@ -79,6 +79,22 @@ class SettingsControllerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.controller.save_preferences(str(folder), "3.5")
 
+    def test_reopened_controller_reports_saved_and_applied_storage_choice(self):
+        from runtime.configuration import client_root
+        from runtime.destination_ui import Controller
+        from runtime.storage_settings import storage_session
+
+        legacy = client_root("chatgpt", home=self.home) / "v2"
+        legacy.mkdir(parents=True)
+        self.assertEqual(self.controller.storage_choices()["application"], legacy.parent.parent)
+        self.assertEqual(self.controller.storage_view()["folder"], legacy.parent.parent)
+        self.controller.save_storage(str(self.home / ".openreading"))
+        reopened = Controller("chatgpt", home=self.home)
+        self.assertEqual(reopened.storage_view()["state"], "pending")
+        with storage_session("chatgpt", home=self.home):
+            self.assertEqual(reopened.storage_view()["state"], "active")
+        self.assertEqual(reopened.storage_view()["folder"], self.home / ".openreading")
+
     def test_tab_saves_preserve_other_tabs_and_advanced_survives_local_mode(self):
         from runtime.configuration import client_root
 

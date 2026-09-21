@@ -2,6 +2,11 @@
 
 ## Native settings integration candidate
 
+- Show the saved storage choice with active, pending or blocked migration status in Settings.
+- Ignore abandoned legacy launch records after checking live workers, while preserving active-session and unfinished-job migration guards.
+- Queue selected files, offer Process or Add more, and wait for the user's processing instruction.
+- Label native server selection approval Add files and report selection errors without guessing connection state.
+
 - Refuse new selections and imports through a stale Claude plugin connection after saving a processing destination.
 - Keep existing jobs and retained-result access available while the document connector awaits reconnect.
 

@@ -217,6 +217,9 @@ class DoclingLaunchTests(unittest.TestCase):
 
         settings = Settings(self.grant, False)
         with profile_file("codex", settings, self.bundle) as (first, _):
+            from runtime.storage_settings import profile_in_use
+
+            self.assertTrue(profile_in_use(first))
             first_content = first.read_bytes()
             with profile_file("codex", settings, self.bundle) as (second, _):
                 self.assertNotEqual(first, second)

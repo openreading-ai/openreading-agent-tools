@@ -12,6 +12,7 @@ HF_HUB_OFFLINE and TRANSFORMERS_OFFLINE are set for launch and restored on exit.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import secrets
@@ -59,6 +60,10 @@ def profile_file(client, settings, bundle, *, data_root=None):
         os.mkdir(name, 0o700, dir_fd=parent)
         try:
             with directory(launch / name) as child:
+                lease = os.open(
+                    "session.lock", os.O_CREAT | os.O_EXCL | os.O_RDWR, 0o600, dir_fd=child
+                )
+                fcntl.flock(lease, fcntl.LOCK_EX)
                 fd = os.open(
                     "profile.json", os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600, dir_fd=child
                 )
@@ -70,6 +75,8 @@ def profile_file(client, settings, bundle, *, data_root=None):
                     yield launch / name / "profile.json", root / "artifacts"
                 finally:
                     os.unlink("profile.json", dir_fd=child)
+                    os.close(lease)
+                    os.unlink("session.lock", dir_fd=child)
         finally:
             os.rmdir(name, dir_fd=parent)
 

@@ -130,17 +130,17 @@ async def confirm(url, documents):
         f"{display_value(row['name'])} ({row['bytes']:,} bytes)" for row in documents
     )
     noun = "document" if len(documents) == 1 else "documents"
-    message = f"Send {len(documents)} {noun} ({sum(row['bytes'] for row in documents):,} bytes) to {display_value(url)}?\nThe server may use external providers. Local cancellation cannot stop submitted server processing."
+    message = f"Add {len(documents)} {noun} ({sum(row['bytes'] for row in documents):,} bytes) for processing at {display_value(url)}?\nChoose Process in chat to send them. The server may use external providers. Local cancellation cannot stop submitted server processing."
     # Substitute once so marker-like text in URLs and filenames stays literal data.
     values = {"__MESSAGE__": json.dumps(message), "__DETAILS__": json.dumps(details)}
     script = """ObjC.import('AppKit');
 var app = $.NSApplication.sharedApplication;
 app.setActivationPolicy($.NSApplicationActivationPolicyAccessory);
 var alert = $.NSAlert.alloc.init;
-alert.messageText = 'Send selected documents?';
+alert.messageText = 'Add selected documents?';
 alert.informativeText = __MESSAGE__;
 alert.addButtonWithTitle('Cancel');
-alert.addButtonWithTitle('Send documents');
+alert.addButtonWithTitle('Add files');
 var scroll = $.NSScrollView.alloc.initWithFrame($.NSMakeRect(0, 0, 560, 240));
 scroll.hasVerticalScroller = true;
 var text = $.NSTextView.alloc.initWithFrame($.NSMakeRect(0, 0, 540, 240));
