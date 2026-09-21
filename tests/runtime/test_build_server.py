@@ -25,6 +25,10 @@ class ServerBuildTests(unittest.TestCase):
             destination.mkdir(parents=True)
             (destination / "openreading-worker").write_bytes(b"synthetic executable")
             (destination / "openreading-worker").chmod(0o755)
+            # zipimport bytecode contains ZIP magic constants but is not an archive.
+            (destination / "zipimport.pyc").write_bytes(
+                b"bytecode constants PK\x05\x06\xe9\xff\xff\x00\x00c" + bytes(24)
+            )
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
@@ -53,7 +57,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn("runtime/openreading-worker", names)
                 manifest = json.loads(zipped.read(".claude-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "openreading-local-documents")
-                self.assertEqual(manifest["version"], "0.2.0-alpha.14")
+                self.assertEqual(manifest["version"], "0.2.0-alpha.15")
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
@@ -64,6 +68,32 @@ class ServerBuildTests(unittest.TestCase):
             (runtime / "release.json").write_text(json.dumps(data))
             with self.assertRaises(ReleaseIntegrityError):
                 verify_release(runtime)
+
+    def test_package_refuses_nested_zip_before_publishing_upload(self):
+        module = self.module()
+        for name in ("base_library.zip", "BASE_LIBRARY.ZIP", "renamed-library.bin"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                runtime = root / "runtime"
+                (runtime / "_internal").mkdir(parents=True)
+                (runtime / "openreading-worker").write_bytes(b"synthetic worker")
+                with zipfile.ZipFile(runtime / "_internal" / name, "w") as nested:
+                    nested.writestr("encodings/__init__.pyc", b"synthetic bytecode")
+                with (
+                    patch.object(
+                        module,
+                        "verify_release",
+                        return_value={
+                            "profile": "core-server-client-v1",
+                            "core_commit": "a" * 40,
+                            "worker_sha256": "b" * 64,
+                        },
+                    ),
+                    patch.object(module, "catalog", return_value={"tools": []}),
+                    self.assertRaisesRegex(ValueError, "nested ZIP"),
+                ):
+                    module.package(runtime, root / "package")
+                self.assertFalse((root / "package/OpenReading-Claude-Plugin.zip").exists())
 
     def test_platform_and_lock_refuse_unreviewed_environment(self):
         module = self.module()

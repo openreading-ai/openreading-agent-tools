@@ -1,11 +1,17 @@
 # Client compatibility
 
-Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the server connector. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
 Revision 27 ships a server connector with separately tested client connections.
 Bundled Docling evidence and routes below are historical and preserved by tag bundled-docling-2.126.0-checkpoint.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
+
+## Claude archive preflight, September 21, 2026
+
+Claude Desktop 2.2553.1 accepts the alpha.15 archive preview without the nested-ZIP error reported for alpha.14.
+The 28,600,502-byte ZIP has SHA-256 `4cebc54794f87fd19c14d62ad9a5505a4e7f14fc265d92d2b86c2f2e3c795d2c`.
+The check selected the archive and verified its preview. Upload, installation and native document testing remain pending for this build.
 
 ## Matrix acceptance
 

@@ -3,6 +3,7 @@
 The separate server_client lock pins Core's agent extra and contains no parsing engine.
 A format-3 inventory binds the native worker, Python support files and tool catalogs.
 The plugin retains its existing host identity and client storage partition across upgrades.
+Python modules are collected as files because Claude rejects nested ZIP archives.
 The archive embeds the connector directly; it has no bootstrap URL or model provisioning.
 Historical Docling builders remain available for the tagged pre-transition checkpoint.
 """
@@ -27,7 +28,7 @@ from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.14"
+VERSION = "0.2.0-alpha.15"
 EXCLUDES = [
     "docling",
     "docling_core",
@@ -71,7 +72,7 @@ for distribution in metadata.distributions():
     datas += copy_metadata(distribution.metadata['Name'])
 a = Analysis([{str(HERE / "server_entrypoint.py")!r}], pathex=[{str(HERE.parent)!r}],
     binaries=[], datas=datas, hiddenimports=['openreading.artifacts.jobs', 'openreading.mcp_server.main'],
-    excludes={EXCLUDES!r},
+    excludes={EXCLUDES!r}, noarchive=True,
     module_collection_mode={{'runtime': 'pyz+py', 'openreading': 'pyz+py'}})
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='openreading-worker', console=True, upx=False)
@@ -198,6 +199,18 @@ def package(runtime, output):
         "Storage and Advanced retain their own Save and Restore defaults controls. Restore processing defaults stages the localhost URL; Save is required.\n"
         "This is an unsigned development candidate. Clean-machine and full native acceptance remain pending.\n"
     )
+    # Check content as well as suffixes so renamed dependency archives cannot slip through.
+    for path in sorted(plugin.rglob("*")):
+        if path.is_file():
+            with path.open("rb") as stream:
+                header = stream.read(4)
+            # zipimport's bytecode embeds ZIP signatures; an archive starts with one.
+            if path.suffix.lower() == ".zip" or (
+                header in (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08") and zipfile.is_zipfile(path)
+            ):
+                raise ValueError(
+                    f"Claude plugins cannot contain nested ZIP files: {path.relative_to(plugin)}"
+                )
     target = output / "OpenReading-Claude-Plugin.zip"
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(plugin.rglob("*")):

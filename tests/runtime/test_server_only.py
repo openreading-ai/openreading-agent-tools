@@ -110,7 +110,7 @@ class ServerOnlyTests(unittest.TestCase):
                     "verify_release",
                     return_value={
                         "profile": "core-server-client-v1",
-                        "release_version": "0.2.0-alpha.14",
+                        "release_version": "0.2.0-alpha.15",
                         "core_commit": "a" * 40,
                         "worker_sha256": "b" * 64,
                     },
@@ -118,7 +118,7 @@ class ServerOnlyTests(unittest.TestCase):
             ):
                 with contextlib.redirect_stdout(io.StringIO()) as output:
                     self.assertEqual(module.main(["--version"]), 0)
-                self.assertEqual(json.loads(output.getvalue())["release_version"], "0.2.0-alpha.14")
+                self.assertEqual(json.loads(output.getvalue())["release_version"], "0.2.0-alpha.15")
                 with patch("runtime.server_profile.job_main", return_value=0) as job:
                     self.assertEqual(module.main(["--internal-server-job", "id"]), 0)
                     self.assertEqual(job.call_args.args[0], ["id"])

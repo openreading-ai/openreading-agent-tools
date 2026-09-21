@@ -2,6 +2,8 @@
 
 ## Server-only connector candidate
 
+- Remove the nested Python standard-library ZIP that caused Claude to reject alpha.14 uploads.
+- Reject nested ZIP contents during packaging before producing an upload candidate.
 - Package a parser-free Claude connector directly, with no Docling, OCR binaries, model assets or runtime download.
 - Require an explicit Core server URL while preserving native settings, file selection, job control, retained results and exports.
 - Preserve existing server credentials and storage; old local-mode preferences request server setup.
