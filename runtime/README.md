@@ -254,6 +254,8 @@ Both lanes contribute to the existing line and branch coverage requirements.
 Ask to open OpenReading Settings or select `/openreading-settings` in a plugin with the settings connector.
 The tabs are **Processing**, **Storage**, and **Advanced**, in that order.
 Processing selects bundled Docling or your Core server, with its URL, token and connection check.
+**Test connection** is disabled for bundled processing. Success appears green and failure appears red.
+Feedback retains descriptive text, and changes during a check invalidate its displayed result.
 Storage selects the local directory for intermediate processing values, retained documents and exported results.
 Advanced sets the file-delivery threshold and maximum downloaded server response, defaulting to 256 MiB.
 Each tab saves its own values. **Restore defaults** resets that tab for review; Save applies those values.

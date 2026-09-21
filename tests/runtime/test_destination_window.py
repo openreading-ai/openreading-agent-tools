@@ -29,9 +29,12 @@ class Widget:
     def configure(self, **kwargs):
         self.options.update(kwargs)
 
+    def cget(self, name):
+        return self.options.get(name, "")
+
 
 class WindowTests(unittest.TestCase):
-    def make(self, broken=False):
+    def make(self, broken=False, dark=False):
         self.assertTrue(hasattr(destination_ui, "SettingsWindow"), "Missing settings window")
         controller = Mock()
         from pathlib import Path
@@ -59,8 +62,10 @@ class WindowTests(unittest.TestCase):
             }
         )
         tk = SimpleNamespace(StringVar=Widget, BooleanVar=Widget)
+        root = Mock()
+        root.winfo_rgb.return_value = (0, 0, 0) if dark else (65535, 65535, 65535)
         with patch.object(destination_ui, "ThreadPoolExecutor") as pool:
-            window = destination_ui.SettingsWindow(Mock(), controller, tk, widgets)
+            window = destination_ui.SettingsWindow(root, controller, tk, widgets)
         return window, controller, pool.return_value
 
     def test_saves_explicit_choice_and_clears_token_widget(self):
@@ -83,6 +88,7 @@ class WindowTests(unittest.TestCase):
 
     def test_network_check_disables_save_until_completion_and_close_waits(self):
         window, controller, executor = self.make()
+        window.mode.set("server")
         future = Future()
         executor.submit.return_value = future
         window.check()
@@ -92,12 +98,14 @@ class WindowTests(unittest.TestCase):
         future.set_result({"version": "0.3.0", "backend_count": 1})
         window.poll()
         self.assertIn("No document", window.status.get())
+        self.assertEqual(window.status_label.options["foreground"], window.success_color)
         window.root.destroy.assert_called_once()
         executor.shutdown.assert_called_once_with(wait=False)
 
     def test_check_errors_are_sanitized_and_broken_settings_can_open(self):
         window, controller, executor = self.make(broken=True)
         self.assertIn("Invalid", window.status.get())
+        window.mode.set("server")
         for error in (
             ValueError("No connection"),
             RuntimeError("sensitive diagnostic"),
@@ -108,6 +116,41 @@ class WindowTests(unittest.TestCase):
             window.check()
             self.assertNotIn("sensitive", window.status.get())
             self.assertEqual(window.save_button.options["state"], "normal")
+            self.assertEqual(window.status_label.options["foreground"], window.error_color)
+
+    def test_bundled_mode_never_tests_server_and_switching_during_check_stays_disabled(self):
+        window, controller, executor = self.make()
+        self.assertEqual(window.check_button.options["state"], "disabled")
+        window.check()
+        executor.submit.assert_not_called()
+        window.mode.set("server")
+        window.processing_changed()
+        self.assertEqual(window.check_button.options["state"], "normal")
+        future = Future()
+        executor.submit.return_value = future
+        window.check()
+        window.check()
+        executor.submit.assert_called_once()
+        window.restore_destination()
+        future.set_result({})
+        window.poll()
+        self.assertEqual(window.check_button.options["state"], "disabled")
+        self.assertNotIn("passed", window.status.get())
+        self.assertEqual(window.status_label.options["foreground"], "")
+
+    def test_changed_server_values_do_not_receive_a_stale_success(self):
+        window, controller, executor = self.make(dark=True)
+        window.mode.set("server")
+        window.processing_changed()
+        future = Future()
+        executor.submit.return_value = future
+        window.check()
+        window.url.set("http://localhost:9999")
+        future.set_result({})
+        window.poll()
+        self.assertIn("changed during the check", window.status.get())
+        self.assertEqual(window.status_label.options["foreground"], "")
+        self.assertEqual(window.check_button.options["state"], "normal")
 
     def test_run_owns_window(self):
         self.assertTrue(hasattr(destination_ui, "run"), "Missing Settings entry point")

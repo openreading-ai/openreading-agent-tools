@@ -143,10 +143,18 @@ class SettingsWindow:
         self.token = tk.StringVar(value="")
         self.clear = tk.BooleanVar(value=False)
         ttk.Radiobutton(
-            frame, text="Bundled Docling on this Mac", variable=self.mode, value="local"
+            frame,
+            text="Bundled Docling on this Mac",
+            variable=self.mode,
+            value="local",
+            command=self.processing_changed,
         ).pack(anchor="w", pady=(12, 0))
         ttk.Radiobutton(
-            frame, text="Your OpenReading Core server", variable=self.mode, value="server"
+            frame,
+            text="Your OpenReading Core server",
+            variable=self.mode,
+            value="server",
+            command=self.processing_changed,
         ).pack(anchor="w", pady=(8, 12))
         ttk.Label(frame, text="Server URL").pack(anchor="w")
         ttk.Entry(frame, textvariable=self.url).pack(fill="x", pady=(4, 12))
@@ -180,8 +188,36 @@ class SettingsWindow:
         self.save_button.pack(side="left", padx=12)
         ttk.Button(row, text="Restore defaults", command=self.restore_destination).pack(side="left")
         self.status = tk.StringVar(value=status)
-        ttk.Label(frame, textvariable=self.status, wraplength=570, justify="left").pack(anchor="w")
+        self.status_label = ttk.Label(
+            frame, textvariable=self.status, wraplength=570, justify="left"
+        )
+        self.status_label.pack(anchor="w")
+        self.neutral_color = self.status_label.cget("foreground")
+        # Tk resolves the native background, so feedback stays legible in either appearance.
+        dark = sum(root.winfo_rgb(root.cget("background"))) < 3 * 32768
+        self.success_color = "#73d18c" if dark else "#176b32"
+        self.error_color = "#ff8989" if dark else "#b42318"
+        self.update_check_button()
         root.protocol("WM_DELETE_WINDOW", self.close)
+
+    def show_status(self, message, *, outcome=None):
+        color = {"success": self.success_color, "error": self.error_color}.get(
+            outcome, self.neutral_color
+        )
+        self.status_label.configure(foreground=color)
+        self.status.set(message)
+
+    def update_check_button(self):
+        enabled = self.mode.get() == "server" and self.future is None
+        self.check_button.configure(state="normal" if enabled else "disabled")
+
+    def processing_changed(self):
+        self.update_check_button()
+        self.show_status(
+            "Bundled Docling runs on this Mac. No server connection is needed."
+            if self.mode.get() == "local"
+            else "Test your Core server connection before saving the destination."
+        )
 
     def preferences_panel(self, frame, controller, tk, ttk):
         message = "Changes apply after reconnecting OpenReading. Existing imports must finish before moving data."
@@ -327,25 +363,29 @@ class SettingsWindow:
             )
             self.token.set("")
             self.clear.set(False)
-            self.status.set(
+            self.show_status(
                 "Saved. Restart the plugin connection before selecting documents. Existing jobs keep their original destination."
             )
         except ValueError as error:
-            self.status.set(str(error))
+            self.show_status(str(error))
         except Exception:
-            self.status.set("Cannot save settings. Check local permissions and Keychain access.")
+            self.show_status("Cannot save settings. Check local permissions and Keychain access.")
 
     def restore_destination(self):
         self.mode.set("local")
         self.url.set("http://127.0.0.1:8787")
         self.token.set("")
         self.clear.set(True)
-        self.status.set("Processing defaults restored. Choose Save destination to apply them.")
+        self.update_check_button()
+        self.show_status("Processing defaults restored. Choose Save destination to apply them.")
 
     def check(self):
+        if self.mode.get() != "server" or self.future is not None:
+            return
         self.save_button.configure(state="disabled")
         self.check_button.configure(state="disabled")
-        self.status.set("Checking server metadata. No document is sent…")
+        self.show_status("Checking server metadata. No document is sent…")
+        self.checked_values = (self.url.get(), self.token.get(), self.clear.get())
         self.future = self.executor.submit(
             self.controller.check, self.url.get(), self.token.get(), self.clear.get()
         )
@@ -357,23 +397,30 @@ class SettingsWindow:
             return
         try:
             self.future.result()
-            self.status.set(
-                "Connection and metadata access passed. No document was sent. Parsing still needs a document test."
+            self.show_status(
+                "Connection and metadata access passed. No document was sent. Parsing still needs a document test.",
+                outcome="success",
             )
         except ValueError as error:
-            self.status.set(str(error))
+            self.show_status(str(error), outcome="error")
         except Exception:
-            self.status.set("The connection check failed. Check the URL and Keychain access.")
+            self.show_status(
+                "The connection check failed. Check the URL and Keychain access.", outcome="error"
+            )
         self.future = None
         self.save_button.configure(state="normal")
-        self.check_button.configure(state="normal")
+        self.update_check_button()
+        if self.mode.get() != "server":
+            self.processing_changed()
+        elif self.checked_values != (self.url.get(), self.token.get(), self.clear.get()):
+            self.show_status("Server settings changed during the check. Test the connection again.")
         if self.closing:
             self.close()
 
     def close(self):
         if self.future is not None:
             self.closing = True
-            self.status.set("Waiting for the bounded connection check to finish…")
+            self.show_status("Waiting for the bounded connection check to finish…")
             return
         self.executor.shutdown(wait=False)
         self.root.destroy()
