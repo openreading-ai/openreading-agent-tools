@@ -2,6 +2,9 @@
 
 ## Native settings integration candidate
 
+- Refuse new selections and imports through a stale Claude plugin connection after saving a processing destination.
+- Keep existing jobs and retained-result access available while the document connector awaits reconnect.
+
 - Fix the native server-mode picker failing before display when an absent file-type filter was bridged as NSNull.
 
 - Continue from document or folder selection into processing every selected file without an extra conversational confirmation.

@@ -9,6 +9,9 @@ An early tool call reports setup progress; retrying after setup forwards to the 
 The proxy preserves asynchronous worker replies and cancellation notifications after setup.
 Before startup, discovery uses conservative combined descriptions and upload annotations.
 Once verified, discovery exposes the active profile verbatim and notifies previous callers.
+Document sessions bind the saved destination at startup. A later save blocks new selections
+and imports until reconnect, including local sessions that otherwise retain bundled Docling.
+Already admitted jobs, cancellation and retained-result retrieval remain available.
 The temporary ngrok origin is a development route, not a released download service.
 """
 
@@ -126,7 +129,31 @@ class Manager:
         self.status = message
 
 
+DESTINATION_CHANGED = (
+    "OpenReading processing settings changed or cannot be read. "
+    "Reconnect the OpenReading document connector before selecting or importing documents. "
+    "This request did not select or process any documents. Existing jobs keep their original destination."
+)
+
+
+def destination_stamp(home):
+    """Compare saved bytes without importing the runtime or exposing credential references."""
+    path = home / (
+        "Library/Application Support/OpenReading/agent-tools/claude-desktop/destination.json"
+    )
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except FileNotFoundError:
+        return None
+    with os.fdopen(fd, "rb") as stream:
+        data = stream.read(16385)
+    if len(data) > 16384:
+        raise ValueError("Oversized destination settings.")
+    return hashlib.sha256(data).digest()
+
+
 def start_worker(manager, mode, protocol):
+    stamp = destination_stamp(manager.home) if mode == "--chat-documents" else None
     child = subprocess.Popen(
         [str(manager.root / "openreading-worker"), "--client", "claude-desktop", mode],
         stdin=subprocess.PIPE,
@@ -161,6 +188,9 @@ def start_worker(manager, mode, protocol):
         )
         if reply.get("result") not in allowed:
             raise ValueError("Runtime tool catalog differs from the installed plugin.")
+        if mode == "--chat-documents" and destination_stamp(manager.home) != stamp:
+            raise ValueError(DESTINATION_CHANGED)
+        child.destination_stamp = stamp
         child.catalog = reply["result"]
         return child
     except (OSError, ValueError):
@@ -238,7 +268,7 @@ def serve(manager, mode, incoming, outgoing):
                 result = {
                     "protocolVersion": protocol,
                     "capabilities": {"tools": {"listChanged": True}},
-                    "serverInfo": {"name": "openreading-bootstrap", "version": "0.2.0-alpha.9"},
+                    "serverInfo": {"name": "openreading-bootstrap", "version": "0.2.0-alpha.12"},
                 }
             elif method == "tools/list":
                 connect()
@@ -266,6 +296,32 @@ def serve(manager, mode, incoming, outgoing):
                 )
                 continue
             if child is not None and method not in ("initialize", "tools/list", "ping"):
+                if (
+                    mode == "--chat-documents"
+                    and method == "tools/call"
+                    and request.get("params", {}).get("name")
+                    in {
+                        "openreading_select_document",
+                        "openreading_import",
+                        "openreading_start_import",
+                    }
+                ):
+                    try:
+                        current = destination_stamp(manager.home) == child.destination_stamp
+                    except (OSError, ValueError):
+                        current = False
+                    if not current:
+                        send(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": identifier,
+                                "result": {
+                                    "isError": True,
+                                    "content": [{"type": "text", "text": DESTINATION_CHANGED}],
+                                },
+                            }
+                        )
+                        continue
                 if identifier is not None:
                     pending.add(identifier)
                 try:

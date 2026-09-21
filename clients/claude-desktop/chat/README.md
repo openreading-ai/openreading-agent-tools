@@ -205,6 +205,10 @@ Tool discovery remains available during setup. Early tool calls report progress 
 Both bundled and server processing are supported. The connector publishes the active mode's descriptions and upload annotations after startup.
 Run `/openreading-settings`, review all three tabs, and save any changes you want.
 Reconnect the document connector after saving. Import a synthetic local document through the native picker.
+Saving a processing destination blocks new selections and imports on the previous plugin connection until reconnect.
+For example, switching from bundled Docling to a Core server cannot keep processing new files locally.
+Existing jobs keep their original destination. Their status, cancellation and retained results remain accessible.
+Test connection checks the URL currently in the form without saving it or changing an active connection.
 
 No separate installer, Terminal command or user-installed Python is required.
 The temporary ngrok endpoint must remain available for initial setup. Verified warm launches work offline.

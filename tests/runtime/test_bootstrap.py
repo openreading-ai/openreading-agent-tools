@@ -229,6 +229,128 @@ for line in sys.stdin:
                 bootstrap.start_worker(manager, "--settings-tools", "2025-11-25")
             child.terminate.assert_called_once()
 
+    def test_saved_destination_change_blocks_new_work_but_preserves_existing_jobs(self):
+        mode = "--chat-documents"
+        self.config["catalogs"][mode] = {"tools": []}
+        settings = self.root / (
+            "Library/Application Support/OpenReading/agent-tools/claude-desktop/destination.json"
+        )
+        settings.parent.mkdir(parents=True)
+        worker = self.root / "openreading-worker"
+        worker.write_text(f"""#!{sys.executable}
+import json,sys
+for line in sys.stdin:
+ r=json.loads(line)
+ if 'id' not in r: continue
+ result={{'tools':[]}} if r['method']=='tools/list' else {{'forwarded':True}}
+ print(json.dumps({{'jsonrpc':'2.0','id':r['id'],'result':result}}),flush=True)
+""")
+        worker.chmod(0o755)
+        manager = bootstrap.Manager(self.config, self.root)
+        manager.root = self.root
+        for previous, updated in (
+            (None, '{"mode":"server","base_url":"http://127.0.0.1:7778"}'),
+            ('{"mode":"server"}', '{"mode":"local"}'),
+            ('{"mode":"server","revision":"old"}', '{"mode":"server","revision":"new"}'),
+            ('{"mode":"server"}', None),
+            (None, "invalid settings"),
+        ):
+            with self.subTest(previous=previous, updated=updated):
+                if previous is None:
+                    settings.unlink(missing_ok=True)
+                else:
+                    settings.write_text(previous)
+                output = io.StringIO()
+
+                def incoming(updated=updated, output=output):
+                    names = [
+                        "openreading_select_document",
+                        "openreading_select_document",
+                        "openreading_import",
+                        "openreading_start_import",
+                        "openreading_get_import",
+                        "openreading_cancel_import",
+                        "openreading_get_document",
+                    ]
+                    for identifier, name in enumerate(names, 10):
+                        if identifier == 11:
+                            if updated is None:
+                                settings.unlink()
+                            else:
+                                settings.write_text(updated)
+                        yield (
+                            json.dumps(
+                                {"id": identifier, "method": "tools/call", "params": {"name": name}}
+                            )
+                            + "\n"
+                        )
+                        deadline = time.monotonic() + 3
+                        while f'"id": {identifier},' not in output.getvalue():
+                            if time.monotonic() >= deadline:
+                                self.fail("No tool response")
+                            time.sleep(0.01)
+
+                with patch.object(manager, "start"):
+                    bootstrap.serve(manager, mode, incoming(), output)
+                replies = [json.loads(line)["result"] for line in output.getvalue().splitlines()]
+                self.assertEqual(replies[0], {"forwarded": True})
+                for result in replies[1:4]:
+                    self.assertTrue(result.get("isError"), result)
+                    self.assertIn("Reconnect", result["content"][0]["text"])
+                self.assertEqual(replies[4:], [{"forwarded": True}] * 3)
+
+    def test_startup_destination_race_terminates_worker(self):
+        mode = "--chat-documents"
+        self.config["catalogs"][mode] = {"tools": []}
+        manager = bootstrap.Manager(self.config, self.root)
+        manager.root = self.root
+        child = MagicMock()
+        child.stdout = io.StringIO('{"id":0,"result":{}}\n{"id":1,"result":{"tools":[]}}\n')
+        with (
+            patch.object(bootstrap, "destination_stamp", side_effect=[None, b"changed"]),
+            patch.object(bootstrap.subprocess, "Popen", return_value=child),
+            self.assertRaisesRegex(ValueError, "Reconnect"),
+        ):
+            bootstrap.start_worker(manager, mode, "2025-11-25")
+        child.terminate.assert_called_once()
+
+    def test_unreadable_destination_blocks_import_before_forwarding(self):
+        mode = "--chat-documents"
+        self.config["catalogs"][mode] = {"tools": []}
+        manager = bootstrap.Manager(self.config, self.root)
+        manager.root = self.root
+        child = MagicMock(catalog={"tools": []}, destination_stamp=None)
+        child.stdout = io.StringIO()
+        output = io.StringIO()
+        with (
+            patch.object(manager, "start"),
+            patch.object(bootstrap, "start_worker", return_value=child),
+            patch.object(bootstrap, "destination_stamp", side_effect=OSError("unreadable")),
+        ):
+            bootstrap.serve(
+                manager,
+                mode,
+                io.StringIO(
+                    '{"id":2,"method":"tools/call","params":{"name":"openreading_start_import"}}\n'
+                ),
+                output,
+            )
+        self.assertTrue(json.loads(output.getvalue())["result"]["isError"])
+        child.stdin.write.assert_not_called()
+
+    def test_destination_stamp_is_bounded_and_rejects_symlinks(self):
+        settings = self.root / (
+            "Library/Application Support/OpenReading/agent-tools/claude-desktop/destination.json"
+        )
+        settings.parent.mkdir(parents=True)
+        settings.write_bytes(b"x" * 16385)
+        with self.assertRaisesRegex(ValueError, "Oversized"):
+            bootstrap.destination_stamp(self.root)
+        settings.unlink()
+        settings.symlink_to(self.archive)
+        with self.assertRaises(OSError):
+            bootstrap.destination_stamp(self.root)
+
     def test_verified_server_catalog_keeps_upload_annotations_and_is_advertised(self):
         local = self.config["catalogs"]["--settings-tools"]
         server = copy.deepcopy(local)
