@@ -261,7 +261,9 @@ Advanced sets the file-delivery threshold and maximum downloaded server response
 Each tab saves its own values. **Restore defaults** resets that tab for review; Save applies those values.
 Saving Advanced settings never requests a storage move or applies unsaved processing choices.
 Existing saved limits remain effective until you change them. The Settings window contains no Managed promotion.
-Reconnect the document connector after saving. Finish or cancel imports before moving storage.
+After saving in Claude, fully quit with Command-Q and reopen the app.
+Start a new task and ask to open the OpenReading file picker to apply saved changes.
+Opening Settings alone does not apply a pending storage move. Finish or cancel imports before moving storage.
 The separate settings connector remains available when invalid preferences prevent document startup.
 
 Public sessions default to `~/.openreading/clients/CLIENT/v2`, including an `exports` directory.

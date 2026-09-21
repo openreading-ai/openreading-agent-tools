@@ -272,7 +272,7 @@ class SettingsWindow:
         ).pack(side="left", padx=12)
         ttk.Label(
             frame,
-            text="Save your choice, then reconnect OpenReading. Existing imports must finish before data moves. The previous copy stays intact.",
+            text="Save your choice, then quit and reopen your app (for example, Claude). Open the OpenReading file picker to apply the change. Existing imports must finish before data moves. The previous copy stays intact.",
             wraplength=570,
         ).pack(anchor="w", pady=16)
         row = ttk.Frame(frame)
@@ -327,7 +327,7 @@ class SettingsWindow:
         self.storage_choice.set(self.storage_kind(self.folder.get()))
 
     def advanced_panel(self, frame, controller, tk, ttk):
-        message = "Save applies these limits after reconnecting OpenReading."
+        message = "After saving, quit and reopen your app, then open the OpenReading file picker to apply these limits."
         try:
             limits = controller.limits()
         except ValueError as error:
@@ -373,7 +373,9 @@ class SettingsWindow:
     def save_advanced(self):
         try:
             self.controller.save_advanced(self.budget.get(), self.response_mib.get())
-            self.advanced_status.set("Saved. Reconnect OpenReading to apply these limits.")
+            self.advanced_status.set(
+                "Saved. Quit and reopen your app, then open the OpenReading file picker to apply these limits."
+            )
         except ValueError as error:
             self.advanced_status.set(str(error))
         except Exception:

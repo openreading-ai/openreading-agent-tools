@@ -86,13 +86,15 @@ def storage_view(client, *, home=None):
     if active != target:
         state, message = (
             "pending",
-            f"Move pending. Reconnect OpenReading to apply it. Still using: {active_folder}",
+            f"Move pending. Quit and reopen your app, then open the OpenReading file picker to apply it. Still using: {active_folder}",
         )
         status = control / "storage-status.json"
         if status.exists():
             value = json.loads(safe_read(status, 16384))
             if not isinstance(value, dict):
-                raise ValueError("Cannot read storage move status. Reconnect OpenReading to retry.")
+                raise ValueError(
+                    "Cannot read storage move status. Quit and reopen your app, then open the OpenReading file picker to retry."
+                )
             if value.get("target") == str(target) and isinstance(value.get("error"), str):
                 state = "blocked"
                 message = f"Move blocked: {value['error']} Saved choice retained. Still using: {active_folder}"

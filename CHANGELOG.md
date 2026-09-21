@@ -2,6 +2,7 @@
 
 ## Native settings integration candidate
 
+- Replace vague Settings reconnect instructions with quit, reopen, and open the OpenReading file picker steps.
 - Show the saved storage choice with active, pending or blocked migration status in Settings.
 - Ignore abandoned legacy launch records after checking live workers, while preserving active-session and unfinished-job migration guards.
 - Queue selected files, offer Process or Add more, and wait for the user's processing instruction.
