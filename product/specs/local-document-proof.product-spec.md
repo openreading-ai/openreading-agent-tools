@@ -2,7 +2,7 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 23
+spec_revision: 24
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
 updated_at: "2026-09-21T00:00:00Z"
@@ -335,7 +335,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-21
   criterion: The public profile preserves usable native text and automatically reads eligible image text, including mixed pages, without an OCR setup choice; unreadable image text remains disclosed and no cloud or model-selected fallback is allowed; OCR, mixed and unknown text origins are visibly labeled in citations, all source provenance entries are handled without invented page attribution, and missing table text is disclosed.
 - id: AC-22
-  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no runtime downloads, and passes the frozen offline retrieval gate before native Desktop acceptance testing.
+  criterion: The selected Docling pipeline executes with torch, torchvision, docling-ibm-models, and PyMuPDF absent, performs no downloads during document processing, and passes the frozen offline retrieval gate before native Desktop acceptance testing. Native plugin setup may download a hash-pinned runtime before processing becomes available.
 - id: AC-23
   criterion: Assistant launchers remain optional consumers of core; an isolated ordinary core installation preserves CLI, Python API, HTTP contracts, and backend selection without requiring Agent Tools, assistant settings, or local model assets.
 - id: AC-24
@@ -372,7 +372,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-38
   criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, local or server processing, server credentials, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, credentials stay in Keychain, and cancelled or discarded edits leave saved values unchanged.
 - id: AC-41
-  criterion: A complete offline Claude setup package includes the runtime, model assets, native settings and a host-uploadable plugin. Setup executes the runtime from Application Support, backs up prior Claude settings and default data without changing other clients, refuses active imports and connections, and leaves Claude plugin registration to the user. No runtime dependency on the downloaded setup folder remains. Native and clean-machine acceptance are independently verified.
+  criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. First activation automatically downloads and verifies the pinned runtime and models over HTTPS into Application Support. Tool discovery stays responsive during setup and early calls report progress. Concurrent connectors share one installation. Failed or interrupted downloads cannot become executable installations. Later launches reuse verified files without network access. Settings, documents, other clients and credentials remain untouched. Development uses the owner's local ngrok endpoint; GitHub distribution follows the OSS release. Native and clean-machine acceptance are independently verified.
 - id: AC-40
   criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Server connection tests are disabled in bundled mode, with green success and red failure feedback retaining descriptive text.
 - id: AC-39

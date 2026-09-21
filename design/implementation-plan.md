@@ -392,3 +392,11 @@ Both repository gates pass. Native progress UI remains open. The uncapped frozen
 - [ ] Record exact-build Cowork and Work installation, native Keychain and clean-machine acceptance independently.
 
 The remaining release checks are in [native settings acceptance](native-settings.md).
+
+## Native plugin download, revision 24
+
+- Replace the manual installer handoff with a small Claude upload and automatic pinned HTTPS runtime download.
+- Verify archive failure, safe extraction, shared installation, protocol responsiveness and offline cache reuse.
+- Build the exact frozen downloader and host only the runtime archive through the owner's existing ngrok tunnel.
+- Verify the cold download and forwarding path before the owner's native upload and settings acceptance.
+- Keep durable GitHub hosting and clean-machine distribution as later release gates.

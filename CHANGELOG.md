@@ -2,6 +2,9 @@
 
 ## Native settings integration candidate
 
+- Add a small native Claude plugin that downloads its verified runtime automatically through the development ngrok route.
+- Preserve settings and documents during setup, share concurrent downloads, and answer tool discovery while installation proceeds.
+
 - Add a complete offline Claude setup package with an Application Support runtime cache and reversible fresh-state backups.
 
 - Color server connection results and disable server checks while bundled processing is selected.

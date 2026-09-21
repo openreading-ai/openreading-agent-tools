@@ -278,7 +278,23 @@ The existing `destination_settings.py` keeps bearer credentials in Keychain and 
 `public_profile.py` applies these choices to local and server processing without changing Core's tool catalog.
 The integrated build's native and release gaps are tracked in [native settings acceptance](../design/native-settings.md).
 
-## Fresh Claude setup package
+## Small native Claude plugin
+
+Upload `OpenReading-Claude-Plugin.zip` in Claude and enable its local connectors.
+The frozen `bootstrap.py` launcher automatically downloads the pinned runtime and models into Application Support.
+The user runs no installer command and needs no Python installation.
+Tool discovery responds during download. Early tool calls report setup progress and can retry afterward.
+Archive hashes, safe extraction and full runtime verification precede execution. Concurrent connectors share a download lock.
+Later launches verify the cached runtime without contacting the download endpoint. User settings and documents stay intact.
+The build command is `python -m runtime.bootstrap_package --runtime RUNTIME --bootstrap BINARY --output OUTPUT --url HTTPS_URL`.
+It produces a small plugin ZIP and a separate runtime archive for the supplied HTTPS address.
+Development downloads use the owner's temporary ngrok endpoint. Durable GitHub hosting follows the OSS release decision.
+The exact archive catalogs are collected from the frozen worker and checked again before forwarding tool calls.
+Native and clean-machine acceptance remain separate gates.
+
+## Historical offline setup package
+
+The separate command installer is retained for historical development trials. It is not the current native installation flow.
 
 Build the offline setup directory with `python -m runtime.package --cowork-installer --runtime RUNTIME --output OUTPUT`.
 The directory includes a verified runtime, `Install OpenReading.command`, `OpenReading-Claude.zip`, and a synthetic test document.

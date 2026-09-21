@@ -6,6 +6,11 @@ The settings connector is separate from the complete pinned Core document catalo
 
 ## Remaining native gates
 
+- Revision 24 replaces the manual setup flow with a small native plugin and automatic HTTPS runtime download.
+- Verify cold download through the temporary ngrok endpoint, interrupted-download retry, concurrent connectors and offline warm launch.
+- Verify actual Claude upload, first activation and settings opening with the exact small plugin archive.
+- Publish a durable runtime download location through GitHub only after the OSS release decision.
+
 - TODO: Review and refine the settings modal messaging with the owner before release. Cover labels, explanations, save feedback, and reconnect instructions.
 - Install the exact built package in each supported local host. Verify `/openreading-settings` discovery and opening.
 - Exercise storage selection, cancellation, saving, restoring defaults, reconnect, and the default folder without editing JSON.
