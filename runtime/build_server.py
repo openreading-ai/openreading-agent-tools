@@ -1,13 +1,15 @@
-"""Freeze and package the server-only Claude connector without downloadable dependencies.
+"""Freeze and package server-only connectors without downloadable dependencies.
 
 The server_client lock selects Core's client-only Git build profile.
 That wheel contains canonical shared retention and MCP code, with no engine modules.
 A format-3 inventory binds the native worker, Python support files and tool catalogs.
 The plugin is named OpenReading. Client storage partitions remain unchanged across upgrades.
-Claude Code uses the same verified worker with its own client namespace and local marketplace.
-Its separate marketplace archive omits manifests because authenticated archive sources require
+Claude Code and Codex use the same verified worker with separate client namespaces.
+Claude Code's separate marketplace archive omits manifests because authenticated sources require
 strict=false. Claude Code 2.1.278 rejects even identity-only plugin.json files in that mode.
 The marketplace declares the skills and MCP connectors; Desktop ZIPs retain their manifests.
+Codex packages a native marketplace with two skills and two relative STDIO connectors.
+Its launcher resolves the installed runtime before leaving the host's working directory.
 Use --runtime to package an existing release without freezing or changing its executable.
 Python modules are collected as files because Claude rejects nested ZIP archives.
 The archive embeds the connector directly; it has no bootstrap URL or model provisioning.
@@ -164,8 +166,8 @@ def build_runtime(output):
 
 
 def package(runtime, output, *, client="claude-desktop"):
-    if client not in {"claude-desktop", "claude-code"}:
-        raise ValueError("Unsupported client for this Claude package.")
+    if client not in {"claude-desktop", "claude-code", "codex"}:
+        raise ValueError("Unsupported client for this server package.")
     release = verify_release(runtime)
     if release.get("profile") != "core-server-client-v1":
         raise ValueError("Package requires a server-only runtime.")
@@ -176,8 +178,10 @@ def package(runtime, output, *, client="claude-desktop"):
     documents = catalog(runtime / "openreading-worker", "--chat-documents", server=True)
     settings = catalog(runtime / "openreading-worker", "--settings-tools")
     output.mkdir(parents=True, exist_ok=False)
-    plugin = output / "plugin"
-    (plugin / ".claude-plugin").mkdir(parents=True)
+    codex = client == "codex"
+    plugin = output / ("plugins/openreading" if codex else "plugin")
+    manifest_dir = plugin / (".codex-plugin" if codex else ".claude-plugin")
+    manifest_dir.mkdir(parents=True)
     shutil.copytree(runtime, plugin / "runtime")
     (plugin / "runtime/catalogs.json").write_text(
         json.dumps(
@@ -188,13 +192,30 @@ def package(runtime, output, *, client="claude-desktop"):
     release["files"] = inventory(plugin / "runtime")
     (plugin / "runtime/release.json").write_text(json.dumps(release, indent=2) + "\n")
     verify_release(plugin / "runtime")
-    (plugin / ".claude-plugin/plugin.json").write_text(
+    (manifest_dir / "plugin.json").write_text(
         json.dumps(
             {
                 "name": "openreading",
                 "version": VERSION,
-                "description": "Connect Claude to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
+                "description": f"Connect {'Codex' if codex else 'Claude'} to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
                 "author": {"name": "OpenReading"},
+                **(
+                    {
+                        "skills": "./skills/",
+                        "mcpServers": "./.mcp.json",
+                        "interface": {
+                            "displayName": "OpenReading",
+                            "shortDescription": "Document tools for your OpenReading Core server",
+                            "longDescription": "Select files, process them through your configured Core server, and answer questions using retained results and exact evidence. Native settings control the destination and storage. No parser or models are bundled. Unsigned Apple Silicon development preview.",
+                            "developerName": "OpenReading",
+                            "category": "Productivity",
+                            "capabilities": ["Read", "Write"],
+                            "defaultPrompt": ["Open OpenReading to select and process documents."],
+                        },
+                    }
+                    if codex
+                    else {}
+                ),
             },
             indent=2,
         )
@@ -208,7 +229,14 @@ def package(runtime, output, *, client="claude-desktop"):
         json.dumps(
             {
                 "mcpServers": {
-                    name: {"command": "/bin/sh", "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", flag]}
+                    name: (
+                        {"command": "/bin/sh", "args": ["./launch.sh", flag], "cwd": "."}
+                        if codex
+                        else {
+                            "command": "/bin/sh",
+                            "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", flag],
+                        }
+                    )
                     for name, flag in (
                         ("openreading", "--chat-documents"),
                         ("openreading-settings", "--settings-tools"),
@@ -246,6 +274,28 @@ def package(runtime, output, *, client="claude-desktop"):
             )
             + "\n"
         )
+    if codex:
+        shutil.copy2(HERE.parent / "clients/codex/README.md", plugin / "README.md")
+        marketplace = output / ".agents/plugins/marketplace.json"
+        marketplace.parent.mkdir(parents=True)
+        marketplace.write_text(
+            json.dumps(
+                {
+                    "name": "openreading",
+                    "interface": {"displayName": "OpenReading"},
+                    "plugins": [
+                        {
+                            "name": "openreading",
+                            "source": {"source": "local", "path": "./plugins/openreading"},
+                            "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                            "category": "Productivity",
+                        }
+                    ],
+                },
+                indent=2,
+            )
+            + "\n"
+        )
     # Check content as well as suffixes so renamed dependency archives cannot slip through.
     for path in sorted(plugin.rglob("*")):
         if path.is_file():
@@ -258,11 +308,13 @@ def package(runtime, output, *, client="claude-desktop"):
                 raise ValueError(
                     f"Claude plugins cannot contain nested ZIP files: {path.relative_to(plugin)}"
                 )
-    target = output / "OpenReading-Claude-Plugin.zip"
+    target = output / ("OpenReading-Codex-Plugin.zip" if codex else "OpenReading-Claude-Plugin.zip")
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(plugin.rglob("*")):
             if path.is_file():
-                archive.write(path, path.relative_to(plugin))
+                archive.write(path, path.relative_to(output if codex else plugin))
+        if codex:
+            archive.write(marketplace, marketplace.relative_to(output))
     if target.stat().st_size >= 200_000_000:
         raise ValueError("Plugin exceeds the Claude upload limit.")
     marketplace_metadata = {}
@@ -303,7 +355,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
-        "--client", choices=("claude-desktop", "claude-code"), default="claude-desktop"
+        "--client", choices=("claude-desktop", "claude-code", "codex"), default="claude-desktop"
     )
     parser.add_argument(
         "--runtime", type=Path, help="Package an existing verified server-only runtime."

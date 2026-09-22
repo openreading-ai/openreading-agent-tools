@@ -339,3 +339,10 @@ Claude Code also receives `OpenReading-Claude-Code-Marketplace.zip` and its `mar
 That archive omits plugin manifests because the authenticated marketplace owns its skills and connector definitions.
 Packaging never registers a host, edits user settings, or starts the configured Core server.
 See the [Claude Code guide](../clients/claude-code/README.md) for installation and manual acceptance.
+
+## Codex server-only package
+
+`runtime.build_server --client codex --runtime /path/to/verified-runtime --output /path/to/new-build`
+assembles the same server-only worker into a Codex native marketplace and ZIP.
+The relative launcher fixes the `codex` client partition and exposes document and settings connectors.
+The [Codex guide](../clients/codex/README.md) records native installation, isolated checks and manual acceptance limits.

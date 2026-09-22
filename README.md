@@ -27,10 +27,10 @@ Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok
 
 | Client | Core server acceptance |
 | --- | --- |
-| Claude Cowork | Partial: earlier localhost workflow; current server-only package acceptance pending |
-| Claude Code | Partial: server-only installation, connector startup and localhost Core interoperability passed; manual native workflow pending |
+| Claude Cowork | Partial: owner reports alpha.19 Desktop localhost workflow passed; full Cowork matrix acceptance pending |
+| Claude Code | Partial: alpha.19 installation and localhost workflow passed, including owner manual testing |
 | ChatGPT Work | Pending |
-| Codex | Pending |
+| Codex | Partial: server-only native installation, tool discovery and localhost protocol checks passed; manual workflow pending |
 
 Earlier bundled-parser results remain historical evidence. They do not pass a server-backed cell.
 The [client acceptance checklist](clients/README.md#matrix-acceptance) defines each cell's requirements.

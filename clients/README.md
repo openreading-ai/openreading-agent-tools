@@ -42,6 +42,18 @@ Core and Agent Tools offline gates pass. Frozen checks cover a real localhost se
 Claude Code 2.1.278 installs the exact private archive in isolated configuration and connects both cached MCP servers.
 These checks use synthetic documents and no model session. Alpha.19's native picker and owner-operated document walkthrough remain manual acceptance.
 
+## Alpha.19 owner checkpoint and Codex packaging, September 22, 2026
+
+The owner reports successful Claude Desktop and Claude Code testing with localhost Core after client-only cleanup.
+Tag `claude-server-only-alpha.19-tested` preserves the Agent Tools commit, Core pin and exact Claude archive hashes.
+The report establishes the development-machine workflows, not every matrix criterion or clean-machine acceptance.
+
+Codex packaging reuses that alpha.19 worker without rebuilding or adding parser dependencies.
+Codex CLI 0.155.1 installs the native marketplace package in an isolated configuration.
+Its app server discovers both installed skills and both MCP connectors, with nine document tools and one settings opener.
+The installed worker passes localhost Core processing, retrieval, exports, retained jobs and stopped-server recovery.
+The protocol test injects selection and confirmation. Manual Codex model and chooser acceptance remain pending.
+
 ## OpenReading command rename, September 22, 2026
 
 Alpha.18 names the plugin and marketplace `openreading`. Its only skills are `openreading` and `openreading-settings`.

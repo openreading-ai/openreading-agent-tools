@@ -49,10 +49,10 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
             target,
             ignore=shutil.ignore_patterns("docling", "historical", "selection", "chat"),
         )
-        if client == "claude-desktop":
+        if client in {"claude-desktop", "codex"}:
             # The repository index describes newer candidates that this archive cannot run.
             shutil.copy2(
-                REPOSITORY / "clients/claude-desktop/historical/README.md", target / "README.md"
+                REPOSITORY / "clients" / client / "historical/README.md", target / "README.md"
             )
         shutil.copytree(runtime, target / "server", symlinks=True)
         if client != "claude-desktop":

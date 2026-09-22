@@ -1,5 +1,12 @@
 # Changelog
 
+## Codex server-only development package
+
+- Add native Codex packaging around the unchanged alpha.19 client-only worker.
+- Include both skills and connectors with Codex-specific settings and retained data.
+- Verify isolated native installation, tool discovery and localhost processing without a model turn.
+- Record the owner's successful Claude Desktop and Claude Code localhost checkpoint.
+
 ## OpenReading alpha.18
 
 - Rename the current plugin to OpenReading and expose `openreading` and `openreading-settings` as its only two skills.
