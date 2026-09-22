@@ -1,6 +1,7 @@
 """Freeze and package the server-only Claude connector without downloadable dependencies.
 
-The separate server_client lock pins Core's agent extra and contains no parsing engine.
+The server_client lock selects Core's client-only Git build profile.
+That wheel contains canonical shared retention and MCP code, with no engine modules.
 A format-3 inventory binds the native worker, Python support files and tool catalogs.
 The plugin is named OpenReading. Client storage partitions remain unchanged across upgrades.
 Claude Code uses the same verified worker with its own client namespace and local marketplace.
@@ -29,12 +30,30 @@ from pathlib import Path
 
 from runtime.bootstrap_package import catalog
 from runtime.build import materialize_links, notices
+from runtime.client_boundary import validate_client_metadata
 from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.18"
+VERSION = "0.2.0-alpha.19"
 EXCLUDES = [
+    "runtime.bootstrap",
+    "runtime.entrypoint",
+    "runtime.docling_profile",
+    "runtime.public_profile",
+    "openreading.adapters",
+    "openreading.api",
+    "openreading.router",
+    "openreading.server",
+    "openreading.cli",
+    "openreading.strategies",
+    "openreading.derive",
+    "openreading.artifacts.local_jobs",
+    "openreading.artifacts.service",
+    "openreading.artifacts.worker",
+    "pypdf",
+    "puremagic",
+    "yaml",
     "docling",
     "docling_core",
     "docling_parse",
@@ -59,6 +78,7 @@ def identity():
     packages = tomllib.loads(LOCK.read_text())["package"]
     package = next(row for row in packages if row["name"] == "openreading")
     commit = package["source"]["git"].split("#")[-1]
+    validate_client_metadata(metadata.distribution("openreading").read_text("METADATA") or "")
     installed = json.loads(
         metadata.distribution("openreading").read_text("direct_url.json") or "{}"
     )
@@ -74,11 +94,12 @@ from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
 datas = collect_data_files('openreading')
 for distribution in metadata.distributions():
-    datas += copy_metadata(distribution.metadata['Name'])
+    if distribution.metadata['Name'].lower() not in {"pyinstaller", "pyinstaller-hooks-contrib", "altgraph", "macholib", "setuptools"}:
+        datas += copy_metadata(distribution.metadata['Name'])
 a = Analysis([{str(HERE / "server_entrypoint.py")!r}], pathex=[{str(HERE.parent)!r}],
-    binaries=[], datas=datas, hiddenimports=['openreading.artifacts.jobs', 'openreading.mcp_server.main'],
+    binaries=[], datas=datas, hiddenimports=['openreading.artifacts.jobs', 'openreading.mcp_server.session'],
     excludes={EXCLUDES!r}, noarchive=True,
-    module_collection_mode={{'runtime': 'pyz+py', 'openreading': 'pyz+py'}})
+    module_collection_mode={{'runtime': 'pyc', 'openreading': 'pyc'}})
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='openreading-worker', console=True, upx=False)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='openreading-worker')

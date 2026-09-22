@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from runtime import bootstrap
+from runtime import bootstrap, connector_proxy
 
 
 class BootstrapTests(unittest.TestCase):
@@ -85,7 +85,7 @@ class BootstrapTests(unittest.TestCase):
         )
         output = io.StringIO()
         with patch.object(manager, "start"):
-            bootstrap.serve(manager, "--settings-tools", incoming, output)
+            connector_proxy.serve(manager, "--settings-tools", incoming, output)
         responses = [json.loads(line) for line in output.getvalue().splitlines()]
         self.assertEqual([r["id"] for r in responses], [1, 2, 3])
         self.assertEqual(responses[1]["result"], self.config["catalogs"]["--settings-tools"])
@@ -206,7 +206,7 @@ for line in sys.stdin:
         with patch.object(manager, "start"):
             # The exit case closes the input pipe; the final notification may encounter EOF.
             try:
-                bootstrap.serve(manager, "--settings-tools", incoming(), output)
+                connector_proxy.serve(manager, "--settings-tools", incoming(), output)
             except BrokenPipeError:
                 pass
         messages = [json.loads(line) for line in output.getvalue().splitlines()]
@@ -223,10 +223,10 @@ for line in sys.stdin:
             child = MagicMock()
             child.stdout = io.StringIO(replies)
             with (
-                patch.object(bootstrap.subprocess, "Popen", return_value=child),
+                patch.object(connector_proxy.subprocess, "Popen", return_value=child),
                 self.assertRaises(ValueError),
             ):
-                bootstrap.start_worker(manager, "--settings-tools", "2025-11-25")
+                connector_proxy.start_worker(manager, "--settings-tools", "2025-11-25")
             child.terminate.assert_called_once()
 
     def test_saved_destination_change_blocks_new_work_but_preserves_existing_jobs(self):
@@ -291,7 +291,7 @@ for line in sys.stdin:
                             time.sleep(0.01)
 
                 with patch.object(manager, "start"):
-                    bootstrap.serve(manager, mode, incoming(), output)
+                    connector_proxy.serve(manager, mode, incoming(), output)
                 replies = [json.loads(line)["result"] for line in output.getvalue().splitlines()]
                 self.assertEqual(replies[0], {"forwarded": True})
                 for result in replies[1:4]:
@@ -307,11 +307,11 @@ for line in sys.stdin:
         child = MagicMock()
         child.stdout = io.StringIO('{"id":0,"result":{}}\n{"id":1,"result":{"tools":[]}}\n')
         with (
-            patch.object(bootstrap, "destination_stamp", side_effect=[None, b"changed"]),
-            patch.object(bootstrap.subprocess, "Popen", return_value=child),
+            patch.object(connector_proxy, "destination_stamp", side_effect=[None, b"changed"]),
+            patch.object(connector_proxy.subprocess, "Popen", return_value=child),
             self.assertRaisesRegex(ValueError, "Quit and reopen"),
         ):
-            bootstrap.start_worker(manager, mode, "2025-11-25")
+            connector_proxy.start_worker(manager, mode, "2025-11-25")
         child.terminate.assert_called_once()
 
     def test_unreadable_destination_blocks_import_before_forwarding(self):
@@ -324,10 +324,10 @@ for line in sys.stdin:
         output = io.StringIO()
         with (
             patch.object(manager, "start"),
-            patch.object(bootstrap, "start_worker", return_value=child),
-            patch.object(bootstrap, "destination_stamp", side_effect=OSError("unreadable")),
+            patch.object(connector_proxy, "start_worker", return_value=child),
+            patch.object(connector_proxy, "destination_stamp", side_effect=OSError("unreadable")),
         ):
-            bootstrap.serve(
+            connector_proxy.serve(
                 manager,
                 mode,
                 io.StringIO(
@@ -345,11 +345,11 @@ for line in sys.stdin:
         settings.parent.mkdir(parents=True)
         settings.write_bytes(b"x" * 16385)
         with self.assertRaisesRegex(ValueError, "Oversized"):
-            bootstrap.destination_stamp(self.root)
+            connector_proxy.destination_stamp(self.root)
         settings.unlink()
         settings.symlink_to(self.archive)
         with self.assertRaises(OSError):
-            bootstrap.destination_stamp(self.root)
+            connector_proxy.destination_stamp(self.root)
 
     def test_verified_server_catalog_keeps_upload_annotations_and_is_advertised(self):
         local = self.config["catalogs"]["--settings-tools"]
@@ -368,8 +368,8 @@ for line in sys.stdin:
             + json.dumps({"id": 1, "result": server})
             + "\n"
         )
-        with patch.object(bootstrap.subprocess, "Popen", return_value=child):
-            accepted = bootstrap.start_worker(manager, "--settings-tools", "2025-11-25")
+        with patch.object(connector_proxy.subprocess, "Popen", return_value=child):
+            accepted = connector_proxy.start_worker(manager, "--settings-tools", "2025-11-25")
         self.assertEqual(accepted.catalog, server)
         child.terminate.assert_not_called()
         incoming = io.StringIO('{"id":2,"method":"tools/list"}\n')
@@ -377,9 +377,9 @@ for line in sys.stdin:
         child.stdout = io.StringIO()
         with (
             patch.object(manager, "start"),
-            patch.object(bootstrap, "start_worker", return_value=child),
+            patch.object(connector_proxy, "start_worker", return_value=child),
         ):
-            bootstrap.serve(manager, "--settings-tools", incoming, output)
+            connector_proxy.serve(manager, "--settings-tools", incoming, output)
         self.assertEqual(json.loads(output.getvalue())["result"], server)
 
     def test_completed_setup_notifies_catalog_change_before_returning_active_tools(self):
@@ -396,9 +396,9 @@ for line in sys.stdin:
 
         with (
             patch.object(manager, "start"),
-            patch.object(bootstrap, "start_worker", return_value=child),
+            patch.object(connector_proxy, "start_worker", return_value=child),
         ):
-            bootstrap.serve(manager, "--settings-tools", incoming(), output)
+            connector_proxy.serve(manager, "--settings-tools", incoming(), output)
         replies = [json.loads(line) for line in output.getvalue().splitlines()]
         self.assertEqual(replies[0]["result"], self.config["catalogs"]["--settings-tools"])
         self.assertEqual(replies[1]["method"], "notifications/tools/list_changed")
@@ -413,9 +413,9 @@ for line in sys.stdin:
         output = io.StringIO()
         with (
             patch.object(manager, "start"),
-            patch.object(bootstrap, "start_worker", side_effect=ValueError("synthetic")),
+            patch.object(connector_proxy, "start_worker", side_effect=ValueError("synthetic")),
         ):
-            bootstrap.serve(manager, "--settings-tools", incoming, output)
+            connector_proxy.serve(manager, "--settings-tools", incoming, output)
         replies = [json.loads(line) for line in output.getvalue().splitlines()]
         self.assertEqual(replies[0]["error"]["code"], -32700)
         self.assertEqual(replies[1]["result"], {})

@@ -32,6 +32,16 @@ The worker, manifest and locked package version identify alpha.17 consistently.
 Offline verification, frozen synthetic processing, Settings catalog checks and isolated storage migration pass.
 Fresh alpha.17 installation remains owner-operated acceptance. Existing native trials do not substitute for that check.
 
+## Client-only package boundary, September 22, 2026
+
+Alpha.19 packages Core's explicit client wheel instead of the full engine distribution.
+Its archive contains shared retention and MCP modules with seven client schema resources.
+Adapters, routing, Core HTTP/CLI code, parser libraries and full-engine metadata are absent.
+The Claude Code marketplace ZIP is 20,902,911 bytes. Its SHA-256 is `79588a5bf916f5c5605e6258f7999fc37bb685f84f508563db6b18925accc582`.
+Core and Agent Tools offline gates pass. Frozen checks cover a real localhost server, retained retrieval, export integrity, jobs, cancellation and failure recovery.
+Claude Code 2.1.278 installs the exact private archive in isolated configuration and connects both cached MCP servers.
+These checks use synthetic documents and no model session. Alpha.19's native picker and owner-operated document walkthrough remain manual acceptance.
+
 ## OpenReading command rename, September 22, 2026
 
 Alpha.18 names the plugin and marketplace `openreading`. Its only skills are `openreading` and `openreading-settings`.

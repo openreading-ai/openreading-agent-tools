@@ -124,6 +124,9 @@ def verify_release(root: Path) -> dict:
             ):
                 raise ValueError("Invalid Docling profile resources")
         if metadata["format_version"] == "3":
+            from runtime.client_boundary import validate_client_files
+
+            validate_client_files(root, actual)
             lock = "resources/server-client.uv.lock"
             forbidden = {
                 "docling",

@@ -74,7 +74,7 @@ To uninstall this candidate:
 
 ~~~sh
 claude plugin uninstall openreading@openreading --scope user
-claude plugin marketplace remove openreading-local
+claude plugin marketplace remove openreading
 ~~~
 
 Removal preserves retained data. Restore a backup only after exiting Claude Code and moving new test data aside.

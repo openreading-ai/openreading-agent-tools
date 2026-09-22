@@ -6,15 +6,15 @@
   "plugins": [
     {
       "name": "openreading",
-      "version": "0.2.0-alpha.18",
+      "version": "0.2.0-alpha.19",
       "description": "Connect Claude to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
       "author": {
         "name": "OpenReading"
       },
       "source": {
         "source": "archive",
-        "url": "https://api.github.com/repos/openreading-ai/openreading-agent-tools/releases/assets/581536312",
-        "sha256": "df146c483491f8967b20e08be308826699949b136e6eef0f08eb41032e468d9e"
+        "url": "https://api.github.com/repos/openreading-ai/openreading-agent-tools/releases/assets/581717952",
+        "sha256": "79588a5bf916f5c5605e6258f7999fc37bb685f84f508563db6b18925accc582"
       },
       "strict": false,
       "skills": "./skills",

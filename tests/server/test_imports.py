@@ -194,10 +194,8 @@ class ServerImportTests(unittest.TestCase):
             lambda request: httpx.Response(200, json=response)
         )
         retained = ServerArtifactService._retain.__get__(self.service)
-        with (
-            patch.object(self.service, "_retain", retained),
-            patch.object(self.service, "_worker", side_effect=AssertionError("No local parse")),
-        ):
+        self.assertFalse(hasattr(self.service, "_worker"))
+        with patch.object(self.service, "_retain", retained):
             receipt = self.service.import_document(self.references[0])
         self.assertEqual(receipt.schema_version, "0.5")
         self.assertEqual(receipt.extraction_state, "partial")

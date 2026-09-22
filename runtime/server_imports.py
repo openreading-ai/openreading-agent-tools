@@ -23,7 +23,7 @@ from pathlib import Path
 
 from openreading.artifacts.intake import directory
 from openreading.artifacts.limits import ArtifactError
-from openreading.artifacts.service import ArtifactService
+from openreading.artifacts.retained import RetainedService
 from openreading.artifacts.store import safe_read
 
 from runtime.selection import SelectionError
@@ -66,7 +66,7 @@ class SelectionStopped(ArtifactError):
         return value
 
 
-class ServerArtifactService(ArtifactService):
+class ServerArtifactService(RetainedService):
     def __init__(self, config, *, settings, selection, identity, keychain=None, transport=None):
         super().__init__(config, identity=identity)
         self.settings, self.selection = settings, selection

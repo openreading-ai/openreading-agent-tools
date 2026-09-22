@@ -57,7 +57,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn("runtime/openreading-worker", names)
                 manifest = json.loads(zipped.read(".claude-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "openreading")
-                self.assertEqual(manifest["version"], "0.2.0-alpha.18")
+                self.assertEqual(manifest["version"], "0.2.0-alpha.19")
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
@@ -68,6 +68,57 @@ class ServerBuildTests(unittest.TestCase):
             (runtime / "release.json").write_text(json.dumps(data))
             with self.assertRaises(ReleaseIntegrityError):
                 verify_release(runtime)
+
+    def test_server_inventory_rejects_engine_modules_metadata_and_unrelated_schemas(self):
+        module = self.module()
+        forbidden = (
+            "openreading/adapters/registry.pyc",
+            "openreading/server/__init__.pyc",
+            "openreading/router/router.py",
+            "openreading/api.pyc",
+            "openreading/artifacts/worker.pyc",
+            "openreading/artifacts/service.pyc",
+            "openreading/schemas/adapter-descriptor.v0.8.json",
+            "openreading/schemas/strategy-config.v0.4.json",
+            "openreading/types/descriptor.pyc",
+            "openreading/adapters/README.md",
+            "openreading-0.3.0.dist-info/METADATA",
+            "pypdf/__init__.pyc",
+            "pypdf-6.15.0.dist-info/METADATA",
+            "puremagic/__init__.pyc",
+            "yaml/__init__.pyc",
+            "runtime/docling_profile.pyc",
+        )
+        for name in forbidden:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                (root / "resources").mkdir()
+                (root / "resources/server-client.uv.lock").write_text("fixture lock")
+                (root / "openreading-worker").write_bytes(b"fixture worker")
+                (root / "THIRD_PARTY_NOTICES.txt").write_text("fixture licenses")
+                bad = root / "_internal" / name
+                bad.parent.mkdir(parents=True, exist_ok=True)
+                bad.write_bytes(b"engine content")
+                files = inventory(root)
+                release = {
+                    "format_version": "3",
+                    "release_version": module.VERSION,
+                    "os": "darwin",
+                    "arch": "arm64",
+                    "minimum_os_version": "15.1",
+                    "core_commit": "a" * 40,
+                    "core_version": "0.3.0",
+                    "python_version": "3.11.15",
+                    "files": files,
+                    "licenses": ["THIRD_PARTY_NOTICES.txt"],
+                    "dependency_lock_sha256": files["resources/server-client.uv.lock"]["sha256"],
+                    "worker_sha256": files["openreading-worker"]["sha256"],
+                    "profile": "core-server-client-v1",
+                    "distribution": "development-only",
+                }
+                (root / "release.json").write_text(json.dumps(release))
+                with self.assertRaises(ReleaseIntegrityError):
+                    verify_release(root)
 
     def test_package_refuses_nested_zip_before_publishing_upload(self):
         module = self.module()
@@ -292,7 +343,16 @@ class ServerBuildTests(unittest.TestCase):
             patch.object(module.metadata, "distribution") as distribution,
             patch.object(module.metadata, "version", return_value="0.3.0"),
         ):
-            distribution.return_value.read_text.return_value = json.dumps(
-                {"vcs_info": {"commit_id": commit}}
+            from runtime.client_boundary import CLIENT_SUMMARY
+
+            client_metadata = (
+                f"Summary: {CLIENT_SUMMARY}\n"
+                "Requires-Dist: jsonschema>=4.21\nRequires-Dist: mcp>=1.30\n"
+                "Requires-Dist: psutil>=7.2\nRequires-Dist: pydantic>=2.7\n"
+            )
+            distribution.return_value.read_text.side_effect = lambda name: (
+                client_metadata
+                if name == "METADATA"
+                else json.dumps({"vcs_info": {"commit_id": commit}})
             )
             self.assertEqual(module.identity()["core_commit"], commit)

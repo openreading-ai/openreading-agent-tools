@@ -22,7 +22,6 @@ from pathlib import Path
 
 from runtime.configuration import client_root
 from runtime.destination_settings import decode_settings
-from runtime.server_imports import ServerArtifactService
 from runtime.server_selection import ServerSelectionProvider, ServerSelectionStore
 from runtime.server_transport import UPLOAD_BYTES
 
@@ -57,7 +56,9 @@ def identity_for(metadata):
 
 def launch(args, metadata, settings):
     from openreading.artifacts.jobs import ImportExecution
-    from openreading.mcp_server.main import serve
+    from openreading.mcp_server.session import serve
+
+    from runtime.server_imports import ServerArtifactService
 
     root = getattr(args, "runtime_data_root", None)
     config, selection = config_for(args.client, settings, root=root)
@@ -89,6 +90,8 @@ def launch(args, metadata, settings):
 
 def job_main(argv, metadata):
     from openreading.artifacts.jobs import main
+
+    from runtime.server_imports import ServerArtifactService
 
     def factory(request):
         snapshot = request["execution"]

@@ -30,7 +30,7 @@ class ServerProfileTests(unittest.TestCase):
         from runtime.server_profile import launch
 
         args = SimpleNamespace(client="chatgpt", document_response_bytes=1000000)
-        with patch("openreading.mcp_server.main.serve", AsyncMock()) as serve:
+        with patch("openreading.mcp_server.session.serve", AsyncMock()) as serve:
             self.assertEqual(launch(args, self.metadata, self.settings), 0)
         config = serve.call_args.args[0]
         options = serve.call_args.kwargs
@@ -90,14 +90,14 @@ class ServerProfileTests(unittest.TestCase):
 
         repository = Path(__file__).resolve().parents[2]
         expected = None
-        for name in ("feasibility", "p0", "testing"):
+        for name in ("server_client", "testing"):
             project = tomllib.loads((repository / "runtime" / name / "pyproject.toml").read_text())
             dependency = next(
                 value
                 for value in project["project"]["dependencies"]
-                if value.startswith("openreading[")
+                if value.startswith("openreading")
             )
-            commit = re.search(r"@([a-f0-9]{40})$", dependency).group(1)
+            commit = re.search(r"@([a-f0-9]{40})(?:#.*)?$", dependency).group(1)
             if expected is None:
                 expected = commit
             self.assertEqual(commit, expected)
@@ -119,7 +119,7 @@ class ServerProfileTests(unittest.TestCase):
             args = SimpleNamespace(
                 client="chatgpt", document_response_bytes=8192, runtime_data_root=root
             )
-            with patch("openreading.mcp_server.main.serve", AsyncMock()) as serve:
+            with patch("openreading.mcp_server.session.serve", AsyncMock()) as serve:
                 launch(args, self.metadata, self.settings)
             config = serve.call_args.args[0]
             options = serve.call_args.kwargs

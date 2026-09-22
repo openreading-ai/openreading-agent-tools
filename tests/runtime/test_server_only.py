@@ -110,7 +110,7 @@ class ServerOnlyTests(unittest.TestCase):
                     "verify_release",
                     return_value={
                         "profile": "core-server-client-v1",
-                        "release_version": "0.2.0-alpha.18",
+                        "release_version": "0.2.0-alpha.19",
                         "core_commit": "a" * 40,
                         "worker_sha256": "b" * 64,
                     },
@@ -118,7 +118,7 @@ class ServerOnlyTests(unittest.TestCase):
             ):
                 with contextlib.redirect_stdout(io.StringIO()) as output:
                     self.assertEqual(module.main(["--version"]), 0)
-                self.assertEqual(json.loads(output.getvalue())["release_version"], "0.2.0-alpha.18")
+                self.assertEqual(json.loads(output.getvalue())["release_version"], "0.2.0-alpha.19")
                 with patch("runtime.server_profile.job_main", return_value=0) as job:
                     self.assertEqual(module.main(["--internal-server-job", "id"]), 0)
                     self.assertEqual(job.call_args.args[0], ["id"])
@@ -134,7 +134,7 @@ class ServerOnlyTests(unittest.TestCase):
                     self.assertEqual(module.main(["--client", "codex", "--chat-documents"]), 0)
                     self.assertEqual(launch.call_args.args[0].client, "codex")
                 for flag in ("--settings-tools", "--chat-documents"):
-                    with patch("runtime.bootstrap.serve") as serve:
+                    with patch("runtime.connector_proxy.serve") as serve:
                         self.assertEqual(module.main(["--client", "codex", "--connector", flag]), 0)
                         self.assertEqual(serve.call_args.args[1], flag)
                 with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):

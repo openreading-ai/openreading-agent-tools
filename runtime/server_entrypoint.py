@@ -58,7 +58,7 @@ class EmbeddedManager:
     def __init__(self, config, home, root, client, mode):
         self.config, self.home, self.installed_root = config, home, root
         self.client, self.mode = client, mode
-        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.18"}
+        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.19"}
         self.root = None
         self.status = "OpenReading is ready."
 
@@ -104,7 +104,7 @@ def main(argv=None):
     parser.add_argument("--document-response-bytes", type=int)
     args = parser.parse_args(argv)
     if args.connector:
-        from runtime.bootstrap import serve
+        from runtime.connector_proxy import serve
 
         mode = "--settings-tools" if args.settings_tools else "--chat-documents"
         config = json.loads((root / "catalogs.json").read_bytes())
