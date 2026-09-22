@@ -1,5 +1,10 @@
 # Changelog
 
+## OpenReading alpha.18
+
+- Rename the current plugin to OpenReading and expose `openreading` and `openreading-settings` as its only two skills.
+- Preserve client settings, server destinations and retained documents through the rename.
+
 ## Server-only connector candidate
 
 - Install the Claude Code candidate through a GitHub marketplace and a pinned complete plugin archive, without manual copying or state resets.

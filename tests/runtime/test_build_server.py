@@ -56,8 +56,8 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertNotIn("bootstrap.json", names)
                 self.assertIn("runtime/openreading-worker", names)
                 manifest = json.loads(zipped.read(".claude-plugin/plugin.json"))
-                self.assertEqual(manifest["name"], "openreading-local-documents")
-                self.assertEqual(manifest["version"], "0.2.0-alpha.17")
+                self.assertEqual(manifest["name"], "openreading")
+                self.assertEqual(manifest["version"], "0.2.0-alpha.18")
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
@@ -126,7 +126,17 @@ class ServerBuildTests(unittest.TestCase):
             manifest = json.loads((plugin / ".claude-plugin/plugin.json").read_text())
             self.assertEqual(entry["name"], manifest["name"])
             self.assertNotIn("userConfig", manifest)
-            self.assertEqual(marketplace["name"], "openreading-local")
+            self.assertEqual(manifest["name"], "openreading")
+            self.assertEqual(
+                {path.name for path in (plugin / "skills").iterdir()},
+                {"openreading", "openreading-settings"},
+            )
+            for name in ("openreading", "openreading-settings"):
+                self.assertIn(
+                    f"name: {name}\n", (plugin / "skills" / name / "SKILL.md").read_text()
+                )
+
+            self.assertEqual(marketplace["name"], "openreading")
             configs = json.loads((plugin / ".mcp.json").read_text())["mcpServers"]
             published = json.loads(
                 (

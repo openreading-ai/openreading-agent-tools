@@ -35,7 +35,7 @@ class PackagingTests(unittest.TestCase):
                         self.assertIn("claude-desktop/v1/", guide)
                         self.assertFalse((path / "historical").exists())
                     if client != "claude-desktop":
-                        self.assertTrue((path / "skills/read-local-document/SKILL.md").is_file())
+                        self.assertTrue((path / "skills/openreading/SKILL.md").is_file())
                 with self.assertRaises(ValueError):
                     package_clients(runtime, root / "packages")
 

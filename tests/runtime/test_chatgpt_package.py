@@ -97,10 +97,10 @@ class ChatGPTPackageTests(unittest.TestCase):
             self.assertTrue(command.stat().st_mode & 0o111)
             self.assertEqual(server["args"], ["--client", "chatgpt", "--chat-documents"])
             self.assertEqual(set(server), {"command", "args", "cwd"})
-            skill = target / manifest["skills"] / "read-local-document/SKILL.md"
+            skill = target / manifest["skills"] / "openreading/SKILL.md"
             self.assertEqual(
                 skill.read_bytes(),
-                (package.REPOSITORY / "skills/read-local-document/SKILL.md").read_bytes(),
+                (package.REPOSITORY / "skills/openreading/SKILL.md").read_bytes(),
             )
             self.assertEqual(verify_release(target / "server"), source.metadata)
             info = json.loads((target / "package-info.json").read_text())
@@ -115,7 +115,7 @@ class ChatGPTPackageTests(unittest.TestCase):
                     ".codex-plugin/plugin.json",
                     ".mcp.json",
                     "README.md",
-                    "skills/read-local-document/SKILL.md",
+                    "skills/openreading/SKILL.md",
                     "skills/openreading-settings/SKILL.md",
                     "OpenReading Settings.app/Contents/Info.plist",
                     "OpenReading Settings.app/Contents/MacOS/openreading-settings",

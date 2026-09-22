@@ -479,7 +479,7 @@ def package_docling_desktop(
         raise ValueError("Choose a new package output directory.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
     shutil.copytree(runtime, output / "server", symlinks=True)
-    shutil.copy2(REPOSITORY / "skills/read-local-document/SKILL.md", output / "WORKFLOW.md")
+    shutil.copy2(REPOSITORY / "skills/openreading/SKILL.md", output / "WORKFLOW.md")
     verify_release(output / "server")
     helper_metadata = {}
     if selection:

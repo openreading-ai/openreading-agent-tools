@@ -10,7 +10,7 @@ Install through Claude Code's plugin marketplace. The development candidate curr
 
 ~~~text
 /plugin marketplace add openreading-ai/openreading-agent-tools@feat/server-only-plugin
-/plugin install openreading-local-documents@openreading-local
+/plugin install openreading@openreading
 /reload-plugins
 ~~~
 
@@ -22,18 +22,23 @@ The helper sends authorization only to GitHub's API. Claude Code drops that head
 The marketplace pins the archive's SHA-256 digest. Installation refuses an altered archive.
 
 The same installation from a terminal uses `claude plugin marketplace add` and `claude plugin install`.
-The marketplace name remains `openreading-local`, so this replaces the former local marketplace source.
-If that plugin is already installed, use `/plugin update openreading-local-documents@openreading-local`, then `/reload-plugins`.
+The plugin and marketplace are both named `openreading`.
+For an upgrade from alpha.17, uninstall `openreading-local-documents@openreading-local` after installing OpenReading, then reload plugins.
+Uninstalling the old entry preserves your Claude Code settings and retained documents.
+If that plugin is already installed, use `/plugin update openreading@openreading`, then `/reload-plugins`.
 The development branch is not the public release channel. Signing and clean-machine acceptance remain pending.
 
 Run `/mcp` inside Claude Code. The plugin supplies `openreading` and `openreading-settings`.
-Run `/openreading-local-documents:openreading-settings` to open the native Settings window.
+Run `/openreading-settings` to open the native Settings window.
 Enter the URL of your running local Core server, test the connection, and save the destination.
 For example, use `http://127.0.0.1:7777` only when Core listens on port 7777.
 Enter a bearer token only if your server requires one. A connection check does not test document parsing.
 Exit this Claude Code session and start `claude` again after saving configuration.
 
-Ask to open the OpenReading file picker, select a test document, then choose Process.
+Run `/openreading`, select a test document, then choose Process.
+These are the only two commands: `/openreading` and `/openreading-settings`.
+Claude Code may display their qualified names, `/openreading:openreading` and `/openreading:openreading-settings`.
+The explicit skill names also register the short forms unless another command owns that name.
 Expect a `/v1/parse` request in your Core log and a completed import receipt.
 Ask a question and verify the cited evidence. Selected files remain queued until you choose Process.
 If the server is unavailable, start it and reselect the document before retrying processing.
@@ -60,7 +65,7 @@ Existing Keychain entries may remain. Fresh preferences do not reference them.
 To uninstall this candidate:
 
 ~~~sh
-claude plugin uninstall openreading-local-documents@openreading-local --scope user
+claude plugin uninstall openreading@openreading --scope user
 claude plugin marketplace remove openreading-local
 ~~~
 

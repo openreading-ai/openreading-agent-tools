@@ -32,6 +32,14 @@ The worker, manifest and locked package version identify alpha.17 consistently.
 Offline verification, frozen synthetic processing, Settings catalog checks and isolated storage migration pass.
 Fresh alpha.17 installation remains owner-operated acceptance. Existing native trials do not substitute for that check.
 
+## OpenReading command rename, September 22, 2026
+
+Alpha.18 names the plugin and marketplace `openreading`. Its only skills are `openreading` and `openreading-settings`.
+Explicit frontmatter names provide the short commands in Claude Code. The host may also display qualified names.
+Claude Code 2.1.278 installs the private archive and connects both servers from its own plugin cache in an isolated check.
+The client label remains `claude-code`, preserving existing settings and retained documents across the plugin rename.
+The owner verified alpha.17 Settings and document retrieval in Claude Code. Alpha.18's manual command invocation remains a separate check.
+
 ## Claude Code server-only candidate, September 21, 2026
 
 Claude Code 2.1.278 validates and installs alpha.17 through its native archive marketplace in an isolated configuration.

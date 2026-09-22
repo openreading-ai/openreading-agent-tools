@@ -58,7 +58,7 @@ class EmbeddedManager:
     def __init__(self, config, home, root, client, mode):
         self.config, self.home, self.installed_root = config, home, root
         self.client, self.mode = client, mode
-        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.17"}
+        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.18"}
         self.root = None
         self.status = "OpenReading is ready."
 

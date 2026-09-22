@@ -1,5 +1,5 @@
 ---
-name: read-local-document
+name: openreading
 description: Select and process local documents or folders with OpenReading, then answer questions using retained results and physical-page evidence. Use for opening its picker, importing a selection, or reading processed documents.
 ---
 
@@ -10,7 +10,7 @@ This plugin processes documents only through the Core server configured in OpenR
 If the tool requests server setup, explain that requirement and offer the Settings opener. Never substitute a local parser or a different server.
 Connection failures do not prove the Mac is disconnected. Report the observed error without claiming processing succeeded.
 
-# Read local document evidence
+# OpenReading
 
 Opening OpenReading Settings or its picker is an action in a native application on the user's connected computer.
 In Claude Desktop, follow the host's device-connection flow for that requested action before searching for OpenReading tools.
@@ -21,7 +21,7 @@ If discovery still fails, report that this session cannot access the tool and st
 
 Use the user's chosen document and question. File access does not authorize unrelated document processing.
 
-When the user asks to open OpenReading file selection, choose documents, or choose a folder, call `openreading_select_document` with `{}`.
+When the user invokes `/openreading` without arguments, or asks to open OpenReading file selection, choose documents, or choose a folder, call `openreading_select_document` with `{}`.
 After a successful selection, collect every selection page and keep each returned item.path in the conversation's queue.
 Tell the user: "N files are ready to process. Would you like to process them now or add more files?"
 Wait for the user's choice. Selecting files or accepting the native Add files confirmation does not start processing.

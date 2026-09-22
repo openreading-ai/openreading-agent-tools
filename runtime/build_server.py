@@ -2,7 +2,7 @@
 
 The separate server_client lock pins Core's agent extra and contains no parsing engine.
 A format-3 inventory binds the native worker, Python support files and tool catalogs.
-The plugin retains its existing host identity and client storage partition across upgrades.
+The plugin is named OpenReading. Client storage partitions remain unchanged across upgrades.
 Claude Code uses the same verified worker with its own client namespace and local marketplace.
 Its separate marketplace archive omits manifests because authenticated archive sources require
 strict=false. Claude Code 2.1.278 rejects even identity-only plugin.json files in that mode.
@@ -33,7 +33,7 @@ from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.17"
+VERSION = "0.2.0-alpha.18"
 EXCLUDES = [
     "docling",
     "docling_core",
@@ -170,7 +170,7 @@ def package(runtime, output, *, client="claude-desktop"):
     (plugin / ".claude-plugin/plugin.json").write_text(
         json.dumps(
             {
-                "name": "openreading-local-documents",
+                "name": "openreading",
                 "version": VERSION,
                 "description": "Connect Claude to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
                 "author": {"name": "OpenReading"},
@@ -217,9 +217,9 @@ def package(runtime, output, *, client="claude-desktop"):
         marketplace.write_text(
             json.dumps(
                 {
-                    "name": "openreading-local",
+                    "name": "openreading",
                     "owner": {"name": "OpenReading"},
-                    "plugins": [{"name": "openreading-local-documents", "source": "./plugin"}],
+                    "plugins": [{"name": "openreading", "source": "./plugin"}],
                 },
                 indent=2,
             )
