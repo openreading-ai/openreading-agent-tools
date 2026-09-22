@@ -6,7 +6,8 @@ Claude Code starts the tools as local processes. Desktop device activation is no
 
 ## Install
 
-Install through Claude Code's plugin marketplace. The development candidate currently lives on its feature branch:
+Install through Claude Code's plugin marketplace. For a first installation, use the commands below.
+The development candidate currently lives on its feature branch:
 
 ~~~text
 /plugin marketplace add openreading-ai/openreading-agent-tools@feat/server-only-plugin
@@ -23,8 +24,15 @@ The marketplace pins the archive's SHA-256 digest. Installation refuses an alter
 
 The same installation from a terminal uses `claude plugin marketplace add` and `claude plugin install`.
 The plugin and marketplace are both named `openreading`.
-For an upgrade from alpha.17, uninstall `openreading-local-documents@openreading-local` after installing OpenReading, then reload plugins.
-Uninstalling the old entry preserves your Claude Code settings and retained documents.
+For an upgrade from alpha.17, first run these commands in your terminal, then use the installation commands above:
+
+~~~sh
+claude plugin uninstall openreading-local-documents@openreading-local --scope user
+claude plugin marketplace remove openreading-local
+~~~
+
+Claude Code otherwise reuses the old marketplace registration for the same repository and branch.
+Removing these registrations preserves your Claude Code server settings and retained documents.
 If that plugin is already installed, use `/plugin update openreading@openreading`, then `/reload-plugins`.
 The development branch is not the public release channel. Signing and clean-machine acceptance remain pending.
 
