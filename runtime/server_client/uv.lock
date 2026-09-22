@@ -266,7 +266,7 @@ agent = [
 
 [[package]]
 name = "openreading-server-client"
-version = "0.2.0a16"
+version = "0.2.0a17"
 source = { virtual = "." }
 dependencies = [
     { name = "httpx" },

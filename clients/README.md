@@ -25,6 +25,13 @@ A native editor revision on alpha.16 returned `window_requested` from the real S
 One repeat also attempted generic app discovery before calling the opener. That unnecessary host detour remains a workflow limitation.
 These receipts prove Settings tool discovery for those trials, not file selection, processing, or every compatibility-matrix surface.
 
+## Alpha.17 clean-install candidate
+
+Alpha.17 packages the Settings skill tested through alpha.16's native editor revision.
+The worker, manifest and locked package version identify alpha.17 consistently.
+Offline verification, frozen synthetic processing, Settings catalog checks and isolated storage migration pass.
+Fresh alpha.17 installation remains owner-operated acceptance. Existing native trials do not substitute for that check.
+
 ## Matrix acceptance
 
 The [required compatibility matrix](../README.md#required-compatibility-matrix) is the current product target.

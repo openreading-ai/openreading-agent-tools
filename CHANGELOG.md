@@ -2,6 +2,8 @@
 
 ## Server-only connector candidate
 
+- Package the native-tested Settings activation instructions in alpha.17 for clean installation.
+
 - Explicitly activate Claude's connected computer when the Settings command cannot yet see its local opener.
 
 - Discover local plugin tools through Claude's connected device before reporting unavailable settings or selection.
