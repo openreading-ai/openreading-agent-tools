@@ -19,7 +19,11 @@ Claude Desktop 2.2553.1 can announce both plugin connectors while a fresh chat c
 The native Settings request must follow the host's device-connection flow before resolving the device-qualified opener.
 A fresh-chat trial with the alpha.16 skill instructions and installed alpha.15 worker called the opener successfully without changing settings.
 A discovery-only trial correctly stopped when device activation conflicted with its permission constraints. Missing session tools do not prove a missing installation.
-Alpha.16 packages these instructions for both skills. Its installed slash-command acceptance remains a separate owner test.
+The installed alpha.16 slash command still failed after restart. Its generic device-connection instruction did not identify the activation gate.
+The Settings skill now names Claude's computer activation gate for this explicit native-window request, while preserving permission refusals.
+A native editor revision on alpha.16 returned `window_requested` from the real Settings tool in two fresh slash-command trials without restarting Claude.
+One repeat also attempted generic app discovery before calling the opener. That unnecessary host detour remains a workflow limitation.
+These receipts prove Settings tool discovery for those trials, not file selection, processing, or every compatibility-matrix surface.
 
 ## Matrix acceptance
 

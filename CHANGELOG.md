@@ -2,6 +2,8 @@
 
 ## Server-only connector candidate
 
+- Explicitly activate Claude's connected computer when the Settings command cannot yet see its local opener.
+
 - Discover local plugin tools through Claude's connected device before reporting unavailable settings or selection.
 - Report session discovery failures without falsely claiming the installed package lacks a connector.
 - Remove the nested Python standard-library ZIP that caused Claude to reject alpha.14 uploads.
