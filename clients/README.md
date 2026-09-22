@@ -54,6 +54,18 @@ Its app server discovers both installed skills and both MCP connectors, with nin
 The installed worker passes localhost Core processing, retrieval, exports, retained jobs and stopped-server recovery.
 The protocol test injects selection and confirmation. Manual Codex model and chooser acceptance remain pending.
 
+## Codex owner report and ChatGPT candidate, September 22, 2026
+
+The owner reports that the Codex server-only plugin works, including the native settings opener.
+Its settings workflow first tried an unnecessary computer-use app lookup before calling the correct tool.
+The shared skills now explicitly direct Codex and ChatGPT Work to their installed plugin tools.
+Manual retesting must establish whether that clarification removes the detour.
+
+The ChatGPT server-only candidate uses the unchanged alpha.19 worker with the `chatgpt` client partition.
+Its `openreading-chatgpt` plugin and connector names avoid replacing or colliding with the installed Codex variant.
+Shared OpenAI host configuration can expose both plugins. Enable one variant per conversation for an unambiguous test.
+Bundled CLI installation and protocol checks remain separate from the owner-operated ChatGPT Work conversation.
+
 ## OpenReading command rename, September 22, 2026
 
 Alpha.18 names the plugin and marketplace `openreading`. Its only skills are `openreading` and `openreading-settings`.

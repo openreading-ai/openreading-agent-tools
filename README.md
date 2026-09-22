@@ -29,8 +29,8 @@ Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok
 | --- | --- |
 | Claude Cowork | Partial: owner reports alpha.19 Desktop localhost workflow passed; full Cowork matrix acceptance pending |
 | Claude Code | Partial: alpha.19 installation and localhost workflow passed, including owner manual testing |
-| ChatGPT Work | Pending |
-| Codex | Partial: server-only native installation, tool discovery and localhost protocol checks passed; manual workflow pending |
+| ChatGPT Work | Partial: server-only plugin candidate prepared; manual Work conversation pending |
+| Codex | Partial: server-only installation and localhost checks passed; owner reports manual workflow working |
 
 Earlier bundled-parser results remain historical evidence. They do not pass a server-backed cell.
 The [client acceptance checklist](clients/README.md#matrix-acceptance) defines each cell's requirements.

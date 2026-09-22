@@ -346,3 +346,10 @@ See the [Claude Code guide](../clients/claude-code/README.md) for installation a
 assembles the same server-only worker into a Codex native marketplace and ZIP.
 The relative launcher fixes the `codex` client partition and exposes document and settings connectors.
 The [Codex guide](../clients/codex/README.md) records native installation, isolated checks and manual acceptance limits.
+
+## ChatGPT Work server-only package
+
+`runtime.build_server --client chatgpt --runtime /path/to/verified-runtime --output /path/to/new-build`
+assembles the unchanged worker with the `chatgpt` client label and native plugin metadata.
+The `openreading-chatgpt` identity avoids replacing the separately installed Codex plugin.
+Shared host configuration is not an application boundary. The [ChatGPT guide](../clients/chatgpt/README.md) explains manual testing and enablement.

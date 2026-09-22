@@ -1,5 +1,12 @@
 # Changelog
 
+## ChatGPT Work server-only development package
+
+- Package the verified alpha.19 worker as a native ChatGPT plugin with its existing data partition.
+- Use a separate plugin identity and connector names to preserve the working Codex installation.
+- Clarify direct Settings and picker tool routing for local Codex and ChatGPT Work.
+- Record the owner's successful Codex workflow report, with the app-opening detour still awaiting retest.
+
 ## Codex server-only development package
 
 - Add native Codex packaging around the unchanged alpha.19 client-only worker.

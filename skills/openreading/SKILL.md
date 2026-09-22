@@ -3,8 +3,11 @@ name: openreading
 description: Select and process local documents or folders with OpenReading, then answer questions using retained results and physical-page evidence. Use for opening its picker, importing a selection, or reading processed documents.
 ---
 
-In Claude Code, use the plugin's locally registered MCP tools directly. Desktop device-enabling tools are not required.
-If they are unavailable, use `/mcp` to inspect this plugin's connection status. Do not substitute a browser, shell-based parser, or another server.
+In Claude Code, local Codex and ChatGPT Work, use this plugin's registered MCP tools directly.
+Do not try to open an app named OpenReading through computer-use tools before calling the available Settings or selection tool.
+The device-enabling procedure below applies only to Claude Desktop.
+If tools are unavailable, inspect this plugin's connection status through the host's plugin controls (`/mcp` in Claude Code or Codex).
+Do not substitute a browser, shell-based parser, or another plugin's OpenReading connector.
 
 This plugin processes documents only through the Core server configured in OpenReading Settings.
 If the tool requests server setup, explain that requirement and offer the Settings opener. Never substitute a local parser or a different server.

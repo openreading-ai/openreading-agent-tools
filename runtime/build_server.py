@@ -8,7 +8,9 @@ Claude Code and Codex use the same verified worker with separate client namespac
 Claude Code's separate marketplace archive omits manifests because authenticated sources require
 strict=false. Claude Code 2.1.278 rejects even identity-only plugin.json files in that mode.
 The marketplace declares the skills and MCP connectors; Desktop ZIPs retain their manifests.
-Codex packages a native marketplace with two skills and two relative STDIO connectors.
+Codex and ChatGPT Work package native marketplaces with two skills and two STDIO connectors.
+ChatGPT uses a separate plugin identity and tool-server names to avoid replacing Codex.
+Both may be visible in shared host configuration; enable one document workflow per conversation.
 Its launcher resolves the installed runtime before leaving the host's working directory.
 Use --runtime to package an existing release without freezing or changing its executable.
 Python modules are collected as files because Claude rejects nested ZIP archives.
@@ -166,7 +168,7 @@ def build_runtime(output):
 
 
 def package(runtime, output, *, client="claude-desktop"):
-    if client not in {"claude-desktop", "claude-code", "codex"}:
+    if client not in {"claude-desktop", "claude-code", "codex", "chatgpt"}:
         raise ValueError("Unsupported client for this server package.")
     release = verify_release(runtime)
     if release.get("profile") != "core-server-client-v1":
@@ -178,9 +180,11 @@ def package(runtime, output, *, client="claude-desktop"):
     documents = catalog(runtime / "openreading-worker", "--chat-documents", server=True)
     settings = catalog(runtime / "openreading-worker", "--settings-tools")
     output.mkdir(parents=True, exist_ok=False)
-    codex = client == "codex"
-    plugin = output / ("plugins/openreading" if codex else "plugin")
-    manifest_dir = plugin / (".codex-plugin" if codex else ".claude-plugin")
+    openai = client in {"codex", "chatgpt"}
+    name = "openreading-chatgpt" if client == "chatgpt" else "openreading"
+    app_name = {"codex": "Codex", "chatgpt": "ChatGPT"}.get(client, "Claude")
+    plugin = output / (f"plugins/{name}" if openai else "plugin")
+    manifest_dir = plugin / (".codex-plugin" if openai else ".claude-plugin")
     manifest_dir.mkdir(parents=True)
     shutil.copytree(runtime, plugin / "runtime")
     (plugin / "runtime/catalogs.json").write_text(
@@ -195,16 +199,18 @@ def package(runtime, output, *, client="claude-desktop"):
     (manifest_dir / "plugin.json").write_text(
         json.dumps(
             {
-                "name": "openreading",
+                "name": name,
                 "version": VERSION,
-                "description": f"Connect {'Codex' if codex else 'Claude'} to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
+                "description": f"Connect {app_name} to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
                 "author": {"name": "OpenReading"},
                 **(
                     {
                         "skills": "./skills/",
                         "mcpServers": "./.mcp.json",
                         "interface": {
-                            "displayName": "OpenReading",
+                            "displayName": "OpenReading for ChatGPT"
+                            if client == "chatgpt"
+                            else "OpenReading",
                             "shortDescription": "Document tools for your OpenReading Core server",
                             "longDescription": "Select files, process them through your configured Core server, and answer questions using retained results and exact evidence. Native settings control the destination and storage. No parser or models are bundled. Unsigned Apple Silicon development preview.",
                             "developerName": "OpenReading",
@@ -213,7 +219,7 @@ def package(runtime, output, *, client="claude-desktop"):
                             "defaultPrompt": ["Open OpenReading to select and process documents."],
                         },
                     }
-                    if codex
+                    if openai
                     else {}
                 ),
             },
@@ -229,17 +235,17 @@ def package(runtime, output, *, client="claude-desktop"):
         json.dumps(
             {
                 "mcpServers": {
-                    name: (
+                    server_name: (
                         {"command": "/bin/sh", "args": ["./launch.sh", flag], "cwd": "."}
-                        if codex
+                        if openai
                         else {
                             "command": "/bin/sh",
                             "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", flag],
                         }
                     )
-                    for name, flag in (
-                        ("openreading", "--chat-documents"),
-                        ("openreading-settings", "--settings-tools"),
+                    for server_name, flag in (
+                        (name, "--chat-documents"),
+                        (name + "-settings", "--settings-tools"),
                     )
                 }
             },
@@ -274,19 +280,23 @@ def package(runtime, output, *, client="claude-desktop"):
             )
             + "\n"
         )
-    if codex:
-        shutil.copy2(HERE.parent / "clients/codex/README.md", plugin / "README.md")
+    if openai:
+        shutil.copy2(HERE.parent / "clients" / client / "README.md", plugin / "README.md")
         marketplace = output / ".agents/plugins/marketplace.json"
         marketplace.parent.mkdir(parents=True)
         marketplace.write_text(
             json.dumps(
                 {
-                    "name": "openreading",
-                    "interface": {"displayName": "OpenReading"},
+                    "name": name,
+                    "interface": {
+                        "displayName": "OpenReading for ChatGPT"
+                        if client == "chatgpt"
+                        else "OpenReading"
+                    },
                     "plugins": [
                         {
-                            "name": "openreading",
-                            "source": {"source": "local", "path": "./plugins/openreading"},
+                            "name": name,
+                            "source": {"source": "local", "path": f"./plugins/{name}"},
                             "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
                             "category": "Productivity",
                         }
@@ -308,12 +318,12 @@ def package(runtime, output, *, client="claude-desktop"):
                 raise ValueError(
                     f"Claude plugins cannot contain nested ZIP files: {path.relative_to(plugin)}"
                 )
-    target = output / ("OpenReading-Codex-Plugin.zip" if codex else "OpenReading-Claude-Plugin.zip")
+    target = output / (f"OpenReading-{app_name}-Plugin.zip")
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(plugin.rglob("*")):
             if path.is_file():
-                archive.write(path, path.relative_to(output if codex else plugin))
-        if codex:
+                archive.write(path, path.relative_to(output if openai else plugin))
+        if openai:
             archive.write(marketplace, marketplace.relative_to(output))
     if target.stat().st_size >= 200_000_000:
         raise ValueError("Plugin exceeds the Claude upload limit.")
@@ -355,7 +365,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
-        "--client", choices=("claude-desktop", "claude-code", "codex"), default="claude-desktop"
+        "--client",
+        choices=("claude-desktop", "claude-code", "codex", "chatgpt"),
+        default="claude-desktop",
     )
     parser.add_argument(
         "--runtime", type=Path, help="Package an existing verified server-only runtime."
