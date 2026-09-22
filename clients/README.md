@@ -65,6 +65,9 @@ The ChatGPT server-only candidate uses the unchanged alpha.19 worker with the `c
 Its `openreading-chatgpt` plugin and connector names avoid replacing or colliding with the installed Codex variant.
 Shared OpenAI host configuration can expose both plugins. Enable one variant per conversation for an unambiguous test.
 Bundled CLI installation and protocol checks remain separate from the owner-operated ChatGPT Work conversation.
+The owner-observed New Plugin uploader rejected the initial marketplace-wrapped ZIP.
+The replacement ZIP contains a standalone plugin and obeys the displayed 100 MB limit.
+Upload acceptance remains pending the owner's next test.
 
 ## OpenReading command rename, September 22, 2026
 

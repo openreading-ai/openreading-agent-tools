@@ -351,5 +351,7 @@ The [Codex guide](../clients/codex/README.md) records native installation, isola
 
 `runtime.build_server --client chatgpt --runtime /path/to/verified-runtime --output /path/to/new-build`
 assembles the unchanged worker with the `chatgpt` client label and native plugin metadata.
+Its upload ZIP contains the plugin at the archive root, without a marketplace wrapper.
+The generated marketplace remains available separately for development checks.
 The `openreading-chatgpt` identity avoids replacing the separately installed Codex plugin.
 Shared host configuration is not an application boundary. The [ChatGPT guide](../clients/chatgpt/README.md) explains manual testing and enablement.

@@ -8,7 +8,8 @@ Claude Code and Codex use the same verified worker with separate client namespac
 Claude Code's separate marketplace archive omits manifests because authenticated sources require
 strict=false. Claude Code 2.1.278 rejects even identity-only plugin.json files in that mode.
 The marketplace declares the skills and MCP connectors; Desktop ZIPs retain their manifests.
-Codex and ChatGPT Work package native marketplaces with two skills and two STDIO connectors.
+Codex and ChatGPT Work package two skills and two STDIO connectors.
+ChatGPT's upload ZIP places the plugin at its root. Codex's ZIP contains a marketplace.
 ChatGPT uses a separate plugin identity and tool-server names to avoid replacing Codex.
 Both may be visible in shared host configuration; enable one document workflow per conversation.
 Its launcher resolves the installed runtime before leaving the host's working directory.
@@ -319,14 +320,17 @@ def package(runtime, output, *, client="claude-desktop"):
                     f"Claude plugins cannot contain nested ZIP files: {path.relative_to(plugin)}"
                 )
     target = output / (f"OpenReading-{app_name}-Plugin.zip")
+    # Uploading one plugin must not require the host to discover a marketplace inside it.
+    archive_root = output if client == "codex" else plugin
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(plugin.rglob("*")):
             if path.is_file():
-                archive.write(path, path.relative_to(output if openai else plugin))
-        if openai:
+                archive.write(path, path.relative_to(archive_root))
+        if client == "codex":
             archive.write(marketplace, marketplace.relative_to(output))
-    if target.stat().st_size >= 200_000_000:
-        raise ValueError("Plugin exceeds the Claude upload limit.")
+    upload_limit = 100_000_000 if client == "chatgpt" else 200_000_000
+    if target.stat().st_size >= upload_limit:
+        raise ValueError(f"Plugin exceeds the {app_name} upload limit.")
     marketplace_metadata = {}
     if client == "claude-code":
         marketplace_archive = output / "OpenReading-Claude-Code-Marketplace.zip"

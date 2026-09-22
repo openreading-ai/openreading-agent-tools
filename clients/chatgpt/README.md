@@ -6,19 +6,15 @@ It includes no parser, model download, Core server, adapter catalog or server ma
 
 ## Install as a plugin
 
-Extract `OpenReading-ChatGPT-Plugin.zip` to `~/Downloads/OpenReading-ChatGPT-alpha19`.
-Add its marketplace with the CLI bundled inside ChatGPT:
+Open ChatGPT's **Plugins** view and its **New Plugin** upload dialog.
+Choose `OpenReading-ChatGPT-Plugin.zip`, then select **Add plugin**.
+Upload the ZIP directly. No extraction, Terminal command or marketplace registration is required by this workflow.
+The archive places `.codex-plugin/plugin.json`, `.mcp.json`, skills and runtime at the plugin root.
+The uploader accepts archives up to 100 MB. This build is approximately 21 MB.
 
-```sh
-/Applications/ChatGPT.app/Contents/Resources/codex plugin marketplace add "$HOME/Downloads/OpenReading-ChatGPT-alpha19"
-```
-
-In ChatGPT's Plugins view, choose **OpenReading for ChatGPT** and install it.
-If installing from Terminal, use the same native plugin manager:
-
-```sh
-/Applications/ChatGPT.app/Contents/Resources/codex plugin add openreading-chatgpt@openreading-chatgpt
-```
+The earlier marketplace-wrapped ZIP was rejected by the uploader.
+This corrected archive's structure and extracted connectors are checked locally.
+Acceptance by the upload service and tool availability in a Work conversation remain manual checks.
 
 Start a new **Work** conversation on this Mac. Enable this plugin and ask to open its OpenReading settings.
 Enter your Core URL, test the connection and save. Start Core separately.
@@ -51,16 +47,14 @@ Reuse the verified server-only runtime without rebuilding its executable:
 python -m runtime.build_server --runtime /path/to/verified-runtime --client chatgpt --output /path/to/new-build
 ```
 
-The output contains a native marketplace, plugin directory, ZIP and `build.json` recording the worker and archive hashes.
+The output contains a development marketplace, plugin directory, standalone upload ZIP and `build.json` recording the worker and archive hashes.
 Installation and protocol checks use isolated settings and synthetic documents, without model calls or personal files.
 The native Work conversation, settings window, picker and answer workflow require owner-operated testing.
 Ordinary Chat, web, cloud execution, clean-machine prerequisites, signing and notarization are not established by those checks.
 
 ## Removal
 
-```sh
-/Applications/ChatGPT.app/Contents/Resources/codex plugin remove openreading-chatgpt@openreading-chatgpt
-```
+Remove **OpenReading for ChatGPT** through ChatGPT's plugin controls.
 
 Removal deletes the installed package, not OpenReading preferences, copied documents, jobs or retained exports.
-Keep the extracted marketplace folder available for reinstalls and updates.
+Keep the upload ZIP available for another manual installation.

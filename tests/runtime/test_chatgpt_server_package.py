@@ -14,7 +14,7 @@ from runtime import build_server
 
 
 class ChatGPTServerPackageTests(unittest.TestCase):
-    def test_marketplace_relocates_both_connectors_without_changing_worker(self):
+    def test_upload_archive_relocates_both_connectors_without_changing_worker(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
             runtime = root / "runtime"
@@ -37,18 +37,25 @@ class ChatGPTServerPackageTests(unittest.TestCase):
                 except ValueError as error:
                     self.fail(f"ChatGPT server-only packaging is unavailable: {error}")
             self.assertEqual(archive.name, "OpenReading-ChatGPT-Plugin.zip")
+            extracted = root / "uploaded café space"
             with zipfile.ZipFile(archive) as zipped:
-                self.assertIn(".agents/plugins/marketplace.json", zipped.namelist())
-                self.assertIn(
-                    "plugins/openreading-chatgpt/.codex-plugin/plugin.json", zipped.namelist()
-                )
+                self.assertIn(".codex-plugin/plugin.json", zipped.namelist())
+                self.assertIn(".mcp.json", zipped.namelist())
+                self.assertNotIn(".agents/plugins/marketplace.json", zipped.namelist())
+                self.assertFalse(any(name.startswith("plugins/") for name in zipped.namelist()))
                 self.assertFalse(any(".claude-plugin" in name for name in zipped.namelist()))
+                zipped.extractall(extracted)
+                for name in ("launch.sh", "runtime/openreading-worker"):
+                    mode = zipped.getinfo(name).external_attr >> 16
+                    self.assertTrue(mode & 0o111)
+                    (extracted / name).chmod(mode)
             moved = root / "installed café space"
             shutil.move(root / "built", moved)
             catalog = json.loads((moved / ".agents/plugins/marketplace.json").read_text())
             self.assertEqual(catalog["name"], "openreading-chatgpt")
             entry = catalog["plugins"][0]
-            plugin = moved / entry["source"]["path"]
+            self.assertTrue((moved / entry["source"]["path"]).is_dir())
+            plugin = extracted
             self.assertEqual(entry["name"], "openreading-chatgpt")
             manifest = json.loads((plugin / ".codex-plugin/plugin.json").read_text())
             self.assertEqual(manifest["name"], "openreading-chatgpt")

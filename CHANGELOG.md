@@ -2,6 +2,8 @@
 
 ## ChatGPT Work server-only development package
 
+- Place the ChatGPT upload plugin at the ZIP root, without its development marketplace wrapper.
+- Document installation through the New Plugin dialog and enforce its 100 MB archive limit.
 - Package the verified alpha.19 worker as a native ChatGPT plugin with its existing data partition.
 - Use a separate plugin identity and connector names to preserve the working Codex installation.
 - Clarify direct Settings and picker tool routing for local Codex and ChatGPT Work.
