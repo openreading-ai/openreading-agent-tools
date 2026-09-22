@@ -73,7 +73,7 @@ class ServerBuildTests(unittest.TestCase):
         module = self.module()
         for name in ("base_library.zip", "BASE_LIBRARY.ZIP", "renamed-library.bin"):
             with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
-                root = Path(temporary)
+                root = Path(temporary).resolve()
                 runtime = root / "runtime"
                 (runtime / "_internal").mkdir(parents=True)
                 (runtime / "openreading-worker").write_bytes(b"synthetic worker")
@@ -85,6 +85,7 @@ class ServerBuildTests(unittest.TestCase):
                         "verify_release",
                         return_value={
                             "profile": "core-server-client-v1",
+                            "release_version": module.VERSION,
                             "core_commit": "a" * 40,
                             "worker_sha256": "b" * 64,
                         },
@@ -94,6 +95,119 @@ class ServerBuildTests(unittest.TestCase):
                 ):
                     module.package(runtime, root / "package")
                 self.assertFalse((root / "package/OpenReading-Claude-Plugin.zip").exists())
+
+    def test_claude_code_launcher_and_marketplace_use_isolated_client(self):
+        import os
+        import subprocess
+
+        module = self.module()
+        with tempfile.TemporaryDirectory(prefix="code package ") as temporary:
+            root = Path(temporary).resolve()
+            runtime = root / "runtime"
+            runtime.mkdir()
+            worker = runtime / "openreading-worker"
+            worker.write_text('#!/bin/sh\nprintf "%s\\n" "$@"\n')
+            worker.chmod(0o755)
+            release = {
+                "profile": "core-server-client-v1",
+                "release_version": module.VERSION,
+                "core_commit": "a" * 40,
+                "worker_sha256": "b" * 64,
+            }
+            with (
+                patch.object(module, "verify_release", return_value=release),
+                patch.object(module, "catalog", return_value={"tools": []}),
+            ):
+                module.package(runtime, root / "package", client="claude-code")
+            plugin = root / "package/plugin"
+            marketplace = json.loads((root / "package/.claude-plugin/marketplace.json").read_text())
+            entry = marketplace["plugins"][0]
+            self.assertEqual((root / "package" / entry["source"]).resolve(), plugin.resolve())
+            manifest = json.loads((plugin / ".claude-plugin/plugin.json").read_text())
+            self.assertEqual(entry["name"], manifest["name"])
+            self.assertNotIn("userConfig", manifest)
+            self.assertEqual(marketplace["name"], "openreading-local")
+            configs = json.loads((plugin / ".mcp.json").read_text())["mcpServers"]
+            self.assertEqual(set(configs), {"openreading", "openreading-settings"})
+            for name, flag in (
+                ("openreading", "--chat-documents"),
+                ("openreading-settings", "--settings-tools"),
+            ):
+                config = configs[name]
+                args = [arg.replace("${CLAUDE_PLUGIN_ROOT}", str(plugin)) for arg in config["args"]]
+                result = subprocess.run(
+                    [config["command"], *args],
+                    env={**os.environ, "HOME": str(root)},
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                self.assertEqual(
+                    result.stdout.splitlines(), ["--client", "claude-code", "--connector", flag]
+                )
+            self.assertEqual(
+                json.loads((root / "package/build.json").read_text())["client"], "claude-code"
+            )
+            self.assertIn("claude plugin", (plugin / "README.md").read_text())
+            self.assertNotIn("Upload this plugin ZIP", (plugin / "README.md").read_text())
+            self.assertEqual(
+                worker.read_bytes(), (plugin / "runtime/openreading-worker").read_bytes()
+            )
+
+    def test_cli_packages_existing_runtime_for_code_without_rebuilding(self):
+        import contextlib
+        import io
+
+        module = self.module()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            with (
+                patch.object(module, "build_runtime") as build,
+                patch.object(module, "package", return_value=root / "plugin.zip") as package,
+                contextlib.redirect_stdout(io.StringIO()),
+            ):
+                module.main(
+                    [
+                        "--runtime",
+                        str(root / "verified"),
+                        "--client",
+                        "claude-code",
+                        "--output",
+                        str(root / "new"),
+                    ]
+                )
+            build.assert_not_called()
+            package.assert_called_once_with(
+                root / "verified", root / "new/package", client="claude-code"
+            )
+            with self.assertRaisesRegex(ValueError, "Unsupported client"):
+                module.package(root, root / "invalid", client="other")
+
+    def test_reused_runtime_version_must_match_plugin(self):
+        module = self.module()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with (
+                patch.object(
+                    module,
+                    "verify_release",
+                    return_value={
+                        "profile": "core-server-client-v1",
+                        "release_version": "0.2.0-alpha.16",
+                    },
+                ),
+                patch.object(
+                    module,
+                    "catalog",
+                    side_effect=AssertionError(
+                        "Old runtime catalog was queried before checking its version"
+                    ),
+                ) as catalog,
+                self.assertRaisesRegex(ValueError, "version"),
+            ):
+                module.package(root, root / "package", client="claude-code")
+            catalog.assert_not_called()
+            self.assertFalse((root / "package").exists())
 
     def test_platform_and_lock_refuse_unreviewed_environment(self):
         module = self.module()
@@ -120,7 +234,9 @@ class ServerBuildTests(unittest.TestCase):
             ):
                 self.assertEqual(module.main(["--output", str(root / "new")]), 0)
                 build.assert_called_once_with(root / "new/runtime")
-                package.assert_called_once_with(root / "runtime", root / "new/package")
+                package.assert_called_once_with(
+                    root / "runtime", root / "new/package", client="claude-desktop"
+                )
                 self.assertIn("plugin.zip", output.getvalue())
             with (
                 patch.object(

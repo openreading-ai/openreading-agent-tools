@@ -3,6 +3,9 @@ name: openreading-settings
 description: Open OpenReading Settings to review or change the data folder, document processing destination, server credentials, or delivery limits through native controls.
 ---
 
+In Claude Code, use the plugin's locally registered MCP tools directly. Desktop device-enabling tools are not required.
+If they are unavailable, use `/mcp` to inspect this plugin's connection status. Do not substitute a browser, shell-based parser, or another server.
+
 Invoking this command requests opening the native OpenReading Settings window on the user's computer.
 If `openreading_open_settings` is already available, call it directly.
 Otherwise, in Claude Desktop, activate the connected computer before looking for local plugin tools:

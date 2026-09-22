@@ -28,7 +28,7 @@ Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok
 | Client | Core server acceptance |
 | --- | --- |
 | Claude Cowork | Partial: earlier localhost workflow; current server-only package acceptance pending |
-| Claude Code | Pending |
+| Claude Code | Partial: server-only installation, connector startup and localhost Core interoperability passed; manual native workflow pending |
 | ChatGPT Work | Pending |
 | Codex | Pending |
 

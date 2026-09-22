@@ -321,3 +321,18 @@ Prior Claude settings and the default data partition move into private backups, 
 A failed backup operation restores earlier moves. Custom data directories, other clients and Keychain entries remain intact.
 The installer needs no user-installed Python or network download. It does not sign code or change macOS privacy permissions.
 This supports a fresh local-install trial; signed distribution and clean-machine acceptance remain separate gates.
+
+## Server-only Claude packages
+
+The server connector packages no parsing engine or model assets. Start your Core server separately.
+The builder freezes a macOS Apple Silicon worker by default. An existing verified release can be packaged for either Claude client.
+
+~~~sh
+python -m runtime.build_server --client claude-code --runtime /absolute/path/to/verified-runtime --output /absolute/path/to/new-build
+~~~
+
+Use `--client claude-desktop` for the Desktop ZIP. Claude Code also receives a local marketplace around the plugin directory.
+Each launch passes its client name, so saved destinations, storage and jobs remain isolated between the two clients.
+The output `package/build.json` records its client, worker hash, Core commit and plugin ZIP hash.
+Packaging never registers a host, edits user settings, or starts the configured Core server.
+See the [Claude Code guide](../clients/claude-code/README.md) for installation and manual acceptance.

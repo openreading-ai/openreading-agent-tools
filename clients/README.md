@@ -32,6 +32,19 @@ The worker, manifest and locked package version identify alpha.17 consistently.
 Offline verification, frozen synthetic processing, Settings catalog checks and isolated storage migration pass.
 Fresh alpha.17 installation remains owner-operated acceptance. Existing native trials do not substitute for that check.
 
+## Claude Code server-only candidate, September 21, 2026
+
+Claude Code 2.1.278 validates and installs the alpha.17 local marketplace in an isolated native configuration.
+Both document and Settings connectors report connected. Plugin and marketplace removal also pass.
+The packaged launcher uses the `claude-code` partition and the same frozen worker as Desktop alpha.17.
+A synthetic PDF passed through a real localhost Core server at the pinned commit using its local PyMuPDF backend.
+Background import, complete export hashing, search, exact reads and job discovery across connector sessions passed.
+Stopping Core causes failure. The old selection is refused after restart, and a new selection processes successfully.
+Synthetic transport checks also cover cancellation, HTTP refusal and stale destinations without local parser fallback.
+These checks used temporary storage, no personal documents and no provider calls.
+Native picker and confirmation were injected in the protocol checks. A model-driven Claude Code session remains owner-operated acceptance.
+Remote HTTPS, clean-machine installation and release signing remain pending for this cell.
+
 ## Matrix acceptance
 
 The [required compatibility matrix](../README.md#required-compatibility-matrix) is the current product target.

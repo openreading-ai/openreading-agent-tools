@@ -3,6 +3,8 @@
 The separate server_client lock pins Core's agent extra and contains no parsing engine.
 A format-3 inventory binds the native worker, Python support files and tool catalogs.
 The plugin retains its existing host identity and client storage partition across upgrades.
+Claude Code uses the same verified worker with its own client namespace and local marketplace.
+Use --runtime to package an existing release without freezing or changing its executable.
 Python modules are collected as files because Claude rejects nested ZIP archives.
 The archive embeds the connector directly; it has no bootstrap URL or model provisioning.
 Historical Docling builders remain available for the tagged pre-transition checkpoint.
@@ -137,10 +139,16 @@ def build_runtime(output):
     return output
 
 
-def package(runtime, output):
+def package(runtime, output, *, client="claude-desktop"):
+    if client not in {"claude-desktop", "claude-code"}:
+        raise ValueError("Unsupported client for this Claude package.")
     release = verify_release(runtime)
     if release.get("profile") != "core-server-client-v1":
         raise ValueError("Package requires a server-only runtime.")
+    if release.get("release_version") != VERSION:
+        raise ValueError(
+            "Runtime version differs from the plugin version. Build the matching release first."
+        )
     documents = catalog(runtime / "openreading-worker", "--chat-documents", server=True)
     settings = catalog(runtime / "openreading-worker", "--settings-tools")
     output.mkdir(parents=True, exist_ok=False)
@@ -169,7 +177,7 @@ def package(runtime, output):
         + "\n"
     )
     (plugin / "launch.sh").write_text(
-        '#!/bin/sh\nset -eu\nplugin=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\ncd "$HOME"\nexec "$plugin/runtime/openreading-worker" --client claude-desktop --connector "$@"\n'
+        f'#!/bin/sh\nset -eu\nplugin=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\ncd "$HOME"\nexec "$plugin/runtime/openreading-worker" --client {client} --connector "$@"\n'
     )
     (plugin / "launch.sh").chmod(0o755)
     (plugin / ".mcp.json").write_text(
@@ -199,6 +207,21 @@ def package(runtime, output):
         "Storage and Advanced retain their own Save and Restore defaults controls. Restore processing defaults stages the localhost URL; Save is required.\n"
         "This is an unsigned development candidate. Clean-machine and full native acceptance remain pending.\n"
     )
+    if client == "claude-code":
+        shutil.copy2(HERE.parent / "clients/claude-code/README.md", plugin / "README.md")
+        marketplace = output / ".claude-plugin/marketplace.json"
+        marketplace.parent.mkdir()
+        marketplace.write_text(
+            json.dumps(
+                {
+                    "name": "openreading-local",
+                    "owner": {"name": "OpenReading"},
+                    "plugins": [{"name": "openreading-local-documents", "source": "./plugin"}],
+                },
+                indent=2,
+            )
+            + "\n"
+        )
     # Check content as well as suffixes so renamed dependency archives cannot slip through.
     for path in sorted(plugin.rglob("*")):
         if path.is_file():
@@ -222,6 +245,7 @@ def package(runtime, output):
         json.dumps(
             {
                 "version": VERSION,
+                "client": client,
                 "distribution": "development-only",
                 "profile": release["profile"],
                 "core_commit": release["core_commit"],
@@ -241,12 +265,18 @@ def package(runtime, output):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--client", choices=("claude-desktop", "claude-code"), default="claude-desktop"
+    )
+    parser.add_argument(
+        "--runtime", type=Path, help="Package an existing verified server-only runtime."
+    )
     args = parser.parse_args(argv)
     output = args.output.resolve()
     if output.exists():
         raise ValueError("Choose a new output directory.")
-    runtime = build_runtime(output / "runtime")
-    print(package(runtime, output / "package"))
+    runtime = args.runtime.resolve() if args.runtime else build_runtime(output / "runtime")
+    print(package(runtime, output / "package", client=args.client))
     return 0
 
 

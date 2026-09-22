@@ -1,42 +1,67 @@
-# Claude Code local preview
+# OpenReading for Claude Code
 
-Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+This macOS Apple Silicon candidate connects Claude Code to an OpenReading Core server you run separately.
+The package includes Python and both local MCP connectors. It includes no bundled parser, models or runtime download.
+Claude Code starts the tools as local processes. Desktop device activation is not part of this connection.
 
-**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
-The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
-See the [client matrix](../README.md) for the limits of existing evidence.
-Existing setup commands and test results below do not establish revision 2 compatibility.
-The [client matrix](../README.md#owner-operated-candidate-checks-september-16-2026) records later owner-operated Docling checks through separate session-specific registrations.
-Those checks do not validate this historical marketplace package or its installation commands.
+## Install
 
-The assembled marketplace installs a frozen worker and the shared evidence retrieval skill.
-Build the packages from the [runtime guide](../../runtime/README.md), then use absolute paths below.
+Keep the extracted marketplace directory in a stable location. Local marketplaces can load plugins from that directory.
+Replace `/absolute/path/to/OpenReading-Claude-Code-alpha17` with your extracted directory before running these commands:
 
 ~~~sh
-claude plugin marketplace add /absolute/path/to/dist/clients/claude-code
-claude plugin install openreading-local-proof@openreading-local-review --config input_root=/absolute/path/to/documents
-claude mcp list
+claude plugin marketplace add /absolute/path/to/OpenReading-Claude-Code-alpha17
+claude plugin install openreading-local-documents@openreading-local --scope user
+claude
 ~~~
 
-Claude Code 2.1.266 installed the local marketplace and reported the OpenReading MCP server connected on macOS 15.1 arm64.
-Plugin removal also succeeded in the isolated test configuration.
-These checks did not send a model request or establish answer quality.
-Start a fresh chat and ask: "Use OpenReading on agreement.pdf. Find the renewal notice period and cite the physical page."
-The skill asks Claude to import once, search, read exact evidence, and cite the filename, page, and evidence identifier.
+Run `/mcp` inside Claude Code. The plugin supplies `openreading` and `openreading-settings`.
+Run `/openreading-local-documents:openreading-settings` to open the native Settings window.
+Enter the URL of your running local Core server, test the connection, and save the destination.
+For example, use `http://127.0.0.1:7777` only when Core listens on port 7777.
+Enter a bearer token only if your server requires one. A connection check does not test document parsing.
+Exit this Claude Code session and start `claude` again after saving configuration.
 
-## Configuration and removal
+Ask to open the OpenReading file picker, select a test document, then choose Process.
+Expect a `/v1/parse` request in your Core log and a completed import receipt.
+Ask a question and verify the cited evidence. Selected files remain queued until you choose Process.
+If the server is unavailable, start it and reselect the document before retrying processing.
+No failed request falls back to a bundled parser.
 
-Installation requires an explicit `input_root` directory.
-The worker refuses missing or invalid grants and does not infer access from the current working directory.
-Plugin configuration supplies arguments directly to the executable without a shell.
+## Clean testing and removal
 
-To remove the plugin, run:
+First inspect `/mcp` in the project where you previously tested OpenReading.
+Remove obsolete OpenReading registrations from their original scope. Leave unrelated servers and plugins intact.
+The old marketplace plugin, when present, is `openreading-local-proof@openreading-local-review`.
+Uninstall that entry before installing this candidate. No input directory configuration is required by the new package.
+
+After exiting Claude Code, rename these Claude Code folders to unused backup names before a fresh-state test:
+
+- `~/Library/Application Support/OpenReading/agent-tools/claude-code`
+- `~/.openreading/clients/claude-code`
+
+Skip absent folders. Preserve backups until testing finishes. A previously chosen custom storage folder needs its own backup.
+Never rename the `claude-desktop` partitions. This package keeps Desktop settings and documents separate.
+Existing Keychain entries may remain. Fresh preferences do not reference them.
+
+To uninstall this candidate:
 
 ~~~sh
-claude plugin uninstall openreading-local-proof@openreading-local-review
+claude plugin uninstall openreading-local-documents@openreading-local --scope user
+claude plugin marketplace remove openreading-local
 ~~~
 
-Retained files remain under `~/Library/Application Support/OpenReading/agent-tools/claude-code/v1/`.
-Stop the client before deleting that directory to erase retained copies.
-The [runtime guide](../../runtime/README.md) describes limits and privacy boundaries.
-Model walkthroughs, update lifecycle, and fresh-machine installation remain separate release checks.
+Removal preserves retained data. Restore a backup only after exiting Claude Code and moving new test data aside.
+
+## Build and acceptance
+
+From the Agent Tools repository, reuse the verified server-only runtime:
+
+~~~sh
+python -m runtime.build_server --client claude-code --runtime /absolute/path/to/runtime --output /absolute/path/to/new-build
+~~~
+
+The `package` directory is the local marketplace. Its `build.json` records client, worker, Core and archive identities.
+The worker is shared with Desktop, but each host needs independent native workflow acceptance.
+Native manual testing, clean-machine prerequisites, signing and notarization remain release gates.
+The files in `historical/` are inputs to the old prototype assembler, not this install route.

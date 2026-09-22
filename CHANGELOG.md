@@ -2,6 +2,9 @@
 
 ## Server-only connector candidate
 
+- Add a Claude Code local marketplace using the verified server-only worker and isolated Claude Code settings.
+- Replace the Claude Code installation guide and preserve the old assembler inputs under historical/.
+
 - Package the native-tested Settings activation instructions in alpha.17 for clean installation.
 
 - Explicitly activate Claude's connected computer when the Settings command cannot yet see its local opener.
