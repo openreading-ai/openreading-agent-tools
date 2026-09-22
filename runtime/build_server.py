@@ -4,6 +4,9 @@ The separate server_client lock pins Core's agent extra and contains no parsing 
 A format-3 inventory binds the native worker, Python support files and tool catalogs.
 The plugin retains its existing host identity and client storage partition across upgrades.
 Claude Code uses the same verified worker with its own client namespace and local marketplace.
+Its separate marketplace archive omits manifests because authenticated archive sources require
+strict=false. Claude Code 2.1.278 rejects even identity-only plugin.json files in that mode.
+The marketplace declares the skills and MCP connectors; Desktop ZIPs retain their manifests.
 Use --runtime to package an existing release without freezing or changing its executable.
 Python modules are collected as files because Claude rejects nested ZIP archives.
 The archive embeds the connector directly; it has no bootstrap URL or model provisioning.
@@ -241,6 +244,18 @@ def package(runtime, output, *, client="claude-desktop"):
                 archive.write(path, path.relative_to(plugin))
     if target.stat().st_size >= 200_000_000:
         raise ValueError("Plugin exceeds the Claude upload limit.")
+    marketplace_metadata = {}
+    if client == "claude-code":
+        marketplace_archive = output / "OpenReading-Claude-Code-Marketplace.zip"
+        with zipfile.ZipFile(marketplace_archive, "w", zipfile.ZIP_DEFLATED) as archive:
+            for path in sorted(plugin.rglob("*")):
+                relative = path.relative_to(plugin)
+                if path.is_file() and str(relative) not in {
+                    ".claude-plugin/plugin.json",
+                    ".mcp.json",
+                }:
+                    archive.write(path, relative)
+        marketplace_metadata = {"marketplace_sha256": sha256(marketplace_archive)}
     (output / "build.json").write_text(
         json.dumps(
             {
@@ -254,6 +269,7 @@ def package(runtime, output, *, client="claude-desktop"):
                 "plugin_bytes": target.stat().st_size,
                 "runtime_download": False,
                 "document_tools": len(documents["tools"]),
+                **marketplace_metadata,
             },
             indent=2,
         )

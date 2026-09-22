@@ -128,6 +128,16 @@ class ServerBuildTests(unittest.TestCase):
             self.assertNotIn("userConfig", manifest)
             self.assertEqual(marketplace["name"], "openreading-local")
             configs = json.loads((plugin / ".mcp.json").read_text())["mcpServers"]
+            published = json.loads(
+                (
+                    Path(module.__file__).resolve().parent.parent
+                    / ".claude-plugin/marketplace.json"
+                ).read_text()
+            )["plugins"][0]
+            self.assertEqual(published["mcpServers"], configs)
+            self.assertEqual(published["skills"], "./skills")
+            self.assertFalse(published["strict"])
+
             self.assertEqual(set(configs), {"openreading", "openreading-settings"})
             for name, flag in (
                 ("openreading", "--chat-documents"),
@@ -147,6 +157,20 @@ class ServerBuildTests(unittest.TestCase):
                 )
             self.assertEqual(
                 json.loads((root / "package/build.json").read_text())["client"], "claude-code"
+            )
+            # Authenticated archive sources require the marketplace to own all components.
+            # Even an identity-only plugin.json conflicts in Claude Code 2.1.278.
+            marketplace_archive = root / "package/OpenReading-Claude-Code-Marketplace.zip"
+            with zipfile.ZipFile(marketplace_archive) as zipped:
+                self.assertNotIn(".claude-plugin/plugin.json", zipped.namelist())
+                self.assertNotIn(".mcp.json", zipped.namelist())
+                self.assertEqual(zipped.read("runtime/openreading-worker"), worker.read_bytes())
+                self.assertIn("skills/openreading-settings/SKILL.md", zipped.namelist())
+            from runtime.verify import sha256
+
+            self.assertEqual(
+                json.loads((root / "package/build.json").read_text())["marketplace_sha256"],
+                sha256(marketplace_archive),
             )
             self.assertIn("claude plugin", (plugin / "README.md").read_text())
             self.assertNotIn("Upload this plugin ZIP", (plugin / "README.md").read_text())

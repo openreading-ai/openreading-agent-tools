@@ -34,7 +34,10 @@ Fresh alpha.17 installation remains owner-operated acceptance. Existing native t
 
 ## Claude Code server-only candidate, September 21, 2026
 
-Claude Code 2.1.278 validates and installs the alpha.17 local marketplace in an isolated native configuration.
+Claude Code 2.1.278 validates and installs alpha.17 through its native archive marketplace in an isolated configuration.
+The authenticated GitHub download passes its SHA-256 pin, and both connectors start from Claude Code's own plugin cache.
+The private marketplace uses the existing GitHub CLI login. The archive omits plugin manifests because strict=false rejects them on this host.
+The packaged worker hash matches the previously verified server-only runtime. No manual file copying or state reset is needed.
 Both document and Settings connectors report connected. Plugin and marketplace removal also pass.
 The packaged launcher uses the `claude-code` partition and the same frozen worker as Desktop alpha.17.
 A synthetic PDF passed through a real localhost Core server at the pinned commit using its local PyMuPDF backend.
@@ -198,7 +201,7 @@ Full plugin installation acceptance, ordinary Chat, signing and clean-machine ch
 
 - [Claude Desktop](claude-desktop/README.md): partial owner-run Docling checks, manual developer setup, and historical package walkthrough.
 - [ChatGPT desktop](chatgpt/README.md): documented connection candidate and remaining verification.
-- [Claude Code](claude-code/README.md): historical marketplace and configuration evidence.
+- [Claude Code](claude-code/README.md): native marketplace installation and server-only acceptance.
 - [Codex](codex/README.md): historical package and configuration evidence.
 
 Every future compatibility entry must name the tested runtime, application version, execution mode, and actual result.

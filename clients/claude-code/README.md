@@ -6,14 +6,25 @@ Claude Code starts the tools as local processes. Desktop device activation is no
 
 ## Install
 
-Keep the extracted marketplace directory in a stable location. Local marketplaces can load plugins from that directory.
-Replace `/absolute/path/to/OpenReading-Claude-Code-alpha17` with your extracted directory before running these commands:
+Install through Claude Code's plugin marketplace. The development candidate currently lives on its feature branch:
 
-~~~sh
-claude plugin marketplace add /absolute/path/to/OpenReading-Claude-Code-alpha17
-claude plugin install openreading-local-documents@openreading-local --scope user
-claude
+~~~text
+/plugin marketplace add openreading-ai/openreading-agent-tools@feat/server-only-plugin
+/plugin install openreading-local-documents@openreading-local
+/reload-plugins
 ~~~
+
+Claude Code downloads the complete plugin and owns its cached installation. No folder copying or state reset is required.
+This candidate supports macOS Apple Silicon and requires Claude Code 2.1.238 or later.
+The repository is private. Use an existing GitHub CLI login with repository access, and have `gh` and `jq` on PATH.
+Accept the installer prompt that retrieves GitHub authorization for the pinned private release download.
+The helper sends authorization only to GitHub's API. Claude Code drops that header before following an off-origin asset redirect.
+The marketplace pins the archive's SHA-256 digest. Installation refuses an altered archive.
+
+The same installation from a terminal uses `claude plugin marketplace add` and `claude plugin install`.
+The marketplace name remains `openreading-local`, so this replaces the former local marketplace source.
+If that plugin is already installed, use `/plugin update openreading-local-documents@openreading-local`, then `/reload-plugins`.
+The development branch is not the public release channel. Signing and clean-machine acceptance remain pending.
 
 Run `/mcp` inside Claude Code. The plugin supplies `openreading` and `openreading-settings`.
 Run `/openreading-local-documents:openreading-settings` to open the native Settings window.
@@ -28,7 +39,9 @@ Ask a question and verify the cited evidence. Selected files remain queued until
 If the server is unavailable, start it and reselect the document before retrying processing.
 No failed request falls back to a bundled parser.
 
-## Clean testing and removal
+## Optional fresh-state testing and removal
+
+Ordinary installation preserves settings and documents. Backups below are only for an explicit fresh-state test.
 
 First inspect `/mcp` in the project where you previously tested OpenReading.
 Remove obsolete OpenReading registrations from their original scope. Leave unrelated servers and plugins intact.
@@ -61,7 +74,14 @@ From the Agent Tools repository, reuse the verified server-only runtime:
 python -m runtime.build_server --client claude-code --runtime /absolute/path/to/runtime --output /absolute/path/to/new-build
 ~~~
 
-The `package` directory is the local marketplace. Its `build.json` records client, worker, Core and archive identities.
+The generated `package` directory remains a local development marketplace. Its `build.json` records client, worker, Core and archive identities.
+The repository marketplace installs `OpenReading-Claude-Code-Marketplace.zip` through Claude Code's native archive source.
+For a new release, upload the ZIP to the private GitHub release and update the marketplace asset URL, digest and version together.
+Keep both MCP definitions identical to the packaged `.mcp.json`. The archive includes all dependencies; its launcher downloads nothing.
+The private download helper requires `strict: false`, so the marketplace explicitly declares the skills and both MCP connectors.
+The marketplace archive omits both `plugin.json` and `.mcp.json`. Claude Code 2.1.278 treats even an identity-only manifest as a conflict.
+The ordinary local marketplace and Desktop ZIP retain their manifests.
+When distribution becomes public, use the public asset URL and remove the private download helper and headers.
 The worker is shared with Desktop, but each host needs independent native workflow acceptance.
 Native manual testing, clean-machine prerequisites, signing and notarization remain release gates.
 The files in `historical/` are inputs to the old prototype assembler, not this install route.

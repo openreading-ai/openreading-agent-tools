@@ -334,5 +334,7 @@ python -m runtime.build_server --client claude-code --runtime /absolute/path/to/
 Use `--client claude-desktop` for the Desktop ZIP. Claude Code also receives a local marketplace around the plugin directory.
 Each launch passes its client name, so saved destinations, storage and jobs remain isolated between the two clients.
 The output `package/build.json` records its client, worker hash, Core commit and plugin ZIP hash.
+Claude Code also receives `OpenReading-Claude-Code-Marketplace.zip` and its `marketplace_sha256` digest.
+That archive omits plugin manifests because the authenticated marketplace owns its skills and connector definitions.
 Packaging never registers a host, edits user settings, or starts the configured Core server.
 See the [Claude Code guide](../clients/claude-code/README.md) for installation and manual acceptance.

@@ -2,6 +2,8 @@
 
 ## Server-only connector candidate
 
+- Install the Claude Code candidate through a GitHub marketplace and a pinned complete plugin archive, without manual copying or state resets.
+
 - Add a Claude Code local marketplace using the verified server-only worker and isolated Claude Code settings.
 - Replace the Claude Code installation guide and preserve the old assembler inputs under historical/.
 
