@@ -7,6 +7,10 @@ The owner later reported an exact Markdown read after plugin reinstall; independ
 Ordinary Chat acceptance remains pending.
 The [client matrix](../README.md) separates documented routes from tested behavior.
 
+The `0.2.0-rc.1` package targets macOS on Apple Silicon only. Intel macOS,
+Linux, and Windows packages are pending. It is unsigned and does not turn the
+pending host acceptance into a support claim.
+
 ## Connection candidate
 
 [OpenAI's MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) describes adding a local STDIO server through ChatGPT desktop settings.

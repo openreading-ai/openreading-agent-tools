@@ -1,44 +1,47 @@
-# Claude Code local preview
+# Claude Code release candidate
 
-Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+OpenReading Agent Tools `0.2.0-rc.1` supplies a local Claude Code marketplace.
+It contains the full bundled Docling runtime and the optional owner-operated
+OpenReading Core server destination. It does not need Python, Node, uv, or a
+Core checkout after you unpack the release.
 
-**Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
-The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
-See the [client matrix](../README.md) for the limits of existing evidence.
-The legacy setup commands below do not establish revision 2 compatibility and must not be
-used as server-client setup.
-The [client matrix](../README.md#owner-operated-candidate-checks-september-16-2026) records later owner-operated Docling checks through separate session-specific registrations.
-Those checks do not validate this historical marketplace package or its installation commands.
+## Platform
 
-The historical marketplace installs a PyMuPDF worker and shared evidence retrieval skill.
-No current Claude Code server-client package is assembled. The matrix records that cell as blocked.
-Build the historical package only for its retained prototype checks.
+This release candidate supports macOS on Apple Silicon only. Intel macOS,
+Linux, and Windows packages are pending. It is unsigned, and native
+installation, update, removal, and clean-machine acceptance remain separate
+release checks.
+
+## Install
+
+Unpack `OpenReading-Claude-Code-0.2.0-rc.1.zip`, then run:
 
 ~~~sh
-claude plugin marketplace add /absolute/path/to/dist/clients/claude-code
-claude plugin install openreading-local-proof@openreading-local-review --config input_root=/absolute/path/to/documents
+claude plugin marketplace add /absolute/path/to/claude-code
+claude plugin install openreading-local-documents@openreading-development
 claude mcp list
 ~~~
 
-Claude Code 2.1.266 installed the local marketplace and reported the OpenReading MCP server connected on macOS 15.1 arm64.
-Plugin removal also succeeded in the isolated test configuration.
-These checks did not send a model request or establish answer quality.
-Start a fresh chat and ask: "Use OpenReading on agreement.pdf. Find the renewal notice period and cite the physical page."
-The skill asks Claude to import once, search, read exact evidence, and cite the filename, page, and evidence identifier.
+Start a new Claude Code session and ask it to choose a document. The default
+path opens OpenReading's local picker and processes selected documents with
+bundled Docling. OpenReading retains its selected copies and artifacts locally.
+Requested document content enters the assistant context.
 
-## Configuration and removal
+## Optional Core server
 
-Installation requires an explicit `input_root` directory.
-The worker refuses missing or invalid grants and does not infer access from the current working directory.
-Plugin configuration supplies arguments directly to the executable without a shell.
+The default remains bundled Docling. To send selected copies to an operator-run
+Core server, open `OpenReading Settings.app` inside the installed plugin, choose
+**Your OpenReading Core server**, test the destination, save it, and restart
+Claude Code. Loopback servers can use HTTP. Other destinations require valid
+HTTPS. The picker asks for confirmation before an upload.
 
-To remove the plugin, run:
+Switching back to **Bundled Docling** affects the next import. It does not
+delete retained files or alter already started jobs.
 
-~~~sh
-claude plugin uninstall openreading-local-proof@openreading-local-review
-~~~
+## Limits
 
-Retained files remain under `~/Library/Application Support/OpenReading/agent-tools/claude-code/v1/`.
-Stop the client before deleting that directory to erase retained copies.
-The [runtime guide](../../runtime/README.md) describes limits and privacy boundaries.
-Model walkthroughs, update lifecycle, and fresh-machine installation remain separate release checks.
+This package is a release candidate, not a claim that Claude Code support is
+complete. Record host version, package hash, worker hash, Core commit, tool
+discovery, citations, cancellation, update, removal, and reinstall results for
+native acceptance. No token-savings or parsing-accuracy claim follows from a
+successful installation.
