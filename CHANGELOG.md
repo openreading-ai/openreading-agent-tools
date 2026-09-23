@@ -1,5 +1,9 @@
 # Changelog
 
+- Keep historical code-client manifests and directory-grant guides separate from current RC packages.
+- Revoke selected copies even when approval cleanup encounters an unsafe directory.
+- Return a configuration diagnostic and exit 2 when server-profile setup fails before startup.
+
 - Harden optional server progress, Unicode consent rows, cached responses and stopped-selection recovery.
 - Expose the response download budget and clarify retained-token and storage behavior.
 
@@ -21,8 +25,9 @@
 
 ## Development Core integration pin
 
-- Pin the Docling candidate and P0 runtime to development Core `fb8967e`.
-  This includes external response retention and trusted detached-job execution.
+- Pin the Docling candidate, P0 runtime and integration tests to development Core `ba55eb6`.
+  This includes confirmed server diagnostics, cached retention retries and unambiguous physical evidence.
+  Repin to the owner's merged Core main commit before tagging an RC or building release binaries.
   The legacy v1 runtime retains its historical pin. This is a development pin, not a released package.
 
 ## Unreleased ChatGPT development plugin

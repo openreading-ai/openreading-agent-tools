@@ -3,11 +3,10 @@ name = "openreading-agent-runtime-tests"
 version = "0.1.0a1"
 requires-python = "==3.11.15"
 dependencies = [
-  "openreading[agent,pymupdf] @ git+https://github.com/openreading-ai/openreading-core.git@fb8967e424b199a788b8a8537a918118893a0b66",
+  "openreading[agent,pymupdf] @ git+https://github.com/openreading-ai/openreading-core.git@ba55eb6c045976ac8d03458722537686822717f2",
   "mcp==1.30.0",
   "pymupdf==1.28.2",
 ]
 
 [dependency-groups]
 dev = ["pytest>=9,<10", "coverage>=7,<8", "ruff==0.15.22", "reportlab==4.4.10"]
-

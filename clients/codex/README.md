@@ -39,6 +39,9 @@ delete retained files or alter already started jobs.
 
 ## Limits
 
+The historical format-1 assembler uses separate revision 1 templates, never these RC wrappers.
+Its directory-grant guide ships inside that historical package. It does not support server processing.
+
 This package is a release candidate, not a claim that Codex support is
 complete. Record host version, package hash, worker hash, Core commit, tool
 discovery, citations, cancellation, update, removal, and reinstall results for

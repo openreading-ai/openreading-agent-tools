@@ -39,10 +39,13 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
     paths = {}
     for client in ["claude-desktop", "claude-code", "codex"]:
         target = output / client
+        template = REPOSITORY / "clients" / client
         if client != "claude-desktop":
             target = target / "plugins" / "openreading-local-proof"
+            # Current wrappers require flags absent from historical format-1 workers.
+            template = template / "historical"
         shutil.copytree(
-            REPOSITORY / "clients" / client,
+            template,
             target,
             ignore=shutil.ignore_patterns("docling", "historical", "selection", "chat"),
         )
@@ -317,7 +320,9 @@ def package_server_clients(runtime: Path, output: Path) -> dict[str, Path]:
     paths: dict[str, Path] = {}
     for client in ("claude-code", "codex"):
         target = output / client / "plugins/openreading-local-documents"
-        shutil.copytree(REPOSITORY / "clients" / client, target)
+        shutil.copytree(
+            REPOSITORY / "clients" / client, target, ignore=shutil.ignore_patterns("historical")
+        )
         shutil.copytree(runtime, target / "server", symlinks=True)
         shutil.copytree(REPOSITORY / "skills", target / "skills")
         contents, executable = _settings_helper(target, client)

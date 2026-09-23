@@ -145,6 +145,61 @@ class ServerImportTests(unittest.TestCase):
         self.assertIn("http 401", message)
         self.assertNotIn("may have started", message)
 
+    def run_detached_job(self):
+        import json
+
+        from openreading.artifacts import jobs
+        from openreading.artifacts.jobs import ImportExecution, ImportJobs
+
+        # Only process creation is replaced; the persisted job runner and service remain real.
+        process = Mock(pid=999999999)
+        with patch.object(jobs.subprocess, "Popen", return_value=process):
+            manager = ImportJobs(self.service, execution=ImportExecution(("trusted-worker",), {}))
+            initial = manager.start(self.references[0])
+        root = manager.root / initial.job_id
+        jobs.main([str(root)], service_factory=lambda request: self.service)
+        return json.loads((root / "status.json").read_bytes())
+
+    def test_detached_auth_failure_keeps_confirmed_http_diagnostic(self):
+        self.service.transport = httpx.MockTransport(lambda request: httpx.Response(401, json={}))
+        status = self.run_detached_job()
+        self.assertEqual(status["state"], "failed")
+        message = status["error"]["message"].lower()
+        self.assertIn("http 401", message)
+        self.assertNotIn("may continue", message)
+
+    def test_detached_retention_busy_recovers_cached_response_without_second_post(self):
+        from runtime.server_imports import ServerArtifactService
+
+        def retain(*args, **kwargs):
+            if self.retainer.call_count == 1:
+                raise ArtifactError("busy")
+            return ServerArtifactService._retain(self.service, *args, **kwargs)
+
+        self.retainer.side_effect = retain
+        status = self.run_detached_job()
+        self.assertEqual(status["state"], "succeeded", status)
+        self.assertEqual(self.retainer.call_count, 2)
+        self.assertEqual(len(self.requests), 1)
+        self.assertEqual(len(list(self.service.store.documents.iterdir())), 1)
+
+    def test_duplicate_physical_pages_are_rejected_before_caching_or_retention(self):
+        from runtime.server_selection import approval_name
+
+        self.response["document"] = {
+            "page_count": 2,
+            "pages": [
+                {"page_number": 1, "text": "Payment approved."},
+                {"page_number": 1, "text": "Payment rejected."},
+            ],
+        }
+        with self.assertRaises(ArtifactError):
+            self.service.import_document(self.references[0])
+        self.assertEqual(len(self.requests), 1)
+        self.retainer.assert_not_called()
+        path = self.service.transfers / (approval_name(self.references[0]) + ".response")
+        self.assertFalse(path.exists())
+
     def test_cancel_unapproved_and_changed_settings_never_submit(self):
         event = threading.Event()
         event.set()

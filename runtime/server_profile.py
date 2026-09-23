@@ -56,7 +56,6 @@ def identity_for(metadata):
 
 
 def launch(args, metadata, settings):
-    config, selection = config_for(args.client, settings)
     from openreading.artifacts.jobs import ImportExecution
     from openreading.artifacts.limits import ArtifactError
     from openreading.mcp_server.main import serve
@@ -66,6 +65,7 @@ def launch(args, metadata, settings):
         {"client": args.client, "destination": settings.wire()},
     )
     try:
+        config, selection = config_for(args.client, settings)
         asyncio.run(
             serve(
                 config,
