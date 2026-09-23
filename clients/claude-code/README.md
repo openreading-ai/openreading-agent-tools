@@ -40,7 +40,8 @@ Run `/mcp` inside Claude Code. The plugin supplies `openreading` and `openreadin
 Run `/openreading-settings` to open the native Settings window.
 Enter the URL of your running local Core server, test the connection, and save the destination.
 For example, use `http://127.0.0.1:7777` only when Core listens on port 7777.
-Enter a bearer token only if your server requires one. A connection check does not test document parsing.
+Connections use only the URL. Servers requiring client authentication are not supported.
+A connection check does not test document parsing.
 Exit this Claude Code session and start `claude` again after saving configuration.
 
 Run `/openreading`, select a test document, then choose Process.
@@ -68,7 +69,6 @@ After exiting Claude Code, rename these Claude Code folders to unused backup nam
 
 Skip absent folders. Preserve backups until testing finishes. A previously chosen custom storage folder needs its own backup.
 Never rename the `claude-desktop` partitions. This package keeps Desktop settings and documents separate.
-Existing Keychain entries may remain. Fresh preferences do not reference them.
 
 To uninstall this candidate:
 

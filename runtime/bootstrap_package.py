@@ -36,12 +36,11 @@ def catalog(worker, mode, *, server=False):
             settings.write_text(
                 json.dumps(
                     {
-                        "schema_version": 1,
+                        "schema_version": 2,
                         "mode": "server",
                         "revision": "a" * 32,
                         "base_url": "http://127.0.0.1:8787",
                         "response_bytes": 256 * 1024 * 1024,
-                        "credential_ref": None,
                     }
                 )
             )

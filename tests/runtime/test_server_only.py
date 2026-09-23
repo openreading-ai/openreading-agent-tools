@@ -61,6 +61,9 @@ class ServerOnlyTests(unittest.TestCase):
             home = Path(temporary).resolve()
             for mode in ("--chat-documents", "--settings-tools"):
                 manager = module.EmbeddedManager({}, home, home / "runtime", "codex", mode)
+                from runtime.build_server import VERSION
+
+                self.assertEqual(manager.server_info["version"], VERSION)
                 manager.start()
                 if mode == "--chat-documents":
                     self.assertIsNone(manager.root)

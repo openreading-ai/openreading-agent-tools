@@ -89,7 +89,6 @@ def check_current(store, settings):
         or current.mode != "server"
         or current.revision != settings.revision
         or current.destination.base_url != settings.destination.base_url
-        or current.credential_ref != settings.credential_ref
     ):
         raise SelectionError(
             "The destination changed. Quit and reopen your app, then select documents again."

@@ -1,6 +1,6 @@
 # Revision 19 implementation plan
 
-Revision 27 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+Revision 28 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
 The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
@@ -392,7 +392,7 @@ Both repository gates pass. Native progress UI remains open. The uncapped frozen
 - [x] Apply client storage changes at reconnect, protect live connections and jobs, and preserve readable artifacts through migration.
 - [x] Extend the native controls and exercise saving through the real window with an isolated home.
 - [x] Complete the repository verification gate and frozen candidate protocol checks.
-- [ ] Record exact-build Cowork and Work installation, native Keychain and clean-machine acceptance independently.
+- [ ] Record exact-build Cowork and Work installation, URL-only settings and clean-machine acceptance independently.
 
 The remaining release checks are in [native settings acceptance](native-settings.md).
 
@@ -409,3 +409,11 @@ The remaining release checks are in [native settings acceptance](native-settings
 - Make successful selection continue into imports in the shared skill, preserving native server consent and explicit selection-only requests.
 - Package the workflow update without changing the frozen downloader or document runtime.
 - Run EVAL-3 in the native host with synthetic multi-file and folder inputs. Confirm complete counts and no extra import question.
+
+## URL-only connector, revision 28
+
+- Remove credential controls, Keychain calls and Authorization headers from the connector.
+- Read legacy destinations without their credential references and write schema 2 on save.
+- Verify URL and storage preservation, metadata checks, uploads and package exclusion.
+- Rebuild all four client packages and repeat native settings acceptance on the new build.
+- Leave Core server authentication and provider credentials unchanged.

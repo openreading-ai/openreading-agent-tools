@@ -77,16 +77,14 @@ class WindowTests(unittest.TestCase):
             window = destination_ui.SettingsWindow(root, controller, tk, widgets)
         return window, controller, pool.return_value
 
-    def test_saves_explicit_choice_and_clears_token_widget(self):
+    def test_saves_url_without_credential_widgets(self):
         window, controller, executor = self.make()
         window.mode.set("server")
         window.url.set("http://localhost:8787")
-        window.token.set("synthetic")
         window.save()
-        controller.save.assert_called_once_with(
-            "server", "http://localhost:8787", "synthetic", False
-        )
-        self.assertEqual(window.token.get(), "")
+        controller.save.assert_called_once_with("server", "http://localhost:8787")
+        self.assertFalse(hasattr(window, "token"))
+        self.assertFalse(hasattr(window, "clear"))
         self.assertIn("Saved", window.status.get())
         controller.save.side_effect = ValueError("Invalid server URL")
         window.save()
@@ -131,6 +129,7 @@ class WindowTests(unittest.TestCase):
         window, controller, executor = self.make()
         self.assertEqual(window.mode.get(), "server")
         self.assertEqual(window.check_button.options["state"], "normal")
+        window.url.set("https://before-restore.invalid")
         future = Future()
         executor.submit.return_value = future
         window.check()
@@ -191,13 +190,13 @@ class WindowTests(unittest.TestCase):
         window, controller, _ = self.make()
         window.mode.set("server")
         window.url.set("https://changed.invalid")
-        window.token.set("not saved")
         window.budget.set("8192")
         window.response_mib.set("4")
         window.restore_destination()
         self.assertEqual(window.mode.get(), "server")
         self.assertEqual(window.url.get(), "http://127.0.0.1:8787")
-        self.assertEqual(window.token.get(), "")
+        self.assertFalse(hasattr(window, "token"))
+        self.assertFalse(hasattr(window, "clear"))
         self.assertEqual(window.budget.get(), "8192")
         window.mode.set("server")
         window.restore_advanced()

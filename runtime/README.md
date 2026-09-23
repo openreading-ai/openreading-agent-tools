@@ -222,15 +222,15 @@ The plugin uses the existing `chatgpt` data namespace; switching wrappers does n
 `server_transport.py` sends one already-selected snapshot to an explicit Core HTTP destination.
 Its module documentation defines the request, response limits, and cancellation boundary.
 For example, a localhost destination can use an operator-configured Core parser without bundling that parser here.
-The chat launcher reads the separate destination setting. Absence keeps bundled Docling.
+The server-only launcher reads the separate destination setting. Absence requests server setup.
 `server_profile.py` supplies the trusted child factory and fixed client storage roots.
 
 `destination_settings.py` keeps a separate private destination choice with a new revision on every explicit save.
-`server_keychain.py` stores optional bearer credentials through macOS Security, keeping them out of argv and JSON.
-Changing a URL does not inherit its previous credential. Existing references remain available to pending jobs.
+Schema 2 contains no credential reference. Reading schema 1 preserves the URL and limits but discards its old reference.
+The connector never reads Keychain or sends authentication. Servers requiring credentials are unsupported.
 `destination_ui.py` provides explicit Save and Test connection controls using the bundled Tk interface.
-The connection check reads health and authorized metadata without uploading a document or invoking a provider.
-The window and controller pass offline tests. Actual native Keychain prompts remain unverified.
+The connection check reads health and server metadata without uploading a document or invoking a provider.
+Native settings acceptance remains separate from offline controller checks.
 
 `server_selection.py` confirms the URL, names, count and total bytes before authorizing uploads.
 Changing settings invalidates unsubmitted approvals. Server mode keeps the existing snapshot exclusions without an adapter extension filter.
@@ -285,7 +285,7 @@ The control records remain in the original Application Support client directory.
 
 `app_settings.py` defines persisted defaults and validation, including the separate `advanced.json` limits record. `storage_settings.py` owns switching and rollback.
 `settings_server.py` exposes only `openreading_open_settings`, with no configuration arguments.
-The existing `destination_settings.py` keeps bearer credentials in Keychain and stores references only.
+`destination_settings.py` stores the URL and download limit without credentials.
 `public_profile.py` applies these choices to local and server processing without changing Core's tool catalog.
 The integrated build's native and release gaps are tracked in [native settings acceptance](../design/native-settings.md).
 
@@ -319,7 +319,7 @@ It never depends on the downloaded setup directory after installation.
 
 `fresh_install.py` owns reset and backup behavior. It refuses active Claude workers, locked connections and unfinished imports.
 Prior Claude settings and the default data partition move into private backups, with original paths recorded for restoration.
-A failed backup operation restores earlier moves. Custom data directories, other clients and Keychain entries remain intact.
+A failed backup operation restores earlier moves. Custom data directories and other clients remain intact.
 The installer needs no user-installed Python or network download. It does not sign code or change macOS privacy permissions.
 This supports a fresh local-install trial; signed distribution and clean-machine acceptance remain separate gates.
 

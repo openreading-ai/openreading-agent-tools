@@ -7,6 +7,17 @@ Bundled Docling evidence and routes below are historical and preserved by tag bu
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
 
+## Alpha.20 URL-only connector, September 22, 2026
+
+Revision 28 removes credential controls and Keychain access from the connector. Core authentication remains unchanged.
+Legacy destinations preserve URLs and limits without reading or sending saved credentials.
+All four development packages use worker SHA-256 `9faed06afaa7a4d4d5266d36e68506c6eb9bde70b9d642b3f129d2082e3626e9`.
+The Core client pin remains `ce65c565636b71221f23be7021028bbff9cf317f`.
+Offline verification and package inventory checks pass. Each package retains nine document tools and one Settings opener.
+A frozen synthetic localhost check covers uploads without Authorization, retained retrieval, exports, background imports, cancellation and failure recovery.
+Selection and consent are injected in that check. Native Settings, host installation and HTTPS acceptance remain separate tests for this build.
+Previously tested packages remain historical evidence and are not relabeled as alpha.20 acceptance.
+
 ## Claude archive preflight, September 21, 2026
 
 Claude Desktop 2.2553.1 accepts the alpha.15 archive preview without the nested-ZIP error reported for alpha.14.
@@ -114,8 +125,8 @@ Each of the four server-backed cells requires its own recorded acceptance result
 7. Record failures and evidence locations. A protocol harness, another surface, or a different package cannot pass this cell.
 
 Absent settings and old bundled-parser preferences must request server setup without selecting or uploading documents.
-For every cell, test settings and credentials, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
-Check consent cancellation, exact uploaded bytes, authentication/TLS refusal, no automatic resubmission, and stopped-selection recovery.
+For every cell, test settings, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
+Check consent cancellation, exact uploaded bytes, HTTP 401/403 and TLS refusal, no automatic resubmission, and stopped-selection recovery.
 Server results must preserve partial status, warnings, and provenance. Local cancellation must not claim remote processing stopped.
 Change the saved server and verify stale selections are refused. No failure may invoke a local parser.
 Only synthetic documents are used for server acceptance. Server operation remains the operator's responsibility.

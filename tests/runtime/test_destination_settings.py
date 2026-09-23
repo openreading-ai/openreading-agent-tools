@@ -8,63 +8,38 @@ from pathlib import Path
 from runtime.destination_settings import read_destination, save_destination
 
 
-class Keychain:
-    def __init__(self):
-        self.values = {}
-
-    def put(self, reference, token):
-        self.values[reference] = token
-
-    def get(self, reference):
-        return self.values[reference]
-
-
 class DestinationSettingsTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.home = Path(self.temp.name).resolve()
-        self.keys = Keychain()
 
-    def save(self, mode="server", url="http://localhost:8787", token=None):
-        return save_destination(
-            "chatgpt", mode, base_url=url, token=token, home=self.home, keychain=self.keys
-        )
+    def save(self, mode="server", url="http://localhost:8787"):
+        return save_destination("chatgpt", mode, base_url=url, home=self.home)
 
     def test_missing_settings_default_local_and_server_has_private_file(self):
         self.assertEqual(read_destination("chatgpt", home=self.home).mode, "local")
-        first = self.save(token="synthetic-secret")
+        first = self.save()
         loaded = read_destination("chatgpt", home=self.home)
         self.assertEqual(loaded, first)
-        self.assertEqual(self.keys.get(first.credential_ref), "synthetic-secret")
         path = next(self.home.rglob("destination.json"))
         self.assertEqual(path.stat().st_mode & 0o777, 0o600)
         self.assertNotIn("synthetic-secret", path.read_text())
-        self.assertEqual(json.loads(path.read_text())["schema_version"], 1)
+        self.assertEqual(json.loads(path.read_text())["schema_version"], 2)
 
-    def test_new_url_does_not_inherit_credentials_and_jobs_keep_old_reference(self):
-        first = self.save(token="synthetic-secret")
+    def test_new_saves_change_revision_and_preserve_previous_snapshot(self):
+        first = self.save()
         second = self.save(url="https://different.invalid")
-        self.assertIsNone(second.credential_ref)
         self.assertNotEqual(first.revision, second.revision)
-        self.assertEqual(self.keys.get(first.credential_ref), "synthetic-secret")
         self.assertEqual(first.destination.base_url, "http://localhost:8787")
-
-    def test_same_url_preserves_key_unless_explicitly_cleared(self):
-        first = self.save(token="synthetic-secret")
-        second = self.save()
-        self.assertEqual(first.credential_ref, second.credential_ref)
-        self.assertNotEqual(first.revision, second.revision)
-        self.assertIsNone(self.save(token="").credential_ref)
+        self.assertEqual(second.destination.base_url, "https://different.invalid")
 
     def test_local_mode_and_client_namespaces_remain_separate(self):
-        first = self.save(token="synthetic-secret")
+        self.save()
         self.assertEqual(read_destination("codex", home=self.home).mode, "local")
         local = self.save(mode="local")
         self.assertEqual(local.mode, "local")
         self.assertIsNone(local.destination)
-        self.assertIsNone(local.credential_ref)
-        self.assertEqual(self.keys.get(first.credential_ref), "synthetic-secret")
 
     def test_invalid_saved_settings_fail_closed(self):
         self.save()
@@ -112,26 +87,12 @@ class DestinationSettingsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             read_destination("chatgpt", home=self.home)
 
-    def test_save_validates_mode_and_uses_default_keychain(self):
-        from unittest.mock import patch
-
+    def test_invalid_mode_or_url_preserves_previous_settings(self):
+        first = self.save()
         with self.assertRaises(ValueError):
             self.save(mode="unknown")
-        with patch("runtime.server_keychain.ServerKeychain", return_value=self.keys):
-            result = save_destination(
-                "chatgpt", "server", base_url="http://localhost", token="synthetic", home=self.home
-            )
-        self.assertEqual(self.keys.get(result.credential_ref), "synthetic")
-
-    def test_keychain_failure_preserves_previous_settings(self):
-        first = self.save()
-
-        def fail(reference, token):
-            raise ValueError("Keychain unavailable")
-
-        self.keys.put = fail
         with self.assertRaises(ValueError):
-            self.save(token="new-token")
+            self.save(url="http://remote.invalid")
         self.assertEqual(read_destination("chatgpt", home=self.home), first)
 
 

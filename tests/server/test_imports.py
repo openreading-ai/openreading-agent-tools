@@ -5,7 +5,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import httpx
 from openreading.artifacts.limits import ArtifactError, ProfileConfig
@@ -142,32 +142,21 @@ class ServerImportTests(unittest.TestCase):
             self.service.import_document(self.references[0])
         self.assertEqual(self.requests, [])
 
-    def test_keychain_refusal_stops_batch_without_anonymous_fallback(self):
-        from runtime.server_selection import approval_name, write_private
-
-        self.settings = save_destination(
-            "chatgpt",
-            "server",
-            base_url="http://localhost:8787",
-            token="synthetic",
-            home=self.home,
-            keychain=Mock(),
-        )
-        self.service.settings = self.settings
+    def test_legacy_settings_import_without_reading_or_sending_credentials(self):
         import json
 
-        for reference in self.references:
-            path = self.selection.approvals / approval_name(reference)
-            value = json.loads(path.read_text())
-            value["revision"] = self.settings.revision
-            write_private(path, value)
-        self.service.keychain = Mock()
-        self.service.keychain.get.side_effect = ValueError("Keychain refused")
-        for reference in self.references:
-            with self.assertRaises(ArtifactError):
-                self.service.import_document(reference)
-        self.service.keychain.get.assert_called_once()
-        self.assertEqual(self.requests, [])
+        from runtime.destination_settings import read_destination
+
+        path = next(self.home.rglob("destination.json"))
+        value = json.loads(path.read_text())
+        value.update(schema_version=1, credential_ref="c" * 32)
+        path.write_text(json.dumps(value))
+        self.service.settings = read_destination("chatgpt", home=self.home)
+        with patch("ctypes.CDLL", side_effect=AssertionError("No Keychain access")):
+            self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+        self.assertEqual(len(self.requests), 1)
+        self.assertNotIn("authorization", self.requests[0].headers)
+        self.assertNotIn("credential_ref", self.service.settings.wire())
 
     def test_real_retention_and_mcp_delivery_preserve_server_values(self):
         import asyncio

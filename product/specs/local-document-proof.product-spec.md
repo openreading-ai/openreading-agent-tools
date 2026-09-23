@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 27
+spec_revision: 28
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-21T00:00:00Z"
+updated_at: "2026-09-22T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -31,7 +31,7 @@ A convincing answer without a resolvable document and page reference cannot supp
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
 The first platform remains macOS on Apple Silicon.
-Revision 27 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Revision 28 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
 Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
 Each surface connects to a required operator-run Core server. No parser or model is bundled with the connector.
 Ordinary Chat and cloud code sessions do not satisfy these targets. Grok remains future scope.
@@ -80,19 +80,21 @@ A receipt is a small record identifying the extracted document and its available
 Provenance is the information connecting that evidence to the exact source bytes and physical page.
 Neither is an LLM-generated summary.
 
-Revision 27 removes the distributed parsing engine while preserving Agent Tools features.
+Revision 27 removed the distributed parsing engine. Revision 28 removes connector credential support.
 The plugin embeds a small native connector, with no parser libraries, models, OCR executable or runtime download.
 The operator configures the Core server's backend policy independently; Core retains its full adapter catalog.
-Existing server settings, credentials, storage choices and artifacts survive an upgrade.
+Existing server URLs, response limits, storage choices and artifacts survive an upgrade.
+The connector stores no credentials and sends no authentication. Legacy credential references are discarded on read.
+Existing Keychain items are neither accessed nor deleted. Core server authentication is unchanged.
 Absent or legacy local-mode settings require an explicit server save, with no silent localhost activation or parser fallback.
 The previous implementation is preserved by tag `bundled-docling-2.126.0-checkpoint`.
-Historical engine-specific criteria below remain records of that implementation; revision 27's server-only criteria govern current distribution.
+Historical engine-specific criteria below remain records of that implementation; revision 28's server-only criteria govern current distribution.
 
 Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 27 requires four independently tested server-backed client surfaces; managed v2 is post-launch and unbuilt.**
+**Review status: revision 28 requires four independently tested server-backed client surfaces; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -199,10 +201,10 @@ Submitted server processing can continue. Interrupted work has an unknown remote
 The source limit is 100 MiB in server mode; the default decoded response limit is 256 MiB.
 These transport limits do not cap bundled Docling processing or change complete-result delivery budgets.
 Non-loopback servers require verified HTTPS. Redirects, credential-bearing URLs, queries, and fragments are refused.
-Optional existing bearer credentials stay in Keychain, outside tool arguments, argv, and job records.
+Connections use only the URL. Servers requiring client authentication are outside this connector release.
 
 The source HTTP transport, private settings store, and native Settings window are implemented and tested offline.
-The Keychain wrapper is tested against a fake framework without accessing real credentials.
+Upgrade tests verify legacy destination URLs and limits survive without credential references.
 The launcher, selection consent, serialized uploads, and completed-download recovery are implemented.
 Offline tests exercise the actual pinned Core retention and MCP retrieval interfaces.
 Frozen runtime and owner-operated native feature acceptance remain separate release gates.
@@ -361,19 +363,19 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-34
   criterion: Bundled Docling remains the default; an explicitly configured operator-run Core destination requires native selection consent bound to its configuration revision, sends selected bytes through the existing parse API, preserves individual results, and never silently changes destinations.
 - id: AC-35
-  criterion: Server transport refuses redirects and invalid TLS, bounds uploads and decoded responses, rejects duplicate-key or nonfinite JSON, never retries parsing automatically, and reports cancellation or interrupted submission without claiming remote cancellation; credentials never enter model arguments or persisted job snapshots.
+  criterion: Server transport refuses redirects and invalid TLS, bounds uploads and decoded responses, rejects duplicate-key or nonfinite JSON, never retries parsing automatically, and reports cancellation or interrupted submission without claiming remote cancellation; authentication is never sent, no Keychain API is called, and no credential field enters model arguments or new persisted job snapshots.
 - id: AC-36
   criterion: Server responses retain exact source identity, normalized values, partial status, warnings and truthful provenance; structured-only results remain available without invented quotes, while frozen and native acceptance independently verify settings, consent, reconnect, cancellation and complete delivery.
 
 - id: AC-37
-  criterion: All four client cells pass independent exact-build native and clean-install acceptance. Claude Cowork, ChatGPT Work, local Claude Code, and Codex connect to an operator-run Core server without user-installed connector runtime prerequisites. Each cell proves localhost and valid remote HTTPS, consent, credentials, failure recovery and refusal without a configured server. Historical bundled workflows and protocol checks cannot substitute for missing cell evidence.
+  criterion: All four client cells pass independent exact-build native and clean-install acceptance. Claude Cowork, ChatGPT Work, local Claude Code, and Codex connect to an operator-run Core server without user-installed connector runtime prerequisites. Each cell proves localhost and valid remote HTTPS, consent, failure recovery and refusal without a configured server. Historical bundled workflows and protocol checks cannot substitute for missing cell evidence.
 
 - id: AC-38
-  criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, server URL, server credentials, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, credentials stay in Keychain, and cancelled or discarded edits leave saved values unchanged.
+  criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, server URL, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, no credentials are stored or sent, and cancelled or discarded edits leave saved values unchanged.
 - id: AC-41
-  criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. The archive embeds its verified parser-free connector with no model or runtime download. Tool discovery and Settings remain available before server setup. Missing, malformed or legacy local-mode settings refuse document work with setup guidance. Existing server settings, credentials, storage choices and documents remain intact. No parser or OCR executable is bundled or used as fallback. Native and clean-machine acceptance are independently verified.
+  criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. The archive embeds its verified parser-free connector with no model or runtime download. Tool discovery and Settings remain available before server setup. Missing, malformed or legacy local-mode settings refuse document work with setup guidance. Existing server URLs, limits, storage choices and documents remain intact. Legacy credential references are discarded without accessing Keychain. No parser or OCR executable is bundled or used as fallback. Native and clean-machine acceptance are independently verified.
 - id: AC-40
-  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Processing presents server URL, optional credentials, test, save and restore controls without a bundled-parser choice. Connection tests use green success and red failure feedback with descriptive text. Storage offers application storage, recommended .openreading and a chosen folder. Reopening preserves the saved choice and reports active, pending or blocked status with the reason. Abandoned launch profiles do not block moves; live connections and unfinished imports do.
+  criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Processing presents server URL, test, save and restore controls without a bundled-parser choice. Connection tests use green success and red failure feedback with descriptive text. Storage offers application storage, recommended .openreading and a chosen folder. Reopening preserves the saved choice and reports active, pending or blocked status with the reason. Abandoned launch profiles do not block moves; live connections and unfinished imports do.
 - id: AC-42
   criterion: After successful selection, the assistant reports the queued file count and offers Process or Add more. Process starts the queue or an explicit subset. Add more preserves the previous references and appends new selections, then reports the new total and waits again. It starts each item once, tracks every job, follows selection pagination and reports completed, failed and skipped counts. An absent analysis question does not block processing. Explicit selection-only requests, cancelled or empty selection and declined native server consent start no imports. Shared connection or authorization failures stop later server submissions without automatic retries of uncertain work.
 - id: AC-39

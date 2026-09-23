@@ -189,7 +189,6 @@ def _server_destination(metadata: dict) -> None:
         "_internal/runtime/server_imports.py",
         "_internal/runtime/server_selection.py",
         "_internal/runtime/server_transport.py",
-        "_internal/runtime/server_keychain.py",
         "_internal/runtime/destination_settings.py",
         "_internal/runtime/destination_ui.py",
         "_internal/runtime/settings_server.py",
@@ -443,7 +442,7 @@ echo "Plugin to upload in Claude: $package_dir/OpenReading-Claude.zip"
         "   with OpenReading and choose OpenReading-test.md. Ask for its reference and total.\n"
         "   Expected: OR-FRESH-001 and 19 items.\n\n"
         "Fresh setup backs up Claude's prior settings and default data partition. It does not delete them.\n"
-        "Other clients, custom data directories and Keychain items stay intact. The backup path is printed.\n"
+        "Other clients and custom data directories stay intact. The backup path is printed.\n"
         "The installed runtime lives under ~/Library/Application Support/OpenReading/agent-tools/runtime-cache/.\n"
         "Claude manages the uploaded plugin. No user-installed Python, model download or server is required.\n"
         "After setup succeeds, the downloaded setup folder is not needed by the running plugin.\n"

@@ -1,7 +1,6 @@
 """Let the native user save a destination or test metadata without sending documents.
 
-Blank credentials preserve an existing key only for the identical normalized URL.
-Stopping token use selects anonymous access without deleting pending jobs' Keychain items.
+Connections use only the configured URL, without credential storage or authentication.
 Connection checks never save settings. The native user can lower the response download budget.
 No model argument supplies settings. Saving does not grant a document or start a server.
 """
@@ -24,8 +23,8 @@ from runtime.server_transport import ServerDestination, check_connection
 
 
 class Controller:
-    def __init__(self, client: str, *, home: Path | None = None, keychain=None):
-        self.client, self.home, self.keychain = client, home, keychain
+    def __init__(self, client: str, *, home: Path | None = None):
+        self.client, self.home = client, home
 
     def storage_root(self):
         from runtime.storage_settings import data_root
@@ -82,7 +81,7 @@ class Controller:
             raise ValueError("Maximum downloaded response must be a positive whole number of MiB.")
         return int(response_mib) * 1024 * 1024
 
-    def save(self, mode, url, token, clear, *, response_mib=None):
+    def save(self, mode, url, *, response_mib=None):
         maximum = (
             self.download_bytes(response_mib)
             if response_mib is not None
@@ -95,30 +94,12 @@ class Controller:
             mode,
             base_url=url,
             response_bytes=maximum,
-            token="" if clear else token or None,
             home=self.home,
-            keychain=self.keychain,
         )
 
-    def check(self, url, token, clear):
+    def check(self, url):
         destination = ServerDestination(url, "settings-preview")
-        if clear:
-            token = None
-        elif not token:
-            token = None
-            current = self.current()
-            if (
-                current.destination is not None
-                and current.destination.base_url == destination.base_url
-                and current.credential_ref
-            ):
-                keychain = self.keychain
-                if keychain is None:
-                    from runtime.server_keychain import ServerKeychain
-
-                    keychain = ServerKeychain()
-                token = keychain.get(current.credential_ref)
-        return asyncio.run(check_connection(destination, token=token))
+        return asyncio.run(check_connection(destination))
 
 
 class SettingsWindow:
@@ -154,8 +135,6 @@ class SettingsWindow:
         self.url = tk.StringVar(
             value=current.destination.base_url if current.destination else "http://127.0.0.1:8787"
         )
-        self.token = tk.StringVar(value="")
-        self.clear = tk.BooleanVar(value=False)
         ttk.Label(
             frame,
             text="Connect to OpenReading Core running on this Mac or a remote server.",
@@ -163,22 +142,6 @@ class SettingsWindow:
         ).pack(anchor="w", pady=(12, 16))
         ttk.Label(frame, text="Server URL").pack(anchor="w")
         ttk.Entry(frame, textvariable=self.url).pack(fill="x", pady=(4, 12))
-        ttk.Label(frame, text="Optional server bearer token (stored in macOS Keychain)").pack(
-            anchor="w"
-        )
-        ttk.Entry(frame, textvariable=self.token, show="•").pack(fill="x", pady=(4, 4))
-        ttk.Label(frame, text="Leave blank to keep the saved token for the same URL.").pack(
-            anchor="w"
-        )
-        ttk.Checkbutton(frame, text="Stop using saved token", variable=self.clear).pack(
-            anchor="w", pady=(4, 12)
-        )
-        ttk.Label(
-            frame,
-            text="Old tokens remain in Keychain for pending jobs. Remove them in Keychain Access after those jobs finish.",
-            wraplength=570,
-            justify="left",
-        ).pack(anchor="w")
         ttk.Label(
             frame,
             text="Selected documents are sent to this server when you choose Process. The server may use external providers. Start and configure your server separately. Connection checks send no document.",
@@ -402,24 +365,18 @@ class SettingsWindow:
             self.controller.save(
                 self.mode.get(),
                 self.url.get(),
-                self.token.get(),
-                self.clear.get(),
             )
-            self.token.set("")
-            self.clear.set(False)
             self.show_status(
                 "Saved. Quit and reopen your app, then open the OpenReading file picker. Existing jobs keep their original destination."
             )
         except ValueError as error:
             self.show_status(str(error))
         except Exception:
-            self.show_status("Cannot save settings. Check local permissions and Keychain access.")
+            self.show_status("Cannot save settings. Check local permissions and free space.")
 
     def restore_destination(self):
         self.mode.set("server")
         self.url.set("http://127.0.0.1:8787")
-        self.token.set("")
-        self.clear.set(True)
         self.update_check_button()
         self.show_status("Processing defaults restored. Choose Save destination to apply them.")
 
@@ -429,10 +386,8 @@ class SettingsWindow:
         self.save_button.configure(state="disabled")
         self.check_button.configure(state="disabled")
         self.show_status("Checking server metadata. No document is sent…")
-        self.checked_values = (self.url.get(), self.token.get(), self.clear.get())
-        self.future = self.executor.submit(
-            self.controller.check, self.url.get(), self.token.get(), self.clear.get()
-        )
+        self.checked_values = self.url.get()
+        self.future = self.executor.submit(self.controller.check, self.url.get())
         self.poll()
 
     def poll(self):
@@ -449,12 +404,13 @@ class SettingsWindow:
             self.show_status(str(error), outcome="error")
         except Exception:
             self.show_status(
-                "The connection check failed. Check the URL and Keychain access.", outcome="error"
+                "The connection check failed. Check the URL and server availability.",
+                outcome="error",
             )
         self.future = None
         self.save_button.configure(state="normal")
         self.update_check_button()
-        if self.checked_values != (self.url.get(), self.token.get(), self.clear.get()):
+        if self.checked_values != self.url.get():
             self.show_status("Server settings changed during the check. Test the connection again.")
         if self.closing:
             self.close()

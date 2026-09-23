@@ -3,7 +3,7 @@
 The native plugin contains this frozen stdlib-only launcher and verified local/server catalogs.
 Both connectors share an exclusive download lock and an immutable Application Support cache.
 HTTPS archive and worker digests bind the payload before extraction and execution.
-Runtime installation preserves all user settings, documents and Keychain entries.
+Runtime installation preserves all user settings and documents.
 No document reaches the download endpoint. Warm launches require no network.
 An early tool call reports setup progress; retrying after setup forwards to the real worker.
 The proxy preserves asynchronous worker replies and cancellation notifications after setup.

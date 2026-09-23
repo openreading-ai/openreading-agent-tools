@@ -3,7 +3,7 @@
 The setup shell copies the bundle out of Downloads before running this module. Runtime
 versions are immutable and keyed by executable hash. Claude owns plugin registration.
 Fresh setup moves only Claude's control directory and default data partition into a
-private backup. Custom data directories, other clients and Keychain items remain intact.
+private backup. Custom data directories and other clients remain intact.
 Active workers, locked connections and unfinished jobs refuse setup. Failed backup moves
 roll back in reverse order; an already installed, verified runtime can remain for retry.
 No interpreter installation, model download, host-config edit or permission change occurs.

@@ -8,7 +8,7 @@ when previous connections and import supervisors have stopped. Environment varia
 not select settings. The OS home directory locates the private control record.
 
 Advanced limits live separately in CLIENT/advanced.json. Saving those limits must not
-request a storage move or apply unsaved server credentials. When absent, legacy limits
+request a storage move or apply an unsaved server destination. When absent, legacy limits
 remain effective; new installations allow one million inline bytes and 256 MiB downloads.
 """
 

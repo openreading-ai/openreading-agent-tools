@@ -4,7 +4,7 @@ The plugin carries this runtime directly. Startup never downloads code or model 
 Legacy local-mode preferences remain readable but require a native server save before use.
 Settings stays available when document configuration fails. The proxy exposes the frozen
 nine-tool catalog before setup and refuses new selections/imports after a destination save.
-Retained data and Keychain references use the existing client partitions unchanged.
+Retained data and server URLs use the existing client partitions unchanged.
 The server owns parsing; this entry point has no local parser dispatch.
 """
 
@@ -58,7 +58,7 @@ class EmbeddedManager:
     def __init__(self, config, home, root, client, mode):
         self.config, self.home, self.installed_root = config, home, root
         self.client, self.mode = client, mode
-        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.19"}
+        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.20"}
         self.root = None
         self.status = "OpenReading is ready."
 

@@ -41,3 +41,10 @@ class ClientBoundaryTests(unittest.TestCase):
             for relative in ("_internal/openreading/future.pyc", "_internal/openreading/README.md"):
                 with self.assertRaisesRegex(ValueError, "Unexpected Core"):
                     validate_client_files(root, {relative: {}})
+
+    def test_removed_keychain_module_cannot_ship(self):
+        for suffix in ("py", "pyc"):
+            with self.subTest(suffix=suffix), self.assertRaises(ValueError):
+                validate_client_files(
+                    Path("/unused"), {f"_internal/runtime/server_keychain.{suffix}": {}}
+                )

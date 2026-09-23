@@ -1,6 +1,6 @@
 [project]
 name = "openreading-server-client"
-version = "0.2.0a19"
+version = "0.2.0a20"
 requires-python = "==3.11.15"
 dependencies = [
   "openreading @ git+https://github.com/openreading-ai/openreading-core.git@ce65c565636b71221f23be7021028bbff9cf317f#subdirectory=packages/agent-client",

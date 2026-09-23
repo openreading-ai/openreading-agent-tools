@@ -28,7 +28,6 @@ class ChatGPTPackageTests(unittest.TestCase):
             "_internal/runtime/server_imports.py",
             "_internal/runtime/server_selection.py",
             "_internal/runtime/server_transport.py",
-            "_internal/runtime/server_keychain.py",
             "_internal/runtime/destination_settings.py",
             "_internal/runtime/destination_ui.py",
             "_internal/runtime/settings_server.py",

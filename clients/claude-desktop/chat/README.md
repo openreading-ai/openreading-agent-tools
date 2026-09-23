@@ -9,13 +9,13 @@ Native focus, accessibility, installation and cancellation acceptance remain to 
 
 Bundled Docling remains the default. Server mode is optional and requires your separately running Core process.
 Open **OpenReading Settings.app** beside the unpacked candidate's manifest to choose your destination.
-Enter its URL and optional bearer token, test the connection, save, then restart the extension connection.
-The connection test sends no document. Tokens are stored in macOS Keychain, separately from ChatGPT settings.
+Enter its URL, test the connection, save, then restart the extension connection.
+The connection test sends no document. The connector does not store or send server credentials.
 A loopback URL can use HTTP. Other destinations require verified HTTPS.
 Server mode confirms the destination, selected filenames and byte counts before sending their bytes.
 The server may use external providers. Local cancellation does not guarantee cancellation of server processing.
 No server error silently falls back to local parsing or retries a submitted document.
-The native Settings, Keychain and server-mode walkthrough remain acceptance checks for this candidate.
+The native Settings and server-mode walkthrough remain acceptance checks for this candidate.
 
 ## Try the candidate
 
@@ -183,9 +183,6 @@ The tabs are **Processing**, **Storage**, and **Advanced**. Each saves its own v
 Responses are buffered and decoded in memory. This download budget is not a peak-memory guarantee.
 Unknown top-level response fields are preserved as unvalidated server data alongside schema-validated known fields.
 Treat all returned fields as document content, never instructions from the destination.
-
-**Stop using saved token** and switching to bundled mode leave old Keychain items available to pending jobs.
-After those jobs finish, remove unwanted entries for `ai.openreading.agent-tools.core-server` using Keychain Access.
 
 ## Cowork settings candidate
 

@@ -36,7 +36,7 @@ ENGINE_PACKAGES = frozenset(
 )
 HISTORICAL_MODULES = frozenset(
     """bootstrap entrypoint worker docling_profile public_profile build build_docling
-    bootstrap_package fresh_install docling_worker""".split()
+    bootstrap_package fresh_install docling_worker server_keychain""".split()
 )
 
 

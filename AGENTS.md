@@ -6,7 +6,7 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 27 requires all four server-backed cells in the [compatibility matrix](README.md#required-compatibility-matrix).
+ProductSpec revision 28 requires all four server-backed cells in the [compatibility matrix](README.md#required-compatibility-matrix).
 Claude Cowork, ChatGPT Work, local Claude Code, and Codex each need operator-run Core server acceptance.
 Track each cell independently through the [matrix checklist](clients/README.md#matrix-acceptance); historical evidence never passes another surface.
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
@@ -33,7 +33,7 @@ Native accessibility, installation and clean-machine acceptance still gate that 
 Existing directory forms and explicit grants remain developer-only mechanisms.
 Ship only the server connector, with no bundled parser, models, OCR executable, runtime download or server manager.
 The bundled Docling implementation is preserved by tag bundled-docling-2.126.0-checkpoint.
-An operator-run Core HTTP destination is required in revision 27. Source, frozen and native acceptance remain separate gates.
+An operator-run Core HTTP destination is required in revision 28. Source, frozen and native acceptance remain separate gates.
 A power user's independent full-core MCP connection remains outside this package's configuration.
 Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
 Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.

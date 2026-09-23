@@ -35,13 +35,12 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(b'filename="report.md"', payload)
             self.assertNotIn(str(self.source.parent).encode(), payload)
             self.assertEqual(request.url.path, "/prefix/v1/parse")
-            self.assertEqual(request.headers["Authorization"], "Bearer temporary-test-token")
+            self.assertNotIn("authorization", request.headers)
             return httpx.Response(200, json=self.response)
 
         result = await parse_document(
             self.destination,
             self.source,
-            token="temporary-test-token",
             transport=httpx.MockTransport(handle),
         )
         self.assertEqual(result.response, self.response)
@@ -197,14 +196,6 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
                 )
         self.assertTrue(caught.exception.submitted)
         self.assertFalse(caught.exception.shared_failure)
-
-    async def test_invalid_credentials_never_start_a_request(self):
-        for token in ("", "line\nsecret", "has space", "界"):
-            with (
-                self.subTest(token=token),
-                self.assertRaisesRegex(DestinationError, "credential"),
-            ):
-                await parse_document(self.destination, self.source, token=token)
 
     async def test_write_timeout_does_not_retry(self):
         calls = []

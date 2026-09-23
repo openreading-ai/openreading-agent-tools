@@ -1,5 +1,11 @@
 # Changelog
 
+## OpenReading alpha.20
+
+- Remove bearer-token settings, Keychain integration and authenticated requests from Agent Tools.
+- Preserve saved server URLs and limits when reading legacy settings, and drop credential references from new saves.
+- Keep Core server authentication unchanged. This connector supports URL-only connections.
+
 ## ChatGPT Work server-only development package
 
 - Place the ChatGPT upload plugin at the ZIP root, without its development marketplace wrapper.

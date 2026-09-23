@@ -67,10 +67,10 @@ class SelectionStopped(ArtifactError):
 
 
 class ServerArtifactService(RetainedService):
-    def __init__(self, config, *, settings, selection, identity, keychain=None, transport=None):
+    def __init__(self, config, *, settings, selection, identity, transport=None):
         super().__init__(config, identity=identity)
         self.settings, self.selection = settings, selection
-        self.keychain, self.transport = keychain, transport
+        self.transport = transport
         self.transfers = selection.root.parent / "server/transfers"
         with directory(self.transfers, create=True) as opened:
             os.fchmod(opened, 0o700)
@@ -140,14 +140,6 @@ class ServerArtifactService(RetainedService):
                         raise SelectionStopped()
                     # A process death from this point stops the batch, including queued siblings.
                     write_private(batch_path, {"reference": path})
-                    token = None
-                    if self.settings.credential_ref:
-                        keychain = self.keychain
-                        if keychain is None:
-                            from runtime.server_keychain import ServerKeychain
-
-                            keychain = ServerKeychain()
-                        token = keychain.get(self.settings.credential_ref)
                     with self.store.source(path) as fd:
                         digest = hashlib.sha256()
                         while chunk := os.read(fd, 65536):
@@ -162,7 +154,6 @@ class ServerArtifactService(RetainedService):
                                 parse_document(
                                     self.settings.destination,
                                     Path(path),
-                                    token=token,
                                     cancelled=cancelled,
                                     progress=progress,
                                     transport=self.transport,

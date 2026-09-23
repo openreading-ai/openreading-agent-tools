@@ -40,8 +40,9 @@ from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.19"
+VERSION = "0.2.0-alpha.20"
 EXCLUDES = [
+    "runtime.server_keychain",
     "runtime.bootstrap",
     "runtime.entrypoint",
     "runtime.docling_profile",
@@ -262,7 +263,7 @@ def package(runtime, output, *, client="claude-desktop"):
         "Localhost may use HTTP. Remote servers require HTTPS. Start and configure Core separately.\n"
         "Quit and reopen Claude, start a new task, and ask to open the OpenReading file picker.\n"
         "Selected files are queued. Choose Process or Add more. Processing uploads the selected files to your configured server.\n"
-        "Existing server settings, credentials and retained documents are preserved. A previous bundled-parser selection requires server setup.\n"
+        "Existing server URLs, limits and retained documents are preserved. A previous bundled-parser selection requires server setup.\n"
         "Storage and Advanced retain their own Save and Restore defaults controls. Restore processing defaults stages the localhost URL; Save is required.\n"
         "This is an unsigned development candidate. Clean-machine and full native acceptance remain pending.\n"
     )

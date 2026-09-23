@@ -55,7 +55,7 @@ def create_server(client):
         return [
             types.Tool(
                 name="openreading_open_settings",
-                description="Open the native OpenReading Settings window for storage, processing destination, credentials and delivery preferences. The user reviews and saves values locally.",
+                description="Open the native OpenReading Settings window for storage, processing destination and delivery preferences. The user reviews and saves values locally.",
                 inputSchema={"type": "object", "properties": {}, "additionalProperties": False},
                 annotations=types.ToolAnnotations(
                     readOnlyHint=False, destructiveHint=False, openWorldHint=False
