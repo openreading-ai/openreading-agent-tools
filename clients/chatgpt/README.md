@@ -1,8 +1,11 @@
 # OpenReading for ChatGPT Work
 
 Select local documents and process them through your separately running OpenReading Core server.
-This Apple Silicon plugin includes the same alpha.19 connector worker tested with Claude and Codex.
+This Apple Silicon alpha.21 preview includes the same connector worker as the other three current packages.
 It includes no parser, model download, Core server, adapter catalog or server manager.
+
+Core setup is documented in the [separate server guide](../full-core/README.md#run-core-for-the-connector).
+Only macOS Apple Silicon binaries are available for this preview. Other platforms remain pending.
 
 ## Install as a plugin
 
@@ -10,11 +13,11 @@ Open ChatGPT's **Plugins** view and its **New Plugin** upload dialog.
 Choose `OpenReading-ChatGPT-Plugin.zip`, then select **Add plugin**.
 Upload the ZIP directly. No extraction, Terminal command or marketplace registration is required by this workflow.
 The archive places `.codex-plugin/plugin.json`, `.mcp.json`, skills and runtime at the plugin root.
-The uploader accepts archives up to 100 MB. This build is approximately 21 MB.
+The uploader accepts archives up to 100 MB. The build receipt records its exact size.
 
 The earlier marketplace-wrapped ZIP was rejected by the uploader.
 This corrected archive's structure and extracted connectors are checked locally.
-Acceptance by the upload service and tool availability in a Work conversation remain manual checks.
+Acceptance by the upload service and tool availability remain exact-build manual checks.
 
 Start a new **Work** conversation on this Mac. Enable this plugin and ask to open its OpenReading settings.
 Enter your Core URL, test the connection and save. Start Core separately.

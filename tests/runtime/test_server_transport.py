@@ -78,6 +78,7 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             b'{"a":NaN}',
             b'{"a":Infinity}',
             b'{"a":1e999}',
+            b'{"a":"\\ud800"}',
             b"[]",
             b"not json",
             b'{"a":"\xff"}',
@@ -120,8 +121,10 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             calls.append(request)
             raise httpx.ConnectError("secret transport message")
 
-        with self.assertRaisesRegex(DestinationError, "connection failed"):
+        with self.assertRaisesRegex(DestinationError, "connection failed") as caught:
             await parse_document(self.destination, self.source, transport=httpx.MockTransport(fail))
+        self.assertFalse(caught.exception.submitted)
+        self.assertNotIn("may continue", str(caught.exception))
         self.assertEqual(len(calls), 1)
         cancelled = threading.Event()
         cancelled.set()
@@ -256,6 +259,36 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             "https://example.invalid/core",
         ):
             self.assertEqual(ServerDestination(url, "r").base_url, url)
+
+    async def test_cancellation_after_complete_body_preserves_the_response(self):
+        from unittest.mock import patch
+
+        from runtime.server_transport import _decode
+
+        cancelled = threading.Event()
+
+        class CompleteThenCancel(httpx.AsyncByteStream):
+            async def __aiter__(self):
+                yield b'{"status":{"state":"succeeded"},"document":{"text":"complete"}}'
+
+            async def aclose(self):
+                await asyncio.sleep(0.1)
+
+        def decode(payload):
+            value = _decode(payload)
+            cancelled.set()
+            return value
+
+        with patch("runtime.server_transport._decode", side_effect=decode):
+            result = await parse_document(
+                self.destination,
+                self.source,
+                cancelled=cancelled,
+                transport=httpx.MockTransport(
+                    lambda request: httpx.Response(200, stream=CompleteThenCancel())
+                ),
+            )
+        self.assertEqual(result.response["document"]["text"], "complete")
 
 
 if __name__ == "__main__":

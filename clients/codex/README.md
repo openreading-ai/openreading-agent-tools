@@ -4,13 +4,16 @@ Select documents and use retained results through your separately running OpenRe
 This Apple Silicon development package includes the connector runtime, file picker, settings and document tools.
 It includes no parser, model download, Core server, adapter catalog or server manager.
 
+Core setup is documented in the [separate server guide](../full-core/README.md#run-core-for-the-connector).
+Only macOS Apple Silicon binaries are available for this preview. Other platforms remain pending.
+
 ## Install and test
 
-Extract `OpenReading-Codex-Plugin.zip` into a permanent folder, such as `~/Downloads/OpenReading-Codex-alpha19`.
+Extract `OpenReading-Codex-Plugin.zip` into a permanent folder, such as `~/Downloads/OpenReading-Codex-alpha21`.
 Install through Codex's native marketplace commands:
 
 ```sh
-codex plugin marketplace add "$HOME/Downloads/OpenReading-Codex-alpha19"
+codex plugin marketplace add "$HOME/Downloads/OpenReading-Codex-alpha21"
 codex plugin add openreading@openreading
 ```
 
@@ -41,7 +44,7 @@ That command removes the installed plugin, not your OpenReading settings, select
 
 ## Build and verification
 
-Reuse the verified alpha.19 server-only runtime:
+Reuse the verified server-only runtime matching the package version:
 
 ```sh
 python -m runtime.build_server --runtime /path/to/verified-runtime --client codex --output /path/to/new-build
@@ -51,7 +54,7 @@ The output contains `package/.agents/plugins/marketplace.json`, `package/plugins
 `package/OpenReading-Codex-Plugin.zip` and `package/build.json` with archive and worker hashes.
 The ZIP contains the complete marketplace. No manual MCP configuration or separately installed Python is required.
 
-Codex CLI 0.155.1 installs this package through its native marketplace flow in an isolated configuration.
+Historical alpha.19 evidence: Codex CLI 0.155.1 installs this package through its native marketplace flow in an isolated configuration.
 Its app server discovers both skills, nine document tools and the settings opener from the installed cache.
 The installed worker passes synthetic localhost processing, retained retrieval, export hashing and job recovery checks.
 Stopping Core fails. The old selection stays refused after Core restarts, and a new selection succeeds.

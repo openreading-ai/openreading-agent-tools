@@ -1,5 +1,6 @@
 """Client packages preserve one verified runtime and never overwrite prior builds."""
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,6 +37,21 @@ class PackagingTests(unittest.TestCase):
                         self.assertFalse((path / "historical").exists())
                     if client != "claude-desktop":
                         self.assertTrue((path / "skills/openreading/SKILL.md").is_file())
+                        config = json.loads(
+                            (
+                                path / (".mcp.json" if client == "claude-code" else "mcp.json")
+                            ).read_text()
+                        )
+                        args = config["mcpServers"]["openreading"]["args"]
+                        self.assertEqual(
+                            args,
+                            ["--client", client]
+                            + (
+                                ["--input-root", "${user_config.input_root}"]
+                                if client == "claude-code"
+                                else []
+                            ),
+                        )
                 with self.assertRaises(ValueError):
                     package_clients(runtime, root / "packages")
 

@@ -1,4 +1,14 @@
-# Native runtime
+# Current server-only connector
+
+Build current Apple Silicon packages with [runtime/server_client](server_client/README.md) and `runtime.build_server`.
+That environment installs only Core's client profile. It never freezes the full engine or a local parser.
+The builder accepts `claude-desktop`, `claude-code`, `chatgpt` and `codex`.
+Do not use `runtime.build`, `runtime.build_docling` or `runtime.package` for the current preview.
+
+The sections below preserve historical developer mechanisms and their evidence.
+Their dependency pins and artifacts do not define the current release.
+
+## Historical native runtime
 
 **Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
 The [revision 2 design](../design/local-document-proof.md) targets a Docling distribution.

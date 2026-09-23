@@ -82,7 +82,12 @@ def selected_digest(store, reference):
 
 
 def check_current(store, settings):
-    current = read_destination(store.client, home=store.home)
+    try:
+        current = read_destination(store.client, home=store.home)
+    except ValueError:
+        raise SelectionError(
+            "The destination settings are invalid. Restart the connection and select documents again."
+        ) from None
     # Advanced limits override the session budget without changing destination consent.
     if (
         settings.mode != "server"
@@ -213,9 +218,14 @@ class ServerSelectionProvider(LocalSelectionProvider):
             if result is not None and not keep:
                 with anyio.CancelScope(shield=True):
                     for reference in result["references"]:
-                        with directory(self.store.approvals) as opened:
-                            try:
-                                os.unlink(approval_name(reference), dir_fd=opened)
-                            except FileNotFoundError:
-                                pass
+                        try:
+                            with directory(self.store.approvals) as opened:
+                                try:
+                                    os.unlink(approval_name(reference), dir_fd=opened)
+                                except FileNotFoundError:
+                                    pass
+                        except (OSError, ArtifactError):
+                            # The safe directory opener wraps filesystem refusals in ArtifactError.
+                            # Approval cleanup must not prevent revoking any selected copy.
+                            pass
                         await remove_copy(self.store, reference)

@@ -57,7 +57,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn("runtime/openreading-worker", names)
                 manifest = json.loads(zipped.read(".claude-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "openreading")
-                self.assertEqual(manifest["version"], "0.2.0-alpha.20")
+                self.assertEqual(manifest["version"], "0.2.0-alpha.21")
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
@@ -171,6 +171,13 @@ class ServerBuildTests(unittest.TestCase):
             ):
                 module.package(runtime, root / "package", client="claude-code")
             plugin = root / "package/plugin"
+            with zipfile.ZipFile(
+                root / "package/OpenReading-Claude-Code-Local-Marketplace.zip"
+            ) as local:
+                self.assertIn(".claude-plugin/marketplace.json", local.namelist())
+                self.assertIn("plugin/.claude-plugin/plugin.json", local.namelist())
+                self.assertIn("plugin/.mcp.json", local.namelist())
+                self.assertIn("plugin/runtime/openreading-worker", local.namelist())
             marketplace = json.loads((root / "package/.claude-plugin/marketplace.json").read_text())
             entry = marketplace["plugins"][0]
             self.assertEqual((root / "package" / entry["source"]).resolve(), plugin.resolve())

@@ -45,7 +45,7 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
         if client != "claude-desktop":
             target = target / "plugins" / "openreading-local-proof"
         shutil.copytree(
-            REPOSITORY / "clients" / client / ("historical" if client == "claude-code" else ""),
+            REPOSITORY / "clients" / client / ("historical" if client != "claude-desktop" else ""),
             target,
             ignore=shutil.ignore_patterns("docling", "historical", "selection", "chat"),
         )

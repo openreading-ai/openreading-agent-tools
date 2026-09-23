@@ -34,7 +34,7 @@ The first platform remains macOS on Apple Silicon.
 Revision 28 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
 Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
 Each surface connects to a required operator-run Core server. No parser or model is bundled with the connector.
-Ordinary Chat and cloud code sessions do not satisfy these targets. Grok remains future scope.
+Ordinary Chat and cloud code sessions do not satisfy these targets. No other client is claimed.
 A supported client means one recorded application version, execution mode, and connection path that passes the functional checks.
 Support for one desktop mode does not establish support for its web, mobile, or remotely executed modes.
 
@@ -276,6 +276,12 @@ Removing the documented installation data directory deletes retained artifacts.
 Uninstall behavior is described per host instead of assumed to be identical.
 
 ## Acceptance Criteria
+
+Revision 28's server-only boundary supersedes the earlier bundled-parser criteria below.
+AC-4, AC-21, AC-22 and AC-31 retain their historical identifiers for old engine evidence only.
+Local-model, OCR-toggle and runtime-provisioning clauses in older criteria do not authorize those features in current packages.
+AC-34's historical local default is replaced by the required server in AC-37 and AC-41.
+Current artifacts require their own exact-build checks. Historical passes never satisfy a new package's native acceptance.
 
 The [implementation plan](../../design/implementation-plan.md) maps revision 17 work to these criteria.
 Revision 4 narrows AC-1 to Claude Desktop and adds AC-26 for the conditional ChatGPT target without renumbering earlier criteria.

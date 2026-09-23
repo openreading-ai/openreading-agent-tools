@@ -146,3 +146,33 @@ class ServerProfileTests(unittest.TestCase):
 
             with patch("openreading.artifacts.jobs.main", side_effect=run):
                 self.assertEqual(job_main(["synthetic"], self.metadata), 0)
+
+    def test_launcher_returns_interrupt_exit_code(self):
+        from runtime.server_profile import launch
+
+        args = SimpleNamespace(client="chatgpt", document_response_bytes=1_000_000)
+        with patch(
+            "openreading.mcp_server.session.serve", AsyncMock(side_effect=KeyboardInterrupt)
+        ):
+            self.assertEqual(launch(args, self.metadata, self.settings), 130)
+
+    def test_launcher_reports_unsafe_configuration_without_traceback(self):
+        import contextlib
+        import io
+
+        from runtime.server_profile import config_for, launch
+
+        _, selection = config_for("chatgpt", self.settings)
+        saved = selection.approvals.with_name("original-approvals")
+        selection.approvals.rename(saved)
+        selection.approvals.symlink_to(saved, target_is_directory=True)
+        args = SimpleNamespace(client="chatgpt", document_response_bytes=1_000_000)
+        stderr = io.StringIO()
+        with (
+            contextlib.redirect_stderr(stderr),
+            patch("openreading.mcp_server.session.serve", AsyncMock()) as serve,
+        ):
+            self.assertEqual(launch(args, self.metadata, self.settings), 2)
+        serve.assert_not_called()
+        self.assertTrue(stderr.getvalue().strip())
+        self.assertNotIn("Traceback", stderr.getvalue())

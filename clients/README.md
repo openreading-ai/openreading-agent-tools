@@ -2,7 +2,7 @@
 
 Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the server connector. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
-Revision 27 ships a server connector with separately tested client connections.
+Revision 28 requires a server connector with separately tested client connections.
 Bundled Docling evidence and routes below are historical and preserved by tag bundled-docling-2.126.0-checkpoint.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
@@ -117,7 +117,7 @@ Each of the four server-backed cells requires its own recorded acceptance result
 1. Record the application version, exact surface, OS/architecture, package hash, runtime hash, and Core commit.
 2. Install through the supported host flow from a clean client configuration. Preserve existing user data before resetting it.
    Verify the package on a machine without separately installed Python, Node, uv, or other runtime prerequisites.
-   Automatic provisioning may be part of the package flow; its supported host behavior needs independent proof.
+   The embedded connector must start without provisioning or downloading another runtime.
 3. Verify native startup and all nine current tools. Select synthetic files and a folder through OpenReading, including selection cancellation.
 4. Import, retrieve complete content, search, read, and answer with exact evidence. Check OCR, pageless content, and oversized export access.
 5. Exercise background progress, disconnect/reconnect, discovery, explicit cancellation, and reuse without repeating processing.

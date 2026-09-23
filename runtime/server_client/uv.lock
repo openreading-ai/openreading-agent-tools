@@ -249,7 +249,7 @@ wheels = [
 [[package]]
 name = "openreading"
 version = "0.3.0"
-source = { git = "https://github.com/openreading-ai/openreading-core.git?subdirectory=packages%2Fagent-client&rev=ce65c565636b71221f23be7021028bbff9cf317f#ce65c565636b71221f23be7021028bbff9cf317f" }
+source = { git = "https://github.com/openreading-ai/openreading-core.git?subdirectory=packages%2Fagent-client&rev=29fa166b9d34791bf8cfa87dec03aa1e48603621#29fa166b9d34791bf8cfa87dec03aa1e48603621" }
 dependencies = [
     { name = "jsonschema" },
     { name = "mcp" },
@@ -259,7 +259,7 @@ dependencies = [
 
 [[package]]
 name = "openreading-server-client"
-version = "0.2.0a20"
+version = "0.2.0a21"
 source = { virtual = "." }
 dependencies = [
     { name = "httpx" },
@@ -277,7 +277,7 @@ build = [
 requires-dist = [
     { name = "httpx", specifier = "==0.28.1" },
     { name = "mcp", specifier = "==1.30.0" },
-    { name = "openreading", git = "https://github.com/openreading-ai/openreading-core.git?subdirectory=packages%2Fagent-client&rev=ce65c565636b71221f23be7021028bbff9cf317f" },
+    { name = "openreading", git = "https://github.com/openreading-ai/openreading-core.git?subdirectory=packages%2Fagent-client&rev=29fa166b9d34791bf8cfa87dec03aa1e48603621" },
     { name = "psutil", specifier = "==7.2.2" },
 ]
 

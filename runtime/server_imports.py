@@ -4,7 +4,8 @@ A client-wide advisory lock serializes HTTP submissions across detached jobs and
 A durable attempt marker precedes HTTP. An interrupted attempt never uploads again.
 Batch markers stop siblings after local cancellation, shared failures or process death during a request.
 Select and confirm the remaining files again to recover. Submitted server work may continue.
-Document-specific HTTP rejections release the batch for its remaining selected documents.
+Document-specific HTTP rejections and unusable completed results release the remaining batch.
+Their attempt markers still prevent uploading the rejected document again without fresh consent.
 Complete responses are atomically saved before retention, outside Core's staging sweep.
 An explicit later import can retry local retention from that saved result without another POST.
 These private transfer files persist with the selected copies until the user removes them.
@@ -21,10 +22,12 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
 
+import jsonschema
 from openreading.artifacts.intake import directory
 from openreading.artifacts.limits import ArtifactError
 from openreading.artifacts.retained import RetainedService
 from openreading.artifacts.store import safe_read
+from pydantic import ValidationError
 
 from runtime.selection import SelectionError
 from runtime.server_selection import approval_name, read_approval, write_private
@@ -38,19 +41,6 @@ from runtime.server_transport import (
 )
 
 
-class ServerProcessingFailed(ArtifactError):
-    """Preserve the transport's fixed diagnostic without exposing server response bodies."""
-
-    def __init__(self, message):
-        super().__init__("parse_failed")
-        self.message = message
-
-    def envelope(self):
-        value = super().envelope()
-        value.error.message = self.message
-        return value
-
-
 class SelectionStopped(ArtifactError):
     """Explain refusal of a consumed selection without exposing transport diagnostics."""
 
@@ -62,6 +52,36 @@ class SelectionStopped(ArtifactError):
         value.error.message = (
             "This selection stopped after cancellation, a shared failure, or an interrupted attempt. "
             "Select and confirm the remaining files again. Submitted server processing may continue."
+        )
+        return value
+
+
+class ServerProcessingFailed(ArtifactError):
+    """Keep a fixed transport diagnostic visible through the artifact envelope."""
+
+    preserve_message = True
+
+    def __init__(self, message):
+        super().__init__("parse_failed")
+        self.message = message
+
+    def envelope(self):
+        value = super().envelope()
+        value.error.message = self.message
+        return value
+
+
+class ResponseRejected(ArtifactError):
+    """Require a new consent flow after Core returned an unusable completed result."""
+
+    def __init__(self):
+        super().__init__("access_denied")
+
+    def envelope(self):
+        value = super().envelope()
+        value.error.message = (
+            "The Core server returned an unusable document result. "
+            "Check the server response before selecting and confirming this document again."
         )
         return value
 
@@ -165,6 +185,19 @@ class ServerArtifactService(RetainedService):
                                 with directory(self.transfers) as parent:
                                     os.unlink(batch_path.name, dir_fd=parent)
                             raise
+                    from openreading.artifacts.retention import validate_external_response
+
+                    try:
+                        parsed = validate_external_response(result.response)
+                        if parsed.status.state.value not in {"succeeded", "partial"}:
+                            raise ValueError("Response has no usable extraction")
+                    except (TypeError, ValueError, jsonschema.ValidationError, ValidationError):
+                        # A completed document rejection does not revoke its siblings' consent.
+                        # Keep the attempt marker so this document cannot be submitted twice.
+                        with directory(self.transfers) as parent:
+                            os.unlink(batch_path.name, dir_fd=parent)
+                            os.fsync(parent)
+                        raise ResponseRejected() from None
                     write_private(response_path, asdict(result))
                     with directory(self.transfers) as parent:
                         os.unlink(batch_path.name, dir_fd=parent)

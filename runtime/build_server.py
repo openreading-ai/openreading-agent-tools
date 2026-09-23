@@ -8,6 +8,7 @@ Claude Code and Codex use the same verified worker with separate client namespac
 Claude Code's separate marketplace archive omits manifests because authenticated sources require
 strict=false. Claude Code 2.1.278 rejects even identity-only plugin.json files in that mode.
 The marketplace declares the skills and MCP connectors; Desktop ZIPs retain their manifests.
+The local marketplace ZIP retains manifests and requires no authenticated release download.
 Codex and ChatGPT Work package two skills and two STDIO connectors.
 ChatGPT's upload ZIP places the plugin at its root. Codex's ZIP contains a marketplace.
 ChatGPT uses a separate plugin identity and tool-server names to avoid replacing Codex.
@@ -40,7 +41,7 @@ from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.20"
+VERSION = "0.2.0-alpha.21"
 EXCLUDES = [
     "runtime.server_keychain",
     "runtime.bootstrap",
@@ -334,6 +335,12 @@ def package(runtime, output, *, client="claude-desktop"):
         raise ValueError(f"Plugin exceeds the {app_name} upload limit.")
     marketplace_metadata = {}
     if client == "claude-code":
+        local_archive = output / "OpenReading-Claude-Code-Local-Marketplace.zip"
+        with zipfile.ZipFile(local_archive, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.write(marketplace, marketplace.relative_to(output))
+            for path in sorted(plugin.rglob("*")):
+                if path.is_file():
+                    archive.write(path, path.relative_to(output))
         marketplace_archive = output / "OpenReading-Claude-Code-Marketplace.zip"
         with zipfile.ZipFile(marketplace_archive, "w", zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(plugin.rglob("*")):
@@ -343,7 +350,11 @@ def package(runtime, output, *, client="claude-desktop"):
                     ".mcp.json",
                 }:
                     archive.write(path, relative)
-        marketplace_metadata = {"marketplace_sha256": sha256(marketplace_archive)}
+        marketplace_metadata = {
+            "marketplace_sha256": sha256(marketplace_archive),
+            "local_marketplace_sha256": sha256(local_archive),
+            "local_marketplace_bytes": local_archive.stat().st_size,
+        }
     (output / "build.json").write_text(
         json.dumps(
             {

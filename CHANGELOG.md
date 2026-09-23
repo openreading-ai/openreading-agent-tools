@@ -1,5 +1,16 @@
 # Changelog
 
+## OpenReading alpha.21 preview
+
+- Reconcile the URL-only, parser-free connector with the reviewed server reliability fixes.
+- Pin current client and test environments to Core review commit `29fa166b9d34791bf8cfa87dec03aa1e48603621`.
+  That commit includes current Core main and its canonical client-only build profile. Historical engine pins remain separate.
+- Preserve HTTP diagnostics, completed downloads and cached retention recovery without duplicate uploads.
+- Reject unusable responses before caching while releasing the remaining selected documents.
+- Restore launch exit handling, corrupt-settings refusal and snapshot cleanup safeguards.
+- Package a complete local Claude Code marketplace alongside the other three client forms.
+- Clarify separate Core setup and Apple Silicon-only preview status. No release approval or native acceptance is implied.
+
 ## OpenReading alpha.20
 
 - Remove bearer-token settings, Keychain integration and authenticated requests from Agent Tools.

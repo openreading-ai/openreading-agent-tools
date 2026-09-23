@@ -1,4 +1,33 @@
-# Claude Desktop local preview
+# OpenReading for Claude Desktop / Cowork
+
+This Apple Silicon alpha.21 preview connects Claude to a Core server you run separately.
+It embeds the connector runtime and no parser, OCR executable, model or runtime downloader.
+Use `OpenReading-Claude-Plugin.zip`. The historical MCPB packages below are not this preview.
+
+## Install the current plugin
+
+1. Open Claude's native plugin upload flow and select the ZIP without unpacking it.
+2. Enable both OpenReading connectors and start a fresh Cowork task.
+3. Run `/openreading-settings`, save your Core URL, and test the connection.
+4. Quit and reopen Claude after saving settings.
+5. Run `/openreading`, select a synthetic document and choose Process.
+
+Claude may require connecting this computer before its local plugin tools become available.
+The plugin includes the `openreading` and `openreading-settings` skills, nine document tools and a Settings opener.
+The [Core setup guide](../full-core/README.md#run-core-for-the-connector) explains the separate server.
+Localhost permits HTTP. Remote destinations require HTTPS. This connector sends no credentials.
+
+Verify the actual upload, exact cited evidence and background-job recovery before accepting this build.
+Native Cowork acceptance and clean-machine installation remain pending for alpha.21.
+Removing the plugin preserves preferences, selected copies and retained results in the Claude Desktop partition.
+Cancel unwanted jobs before removal. Never remove another client's data to reset this one.
+
+## Historical evidence below
+
+These records identify older binaries and different installation routes.
+They do not provide installation instructions or acceptance evidence for alpha.21.
+
+## Historical Claude Desktop local previews
 
 Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 

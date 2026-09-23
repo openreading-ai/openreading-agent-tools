@@ -110,6 +110,43 @@ class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(list(self.store.grant.iterdir()), [])
         self.assertEqual(list(self.store.approvals.iterdir()), [])
 
+    async def test_cleanup_removes_snapshot_when_approval_directory_is_unreadable(self):
+        broken = patch("runtime.server_selection.directory", side_effect=OSError)
+        with (
+            patch("runtime.server_selection.choose", AsyncMock(return_value=[self.source])),
+            patch("runtime.server_selection.confirm", AsyncMock(return_value=True)),
+        ):
+            try:
+                with self.assertRaisesRegex(RuntimeError, "host disconnected"):
+                    async with self.provider.select():
+                        broken.start()
+                        raise RuntimeError("host disconnected")
+            finally:
+                broken.stop()
+        self.assertEqual(list(self.store.grant.iterdir()), [])
+
+    async def test_rejected_consent_removes_all_copies_when_approval_root_becomes_symlink(self):
+        sibling = self.home / "another.custom"
+        sibling.write_bytes(b"second synthetic source")
+        saved = self.store.approvals.with_name("original-approvals")
+
+        async def reject(*args):
+            self.store.approvals.rename(saved)
+            self.store.approvals.symlink_to(saved, target_is_directory=True)
+            (saved / "untouched").write_bytes(b"outside the approved root")
+            return False
+
+        with (
+            patch(
+                "runtime.server_selection.choose", AsyncMock(return_value=[self.source, sibling])
+            ),
+            patch("runtime.server_selection.confirm", reject),
+        ):
+            async with self.provider.select() as result:
+                self.assertIsNone(result)
+        self.assertEqual(list(self.store.grant.iterdir()), [])
+        self.assertEqual((saved / "untouched").read_bytes(), b"outside the approved root")
+
     async def test_confirmation_uses_stdin_json_and_refuses_errors(self):
         from types import SimpleNamespace
 

@@ -1,11 +1,12 @@
 """Transfers serialize, consume native approval once, and reuse completed downloads."""
 
 import importlib.util
+import os
 import tempfile
 import threading
 import unittest
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 from openreading.artifacts.limits import ArtifactError, ProfileConfig
@@ -57,9 +58,16 @@ class ServerImportTests(unittest.TestCase):
         )
         self.requests = []
 
+        self.response = {
+            "schema_version": "0.3",
+            "status": {"state": "succeeded"},
+            "backend": {"id": "synthetic", "type": "oss_library"},
+            "document": {"page_count": 1, "text": "preserved"},
+        }
+
         def handle(request):
             self.requests.append(request)
-            return httpx.Response(200, json={"test_result": "preserved"})
+            return httpx.Response(200, json=self.response)
 
         self.transport = httpx.MockTransport(handle)
         self.service = ServerArtifactService(
@@ -82,7 +90,7 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(phases, ["uploading", "waiting", "receiving", "retaining"])
         self.assertEqual(len(self.requests), 1)
         received = self.retainer.call_args.args[1]
-        self.assertEqual(received.response, {"test_result": "preserved"})
+        self.assertEqual(received.response, self.response)
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
         self.assertEqual(len(self.requests), 1)
 
@@ -121,13 +129,115 @@ class ServerImportTests(unittest.TestCase):
     def test_document_rejection_does_not_stop_other_selected_files(self):
         def reject(request):
             self.requests.append(request)
-            return httpx.Response(422 if len(self.requests) == 1 else 200, json={})
+            return httpx.Response(422 if len(self.requests) == 1 else 200, json=self.response)
 
         self.service.transport = httpx.MockTransport(reject)
         with self.assertRaises(ArtifactError):
             self.service.import_document(self.references[0])
         self.assertIs(self.service.import_document(self.references[1]), self.receipt)
         self.assertEqual(len(self.requests), 2)
+
+    def test_http_auth_failure_keeps_its_diagnostic_without_claiming_processing(self):
+        self.service.transport = httpx.MockTransport(lambda request: httpx.Response(401, json={}))
+        with self.assertRaises(ArtifactError) as caught:
+            self.service.import_document(self.references[0])
+        message = caught.exception.envelope().error.message.lower()
+        self.assertIn("http 401", message)
+        self.assertNotIn("may have started", message)
+
+    def run_detached_job(self):
+        import json
+
+        from openreading.artifacts import jobs
+        from openreading.artifacts.jobs import ImportExecution, ImportJobs
+
+        # Only process creation is replaced; the persisted job runner and service remain real.
+        process = Mock(pid=999999999)
+        with patch.object(jobs.subprocess, "Popen", return_value=process):
+            manager = ImportJobs(self.service, execution=ImportExecution(("trusted-worker",), {}))
+            initial = manager.start(self.references[0])
+        root = manager.root / initial.job_id
+        jobs.main([str(root)], service_factory=lambda request: self.service)
+        return json.loads((root / "status.json").read_bytes())
+
+    def test_detached_auth_failure_keeps_confirmed_http_diagnostic(self):
+        self.service.transport = httpx.MockTransport(lambda request: httpx.Response(401, json={}))
+        status = self.run_detached_job()
+        self.assertEqual(status["state"], "failed")
+        message = status["error"]["message"].lower()
+        self.assertIn("http 401", message)
+        self.assertNotIn("may continue", message)
+
+    def test_detached_retention_busy_recovers_cached_response_without_second_post(self):
+        from runtime.server_imports import ServerArtifactService
+
+        def retain(*args, **kwargs):
+            if self.retainer.call_count == 1:
+                raise ArtifactError("busy")
+            return ServerArtifactService._retain(self.service, *args, **kwargs)
+
+        self.retainer.side_effect = retain
+        status = self.run_detached_job()
+        self.assertEqual(status["state"], "succeeded", status)
+        self.assertEqual(self.retainer.call_count, 2)
+        self.assertEqual(len(self.requests), 1)
+        self.assertEqual(len(list(self.service.store.documents.iterdir())), 1)
+
+    def test_duplicate_physical_pages_are_rejected_before_caching_or_retention(self):
+        from runtime.server_selection import approval_name
+
+        self.response["document"] = {
+            "page_count": 2,
+            "pages": [
+                {"page_number": 1, "text": "Payment approved."},
+                {"page_number": 1, "text": "Payment rejected."},
+            ],
+        }
+        with self.assertRaises(ArtifactError):
+            self.service.import_document(self.references[0])
+        self.assertEqual(len(self.requests), 1)
+        self.retainer.assert_not_called()
+        path = self.service.transfers / (approval_name(self.references[0]) + ".response")
+        self.assertFalse(path.exists())
+
+    def test_rejected_result_releases_siblings_without_reupload_after_restart(self):
+        from runtime.server_imports import ResponseRejected, ServerArtifactService
+
+        def handle(request):
+            self.requests.append(request)
+            response = self.response
+            if len(self.requests) == 1:
+                response = {
+                    **response,
+                    "document": {
+                        "pages": [
+                            {"page_number": 1, "text": "Payment approved."},
+                            {"page_number": 1, "text": "Payment rejected."},
+                        ]
+                    },
+                }
+            return httpx.Response(200, json=response)
+
+        transport = httpx.MockTransport(handle)
+        self.service.transport = transport
+        with self.assertRaises(ResponseRejected):
+            self.service.import_document(self.references[0])
+        self.service.close()
+        restarted = ServerArtifactService(
+            self.config,
+            settings=self.settings,
+            selection=self.selection,
+            identity=self.identity,
+            transport=transport,
+        )
+        self.addCleanup(restarted.close)
+        with self.assertRaises(ArtifactError):
+            restarted.import_document(self.references[0])
+        self.assertEqual(len(self.requests), 1)
+        receipt = restarted.import_document(self.references[1])
+        self.assertEqual(receipt.extraction_state, "succeeded")
+        self.assertEqual(len(self.requests), 2)
+        self.assertEqual(len(list(restarted.store.documents.iterdir())), 1)
 
     def test_cancel_unapproved_and_changed_settings_never_submit(self):
         event = threading.Event()
@@ -142,21 +252,13 @@ class ServerImportTests(unittest.TestCase):
             self.service.import_document(self.references[0])
         self.assertEqual(self.requests, [])
 
-    def test_legacy_settings_import_without_reading_or_sending_credentials(self):
-        import json
-
-        from runtime.destination_settings import read_destination
-
-        path = next(self.home.rglob("destination.json"))
-        value = json.loads(path.read_text())
-        value.update(schema_version=1, credential_ref="c" * 32)
-        path.write_text(json.dumps(value))
-        self.service.settings = read_destination("chatgpt", home=self.home)
-        with patch("ctypes.CDLL", side_effect=AssertionError("No Keychain access")):
-            self.assertIs(self.service.import_document(self.references[0]), self.receipt)
-        self.assertEqual(len(self.requests), 1)
-        self.assertNotIn("authorization", self.requests[0].headers)
-        self.assertNotIn("credential_ref", self.service.settings.wire())
+    def test_corrupt_destination_settings_require_new_selection_without_upload(self):
+        destination = self.selection.root.parents[1] / "destination.json"
+        destination.write_text("corrupt")
+        with self.assertRaises(ArtifactError) as caught:
+            self.service.import_document(self.references[0])
+        self.assertEqual(caught.exception.code, "access_denied")
+        self.assertEqual(self.requests, [])
 
     def test_real_retention_and_mcp_delivery_preserve_server_values(self):
         import asyncio
@@ -238,12 +340,35 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "artifact_corrupt")
         self.assertEqual(self.requests, [])
 
+    def test_unusable_200_response_is_not_cached_as_a_retainable_result(self):
+        from runtime.server_selection import approval_name
+
+        self.service.transport = httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                json={
+                    "schema_version": "0.3",
+                    "status": {"state": "failed"},
+                    "backend": {"id": "synthetic", "type": "oss_library"},
+                    "document": {"page_count": 1},
+                },
+            )
+        )
+        with self.assertRaises(ArtifactError) as caught:
+            self.service.import_document(self.references[0])
+        self.assertEqual(caught.exception.code, "access_denied")
+        self.assertIn("select", caught.exception.envelope().error.message.lower())
+        response = self.service.transfers / (approval_name(self.references[0]) + ".response")
+        self.assertFalse(os.path.lexists(response))
+        self.retainer.assert_not_called()
+
     def test_deep_valid_response_remains_recoverable_from_local_cache(self):
         nested = "value"
-        for _ in range(64):
+        for _ in range(60):
             nested = {"next": nested}
+        response = {**self.response, "future": nested}
         self.service.transport = httpx.MockTransport(
-            lambda request: httpx.Response(200, json=nested)
+            lambda request: httpx.Response(200, json=response)
         )
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
@@ -343,7 +468,9 @@ class ServerImportTests(unittest.TestCase):
         from runtime.server_selection import approval_name
 
         self.service.transport = httpx.MockTransport(
-            lambda request: httpx.Response(200, json={"text": "界" * 1000})
+            lambda request: httpx.Response(
+                200, json={**self.response, "document": {"text": "界" * 1000}}
+            )
         )
         self.service.import_document(self.references[0])
         path = self.service.transfers / (approval_name(self.references[0]) + ".response")
@@ -351,6 +478,22 @@ class ServerImportTests(unittest.TestCase):
         value = json.loads(path.read_bytes())
         path.write_text(json.dumps(value, ensure_ascii=True))
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+
+    def test_legacy_settings_import_without_reading_or_sending_credentials(self):
+        import json
+
+        from runtime.destination_settings import read_destination
+
+        path = next(self.home.rglob("destination.json"))
+        value = json.loads(path.read_text())
+        value.update(schema_version=1, credential_ref="c" * 32)
+        path.write_text(json.dumps(value))
+        self.service.settings = read_destination("chatgpt", home=self.home)
+        with patch("ctypes.CDLL", side_effect=AssertionError("No Keychain access")):
+            self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+        self.assertEqual(len(self.requests), 1)
+        self.assertNotIn("authorization", self.requests[0].headers)
+        self.assertNotIn("credential_ref", self.service.settings.wire())
 
     def test_server_failure_reports_safe_reason_without_claiming_local_processing(self):
         self.service.transport = httpx.MockTransport(lambda request: httpx.Response(403))
