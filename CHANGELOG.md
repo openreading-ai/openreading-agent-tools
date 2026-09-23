@@ -26,12 +26,13 @@
 - Serialize detached imports, stop batches after shared failures, and recover completed downloads without another upload.
 - Keep frozen/native feature acceptance separate under ProductSpec revision 18.
 
-## Development Core integration pin
+## Merged Core integration pin
 
-- Pin the Docling candidate, P0 runtime and integration tests to development Core `ba55eb6`.
+- Pin the Docling candidate, P0 runtime and integration tests to merged Core `846450d`.
   This includes confirmed server diagnostics, cached retention retries and unambiguous physical evidence.
-  Repin to the owner's merged Core main commit before tagging an RC or building release binaries.
-  The legacy v1 runtime retains its historical pin. This is a development pin, not a released package.
+  Core also includes CLI/manual and adapter documentation corrections.
+  This replaces development pin `ba55eb6` with its tree-identical squash-merged commit.
+  The legacy v1 runtime retains its historical pin. RC tags, frozen builds and native acceptance remain pending.
 
 ## Unreleased ChatGPT development plugin
 
