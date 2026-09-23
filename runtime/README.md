@@ -238,6 +238,9 @@ Changing settings invalidates unsubmitted approvals. Server mode keeps the exist
 Cancelling consent revokes every selected copy, even when the approval directory becomes inaccessible or unsafe.
 `server_imports.py` serializes uploads and records attempts before HTTP begins.
 An interrupted request stops its selection batch. Completed downloads can retry local retention without another upload.
+An unusable completed result rejects only that document; its selected siblings can still run.
+Check the server response before reselecting the rejected document. Its old reference never uploads again.
+Keychain refusal reports that nothing was uploaded. Restore credential access, then select and confirm again.
 The server may continue processing after local cancellation. No automatic retry or local parser fallback occurs.
 Transfer records and downloaded responses persist under `CLIENT/v2/server/`, outside Core's artifact staging.
 

@@ -1,5 +1,8 @@
 # Changelog
 
+- Release sibling documents after rejecting an unusable server result, without reuploading the rejected reference.
+- Explain pre-upload Keychain failures in detached jobs without exposing credential diagnostics or claiming server processing.
+
 - Keep historical code-client manifests and directory-grant guides separate from current RC packages.
 - Revoke selected copies even when approval cleanup encounters an unsafe directory.
 - Return a configuration diagnostic and exit 2 when server-profile setup fails before startup.

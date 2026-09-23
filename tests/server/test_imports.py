@@ -200,6 +200,45 @@ class ServerImportTests(unittest.TestCase):
         path = self.service.transfers / (approval_name(self.references[0]) + ".response")
         self.assertFalse(path.exists())
 
+    def test_rejected_result_releases_siblings_without_reupload_after_restart(self):
+        from runtime.server_imports import ResponseRejected, ServerArtifactService
+
+        def handle(request):
+            self.requests.append(request)
+            response = self.response
+            if len(self.requests) == 1:
+                response = {
+                    **response,
+                    "document": {
+                        "pages": [
+                            {"page_number": 1, "text": "Payment approved."},
+                            {"page_number": 1, "text": "Payment rejected."},
+                        ]
+                    },
+                }
+            return httpx.Response(200, json=response)
+
+        transport = httpx.MockTransport(handle)
+        self.service.transport = transport
+        with self.assertRaises(ResponseRejected):
+            self.service.import_document(self.references[0])
+        self.service.close()
+        restarted = ServerArtifactService(
+            self.config,
+            settings=self.settings,
+            selection=self.selection,
+            identity=self.identity,
+            transport=transport,
+        )
+        self.addCleanup(restarted.close)
+        with self.assertRaises(ArtifactError):
+            restarted.import_document(self.references[0])
+        self.assertEqual(len(self.requests), 1)
+        receipt = restarted.import_document(self.references[1])
+        self.assertEqual(receipt.extraction_state, "succeeded")
+        self.assertEqual(len(self.requests), 2)
+        self.assertEqual(len(list(restarted.store.documents.iterdir())), 1)
+
     def test_cancel_unapproved_and_changed_settings_never_submit(self):
         event = threading.Event()
         event.set()
@@ -221,7 +260,9 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "access_denied")
         self.assertEqual(self.requests, [])
 
-    def test_keychain_refusal_stops_batch_without_anonymous_fallback(self):
+    def require_keychain(self):
+        import json
+
         from runtime.server_selection import approval_name, write_private
 
         self.settings = save_destination(
@@ -233,19 +274,44 @@ class ServerImportTests(unittest.TestCase):
             keychain=Mock(),
         )
         self.service.settings = self.settings
-        import json
-
         for reference in self.references:
             path = self.selection.approvals / approval_name(reference)
             value = json.loads(path.read_text())
             value["revision"] = self.settings.revision
             write_private(path, value)
         self.service.keychain = Mock()
-        self.service.keychain.get.side_effect = ValueError("Keychain refused")
+        self.service.keychain.get.side_effect = ValueError("private credential diagnostic")
+
+    def test_keychain_refusal_stops_batch_without_anonymous_fallback(self):
+        self.require_keychain()
         for reference in self.references:
             with self.assertRaises(ArtifactError):
                 self.service.import_document(reference)
         self.service.keychain.get.assert_called_once()
+        self.assertEqual(self.requests, [])
+
+    def test_detached_keychain_refusal_reports_no_upload_without_private_diagnostics(self):
+        self.require_keychain()
+        status = self.run_detached_job()
+        self.assertEqual(status["state"], "failed")
+        message = status["error"]["message"].lower()
+        self.assertIn("keychain", message)
+        self.assertIn("nothing was uploaded", message)
+        self.assertNotIn("may continue", message)
+        self.assertNotIn("private credential diagnostic", message)
+        self.assertEqual(self.requests, [])
+        self.assertEqual(list(self.service.transfers.glob("*.attempt")), [])
+
+    def test_keychain_initialization_failure_reports_no_upload(self):
+        self.require_keychain()
+        self.service.keychain = None
+        with patch("runtime.server_keychain.ServerKeychain", side_effect=OSError("private path")):
+            with self.assertRaises(ArtifactError) as caught:
+                self.service.import_document(self.references[0])
+        message = caught.exception.envelope().error.message.lower()
+        self.assertIn("keychain", message)
+        self.assertIn("nothing was uploaded", message)
+        self.assertNotIn("private path", message)
         self.assertEqual(self.requests, [])
 
     def test_real_retention_and_mcp_delivery_preserve_server_values(self):
