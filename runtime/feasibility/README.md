@@ -6,9 +6,10 @@ The historical revision 1 bundle and measurement runtime remain separate.
 
 ## Run
 
-The current candidate pins core `ba55eb6c045976ac8d03458722537686822717f2` with Docling integration v5.
+The current candidate pins merged Core `846450d005b73069e2429b75d783f571df92d898` with Docling integration v5.
 Dependency versions remain unchanged. The Core update preserves server diagnostics and cached retention recovery, and refuses duplicate physical page numbers.
-This development pin requires the owner's merged Core main commit before RC tagging and release builds.
+This merged commit has identical source content to the previously tested development pin.
+RC tagging, fresh frozen builds and native acceptance remain separate release steps.
 
 `make verify` checks this lock against its declared inputs without network access or installing the candidate.
 It also refuses prohibited packages in the lock and requires this guide to name the locked core and engine versions.
