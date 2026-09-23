@@ -218,6 +218,8 @@ class ServerSelectionProvider(LocalSelectionProvider):
                                     os.unlink(approval_name(reference), dir_fd=opened)
                                 except FileNotFoundError:
                                     pass
-                        except OSError:
+                        except (OSError, ArtifactError):
+                            # The safe directory opener wraps filesystem refusals in ArtifactError.
+                            # Approval cleanup must not prevent revoking any selected copy.
                             pass
                         await remove_copy(self.store, reference)

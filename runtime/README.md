@@ -224,6 +224,7 @@ Its module documentation defines the request, response limits, and cancellation 
 For example, a localhost destination can use an operator-configured Core parser without bundling that parser here.
 The chat launcher reads the separate destination setting. Absence keeps bundled Docling.
 `server_profile.py` supplies the trusted child factory and fixed client storage roots.
+Unsafe local configuration returns a diagnostic and exit 2 before serving tools, without a traceback.
 
 `destination_settings.py` keeps a separate private destination choice with a new revision on every explicit save.
 `server_keychain.py` stores optional bearer credentials through macOS Security, keeping them out of argv and JSON.
@@ -234,8 +235,12 @@ The window and controller pass offline tests. Actual native Keychain prompts rem
 
 `server_selection.py` confirms the URL, names, count and total bytes before authorizing uploads.
 Changing settings invalidates unsubmitted approvals. Server mode keeps the existing snapshot exclusions without an adapter extension filter.
+Cancelling consent revokes every selected copy, even when the approval directory becomes inaccessible or unsafe.
 `server_imports.py` serializes uploads and records attempts before HTTP begins.
 An interrupted request stops its selection batch. Completed downloads can retry local retention without another upload.
+An unusable completed result rejects only that document; its selected siblings can still run.
+Check the server response before reselecting the rejected document. Its old reference never uploads again.
+Keychain refusal reports that nothing was uploaded. Restore credential access, then select and confirm again.
 The server may continue processing after local cancellation. No automatic retry or local parser fallback occurs.
 Transfer records and downloaded responses persist under `CLIENT/v2/server/`, outside Core's artifact staging.
 
@@ -247,4 +252,6 @@ The offline gate keeps historical runtime tests on their original Core pin.
 `runtime/testing` runs `tests/server` against the same Core commit as the Docling candidate.
 The broader `tests/runtime` lane uses the historical `runtime` pin, including transport and Settings tests.
 The server lane exercises the current Core service through MCP, including synchronous progress notifications.
+Detached-job regressions require a confirmed HTTP 401 diagnostic and cached retention recovery after a local lock collision.
+That recovery sends exactly one upload. Duplicate physical page numbers are rejected before caching an ambiguous result.
 Both lanes contribute to the existing line and branch coverage requirements.

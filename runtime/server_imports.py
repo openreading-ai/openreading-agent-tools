@@ -4,7 +4,9 @@ A client-wide advisory lock serializes HTTP submissions across detached jobs and
 A durable attempt marker precedes HTTP. An interrupted attempt never uploads again.
 Batch markers stop siblings after local cancellation, shared failures or process death during a request.
 Select and confirm the remaining files again to recover. Submitted server work may continue.
-Document-specific HTTP rejections release the batch for its remaining selected documents.
+Document-specific HTTP rejections and unusable completed results release the remaining batch.
+Their attempt markers still prevent uploading the rejected document again without fresh consent.
+Keychain failures stop before upload and preserve a fixed credential diagnostic in detached jobs.
 Complete responses are atomically saved before retention, outside Core's staging sweep.
 An explicit later import can retry local retention from that saved result without another POST.
 These private transfer files persist with the selected copies until the user removes them.
@@ -79,7 +81,8 @@ class ResponseRejected(ArtifactError):
     def envelope(self):
         value = super().envelope()
         value.error.message = (
-            "The Core result cannot be retained. Select and confirm the document again."
+            "The Core server returned an unusable document result. "
+            "Check the server response before selecting and confirming this document again."
         )
         return value
 
@@ -160,12 +163,19 @@ class ServerArtifactService(ArtifactService):
                     write_private(batch_path, {"reference": path})
                     token = None
                     if self.settings.credential_ref:
-                        keychain = self.keychain
-                        if keychain is None:
-                            from runtime.server_keychain import ServerKeychain
+                        try:
+                            keychain = self.keychain
+                            if keychain is None:
+                                from runtime.server_keychain import ServerKeychain
 
-                            keychain = ServerKeychain()
-                        token = keychain.get(self.settings.credential_ref)
+                                keychain = ServerKeychain()
+                            token = keychain.get(self.settings.credential_ref)
+                        except (ValueError, OSError):
+                            raise DestinationFailed(
+                                "Keychain did not provide the configured server credential. "
+                                "Nothing was uploaded. Restore credential access, "
+                                "then select and confirm the documents again."
+                            ) from None
                     with self.store.source(path) as fd:
                         digest = hashlib.sha256()
                         while chunk := os.read(fd, 65536):
@@ -199,6 +209,11 @@ class ServerArtifactService(ArtifactService):
                         if parsed.status.state.value not in {"succeeded", "partial"}:
                             raise ValueError("Response has no usable extraction")
                     except (TypeError, ValueError, jsonschema.ValidationError, ValidationError):
+                        # A completed document rejection does not revoke its siblings' consent.
+                        # Keep the attempt marker so this document cannot be submitted twice.
+                        with directory(self.transfers) as parent:
+                            os.unlink(batch_path.name, dir_fd=parent)
+                            os.fsync(parent)
                         raise ResponseRejected() from None
                     write_private(response_path, asdict(result))
                     with directory(self.transfers) as parent:

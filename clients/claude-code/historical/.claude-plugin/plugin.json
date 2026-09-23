@@ -1,0 +1,7 @@
+{
+  "name": "openreading-local-proof",
+  "version": "0.1.0-alpha.1",
+  "description": "Retrieve local document evidence with physical page citations.",
+  "author": {"name": "OpenReading"},
+  "userConfig": {"input_root": {"type": "directory", "title": "Document directory", "description": "Grant this directory. Local copies persist; retrieved excerpts enter Claude's context.", "required": true}}
+}

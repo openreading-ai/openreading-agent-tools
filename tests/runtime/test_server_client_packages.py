@@ -55,6 +55,7 @@ class ServerClientPackageTests(unittest.TestCase):
             self.assertEqual(set(paths), {"claude-code", "codex"})
             for client, target in paths.items():
                 with self.subTest(client=client):
+                    self.assertFalse((target / "historical").exists())
                     self.assertEqual(verify_release(target / "server"), runtime.metadata)
                     info = json.loads((target / "package-info.json").read_text())
                     self.assertEqual(info["core_commit"], runtime.metadata["core_commit"])
