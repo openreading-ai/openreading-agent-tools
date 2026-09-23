@@ -5,12 +5,14 @@ Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full impl
 **Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
 The Docling developer harness is implemented; the [assistant migration](../../design/assistant-clients.md) and Docling client distribution remain proposed.
 See the [client matrix](../README.md) for the limits of existing evidence.
-Existing setup commands and test results below do not establish revision 2 compatibility.
+The legacy setup commands below do not establish revision 2 compatibility and must not be
+used as server-client setup.
 The [client matrix](../README.md#owner-operated-candidate-checks-september-16-2026) records later owner-operated Docling checks through separate session-specific registrations.
 Those checks do not validate this historical marketplace package or its installation commands.
 
-The assembled marketplace installs a frozen worker and the shared evidence retrieval skill.
-Build the packages from the [runtime guide](../../runtime/README.md), then use absolute paths below.
+The historical marketplace installs a PyMuPDF worker and shared evidence retrieval skill.
+No current Claude Code server-client package is assembled. The matrix records that cell as blocked.
+Build the historical package only for its retained prototype checks.
 
 ~~~sh
 claude plugin marketplace add /absolute/path/to/dist/clients/claude-code

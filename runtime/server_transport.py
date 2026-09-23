@@ -58,7 +58,11 @@ class ServerDestination:
             or self.response_bytes <= 0
         ):
             raise ValueError("Configure a server URL without credentials, query, or fragment.")
-        if url.port is not None and not 1 <= url.port <= 65535:
+        try:
+            port = url.port
+        except ValueError:
+            raise ValueError("Configure a valid server port.") from None
+        if port is not None and not 1 <= port <= 65535:
             raise ValueError("Configure a valid server port.")
         try:
             loopback = ipaddress.ip_address(host).is_loopback
@@ -135,7 +139,9 @@ def _decode(payload: bytes, *, max_depth: int = 64) -> dict:
     if not isinstance(result, dict):
         raise ValueError("Response must be an object")
     # Exponents such as 1e999 can overflow without using a JSON nonfinite token.
-    json.dumps(result, allow_nan=False)
+    # The default ASCII encoder accepts a lone surrogate that later fails while
+    # persisting the private UTF-8 response cache. Refuse it before consuming a selection.
+    json.dumps(result, ensure_ascii=False, allow_nan=False).encode("utf-8")
     return result
 
 
@@ -152,6 +158,7 @@ async def parse_document(
     """Send one snapshot once; return decoded values and the actual uploaded-byte digest."""
     submitted = False
     cancelled_here = False
+    body_complete = False
     response = None
     digest = hashlib.sha256()
     count = 0
@@ -186,8 +193,10 @@ async def parse_document(
                 return getattr(stream, name)
 
             def read(self, size):
-                nonlocal count
+                nonlocal count, submitted
                 data = stream.read(size)
+                if data:
+                    submitted = True
                 count += len(data)
                 if count > UPLOAD_BYTES:
                     raise DestinationError(
@@ -214,7 +223,7 @@ async def parse_document(
                 async def watch():
                     nonlocal cancelled_here
                     while True:
-                        if cancellation():
+                        if cancellation() and not body_complete:
                             cancelled_here = True
                             group.cancel_scope.cancel()
                             return
@@ -223,7 +232,6 @@ async def parse_document(
                 group.start_soon(watch)
                 try:
                     stage("uploading")
-                    submitted = True
                     async with client.stream(
                         "POST",
                         destination.base_url + "/v1/parse",
@@ -233,7 +241,7 @@ async def parse_document(
                     ) as received:
                         if received.status_code != 200:
                             raise DestinationError(
-                                f"Core server returned HTTP {received.status_code}. Processing may have started; no retry was sent.",
+                                f"Core server returned HTTP {received.status_code}.",
                                 submitted=True,
                                 http_status=received.status_code,
                                 shared_failure=received.status_code not in {413, 422},
@@ -247,12 +255,17 @@ async def parse_document(
                                     submitted=True,
                                 )
                             payload.extend(chunk)
+                        body_complete = True
                         try:
                             response = _decode(bytes(payload))
                         except (ValueError, UnicodeError, RecursionError):
                             raise DestinationError(
                                 "The Core result is not valid normalized JSON.", submitted=True
                             ) from None
+                except httpx.ConnectError:
+                    raise DestinationError(
+                        "The server connection failed. No document was sent.", submitted=False
+                    ) from None
                 except httpx.HTTPError:
                     raise DestinationError(
                         "The server connection failed. Submitted processing may continue; no retry was sent.",
@@ -266,7 +279,7 @@ async def parse_document(
             if isinstance(error, DestinationError):
                 raise error from None
             raise
-    if cancelled_here:
+    if cancelled_here and response is None:
         raise DestinationError(
             "Local request cancelled. Server processing may continue.", submitted=submitted
         )

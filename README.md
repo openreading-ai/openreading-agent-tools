@@ -24,12 +24,12 @@ The source license above does not describe bundled dependency licenses.
 The target has three dimensions: assistant, surface, and processing destination.
 Two assistants, two surfaces, and two destinations produce eight required acceptance cases.
 Desktop means Claude Cowork or ChatGPT Work. Code means Claude Code or Codex running locally.
-Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok comes later.
+Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok is not supported.
 
 | Assistant | Desktop: bundled Docling (default) | Desktop: operator server (optional) | Code: bundled Docling (default) | Code: operator server (optional) |
 | --- | --- | --- | --- | --- |
-| Claude | Cowork: pending | Cowork: pending | Claude Code: partial | Claude Code: pending |
-| ChatGPT | Work: partial | Work: pending | Codex: partial | Codex: pending |
+| Claude | Cowork: pending | Cowork: pending | Claude Code: partial | Claude Code: blocked (server-client package not assembled) |
+| ChatGPT | Work: partial | Work: pending | Codex: partial | Codex: blocked (server-client package not assembled) |
 
 **Partial** means an earlier native workflow has evidence, but current packaged acceptance remains incomplete.
 **Pending** means this exact combination has not completed native acceptance. Neither status means unsupported.

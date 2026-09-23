@@ -110,6 +110,21 @@ class ServerSelectionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(list(self.store.grant.iterdir()), [])
         self.assertEqual(list(self.store.approvals.iterdir()), [])
 
+    async def test_cleanup_removes_snapshot_when_approval_directory_is_unreadable(self):
+        broken = patch("runtime.server_selection.directory", side_effect=OSError)
+        with (
+            patch("runtime.server_selection.choose", AsyncMock(return_value=[self.source])),
+            patch("runtime.server_selection.confirm", AsyncMock(return_value=True)),
+        ):
+            try:
+                with self.assertRaisesRegex(RuntimeError, "host disconnected"):
+                    async with self.provider.select():
+                        broken.start()
+                        raise RuntimeError("host disconnected")
+            finally:
+                broken.stop()
+        self.assertEqual(list(self.store.grant.iterdir()), [])
+
     async def test_confirmation_uses_stdin_json_and_refuses_errors(self):
         from types import SimpleNamespace
 

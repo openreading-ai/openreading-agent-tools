@@ -1,1 +1,1 @@
-{"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"openreading":{"type":"stdio","command":"${PLUGIN_ROOT}/server/openreading-worker","args":["--client","codex"]}}}
+{"$schema":"https://agent-plugins.org/schemas/1.0.0/mcp.schema.json","mcpServers":{"openreading":{"type":"stdio","command":"${PLUGIN_ROOT}/server/openreading-worker","args":["--client","codex","--chat-documents"]}}}

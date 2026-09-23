@@ -56,27 +56,34 @@ def identity_for(metadata):
 
 
 def launch(args, metadata, settings):
+    config, selection = config_for(args.client, settings)
     from openreading.artifacts.jobs import ImportExecution
+    from openreading.artifacts.limits import ArtifactError
     from openreading.mcp_server.main import serve
 
-    config, selection = config_for(args.client, settings)
     execution = ImportExecution(
         (sys.executable, "--internal-server-job"),
         {"client": args.client, "destination": settings.wire()},
     )
-    asyncio.run(
-        serve(
-            config,
-            selection_provider=ServerSelectionProvider(selection, settings),
-            selection_timeout_seconds=None,
-            document_response_bytes=args.document_response_bytes,
-            document_export_root=Path.home() / "Downloads/OpenReading",
-            service_factory=lambda config: ServerArtifactService(
-                config, settings=settings, selection=selection, identity=identity_for(metadata)
-            ),
-            execution=execution,
+    try:
+        asyncio.run(
+            serve(
+                config,
+                selection_provider=ServerSelectionProvider(selection, settings),
+                selection_timeout_seconds=None,
+                document_response_bytes=args.document_response_bytes,
+                document_export_root=Path.home() / "Downloads/OpenReading",
+                service_factory=lambda config: ServerArtifactService(
+                    config, settings=settings, selection=selection, identity=identity_for(metadata)
+                ),
+                execution=execution,
+            )
         )
-    )
+    except KeyboardInterrupt:
+        return 130
+    except ArtifactError as error:
+        print(error.envelope().error.message, file=sys.stderr)
+        return 2
     return 0
 
 

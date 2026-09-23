@@ -50,6 +50,13 @@ class ServerProfileTests(unittest.TestCase):
         self.assertEqual(service.identity.core_commit, "a" * 40)
         self.assertEqual(service.identity.extraction_settings["retaining_worker_sha256"], "b" * 64)
 
+    def test_launcher_returns_interrupt_exit_code(self):
+        from runtime.server_profile import launch
+
+        args = SimpleNamespace(client="chatgpt", document_response_bytes=1_000_000)
+        with patch("openreading.mcp_server.main.serve", AsyncMock(side_effect=KeyboardInterrupt)):
+            self.assertEqual(launch(args, self.metadata, self.settings), 130)
+
     def test_child_factory_rejects_changed_roots_limits_and_unknown_execution_fields(self):
         from dataclasses import asdict
 

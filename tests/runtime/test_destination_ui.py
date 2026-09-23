@@ -58,6 +58,10 @@ class SettingsControllerTests(unittest.TestCase):
             self.controller.current()
         self.assertEqual(self.controller.save("local", "", "", False).mode, "local")
 
+    def test_save_local_ignores_server_response_limit(self):
+        saved = self.controller.save("local", "", "", False, response_mib="")
+        self.assertEqual(saved.mode, "local")
+
     def test_native_response_limit_can_be_lowered_and_rejects_invalid_values(self):
         saved = self.controller.save("server", "http://localhost", "", False, response_mib="4")
         self.assertEqual(saved.destination.response_bytes, 4 * 1024 * 1024)

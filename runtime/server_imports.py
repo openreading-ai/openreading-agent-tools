@@ -21,10 +21,12 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
 
+import jsonschema
 from openreading.artifacts.intake import directory
 from openreading.artifacts.limits import ArtifactError
 from openreading.artifacts.service import ArtifactService
 from openreading.artifacts.store import safe_read
+from pydantic import ValidationError
 
 from runtime.selection import SelectionError
 from runtime.server_selection import approval_name, read_approval, write_private
@@ -49,6 +51,35 @@ class SelectionStopped(ArtifactError):
         value.error.message = (
             "This selection stopped after cancellation, a shared failure, or an interrupted attempt. "
             "Select and confirm the remaining files again. Submitted server processing may continue."
+        )
+        return value
+
+
+class DestinationFailed(ArtifactError):
+    """Keep a fixed transport diagnostic visible through the artifact envelope."""
+
+    preserve_message = True
+
+    def __init__(self, message):
+        super().__init__("parse_failed")
+        self.message = message
+
+    def envelope(self):
+        value = super().envelope()
+        value.error.message = self.message
+        return value
+
+
+class ResponseRejected(ArtifactError):
+    """Require a new consent flow after Core returned an unusable completed result."""
+
+    def __init__(self):
+        super().__init__("access_denied")
+
+    def envelope(self):
+        value = super().envelope()
+        value.error.message = (
+            "The Core result cannot be retained. Select and confirm the document again."
         )
         return value
 
@@ -161,6 +192,14 @@ class ServerArtifactService(ArtifactService):
                                 with directory(self.transfers) as parent:
                                     os.unlink(batch_path.name, dir_fd=parent)
                             raise
+                    from openreading.artifacts.retention import validate_external_response
+
+                    try:
+                        parsed = validate_external_response(result.response)
+                        if parsed.status.state.value not in {"succeeded", "partial"}:
+                            raise ValueError("Response has no usable extraction")
+                    except (TypeError, ValueError, jsonschema.ValidationError, ValidationError):
+                        raise ResponseRejected() from None
                     write_private(response_path, asdict(result))
                     with directory(self.transfers) as parent:
                         os.unlink(batch_path.name, dir_fd=parent)
@@ -176,8 +215,8 @@ class ServerArtifactService(ArtifactService):
                 return self._retain(path, result, cancelled)
         except SelectionError:
             raise ArtifactError("access_denied") from None
-        except DestinationError:
+        except DestinationError as error:
             check()
-            raise ArtifactError("parse_failed") from None
+            raise DestinationFailed(str(error)) from None
         except (ValueError, OSError):
             raise ArtifactError("parse_failed") from None

@@ -24,6 +24,8 @@ class Controller:
         return read_destination(self.client, home=self.home)
 
     def save(self, mode, url, token, clear, *, response_mib="128"):
+        if mode == "local":
+            return save_destination(self.client, mode, home=self.home, keychain=self.keychain)
         if (
             not str(response_mib).isascii()
             or not str(response_mib).isdecimal()

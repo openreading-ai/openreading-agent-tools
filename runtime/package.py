@@ -195,6 +195,30 @@ def _server_destination(metadata: dict) -> None:
         )
 
 
+def _chatgpt_runtime(runtime: Path) -> dict:
+    metadata = verify_release(runtime)
+    if metadata["format_version"] == "2":
+        metadata = _docling_runtime(runtime, chat=True)
+        _server_destination(metadata)
+        return metadata
+    if metadata["format_version"] != "3":
+        raise ValueError(
+            "The development candidate requires a Docling runtime or server client runtime."
+        )
+    _server_destination(metadata)
+    if not {
+        "_internal/runtime/selection.py",
+        "_internal/runtime/chat_selection.py",
+        "_internal/runtime/native_selection.py",
+        "_internal/_tcl_data/init.tcl",
+        "_internal/_tk_data/tk.tcl",
+        "_internal/openreading/mcp_server/selection.py",
+        "_internal/openreading/schemas/selection-tool.v0.2.json",
+    }.issubset(metadata["files"]):
+        raise ValueError("Rebuild with server document selection before using this manifest.")
+    return metadata
+
+
 def _settings_helper(target: Path, client: str) -> tuple[Path, Path]:
     contents = target / "OpenReading Settings.app/Contents"
     executable = contents / "MacOS/openreading-settings"
@@ -220,8 +244,7 @@ def _settings_helper(target: Path, client: str) -> tuple[Path, Path]:
 
 
 def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
-    metadata = _docling_runtime(runtime, chat=True)
-    _server_destination(metadata)
+    metadata = _chatgpt_runtime(runtime)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     target = output / "plugins/openreading-local-documents"

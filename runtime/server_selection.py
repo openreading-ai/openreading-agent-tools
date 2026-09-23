@@ -82,7 +82,13 @@ def selected_digest(store, reference):
 
 
 def check_current(store, settings):
-    if settings.mode != "server" or read_destination(store.client, home=store.home) != settings:
+    try:
+        current = read_destination(store.client, home=store.home)
+    except ValueError:
+        raise SelectionError(
+            "The destination settings are invalid. Restart the connection and select documents again."
+        ) from None
+    if settings.mode != "server" or current != settings:
         raise SelectionError(
             "The destination changed. Restart the connection and select documents again."
         )
@@ -206,9 +212,12 @@ class ServerSelectionProvider(LocalSelectionProvider):
             if result is not None and not keep:
                 with anyio.CancelScope(shield=True):
                     for reference in result["references"]:
-                        with directory(self.store.approvals) as opened:
-                            try:
-                                os.unlink(approval_name(reference), dir_fd=opened)
-                            except FileNotFoundError:
-                                pass
+                        try:
+                            with directory(self.store.approvals) as opened:
+                                try:
+                                    os.unlink(approval_name(reference), dir_fd=opened)
+                                except FileNotFoundError:
+                                    pass
+                        except OSError:
+                            pass
                         await remove_copy(self.store, reference)

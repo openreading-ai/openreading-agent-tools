@@ -1,6 +1,7 @@
 """Transfers serialize, consume native approval once, and reuse completed downloads."""
 
 import importlib.util
+import os
 import tempfile
 import threading
 import unittest
@@ -57,9 +58,16 @@ class ServerImportTests(unittest.TestCase):
         )
         self.requests = []
 
+        self.response = {
+            "schema_version": "0.3",
+            "status": {"state": "succeeded"},
+            "backend": {"id": "synthetic", "type": "oss_library"},
+            "document": {"page_count": 1, "text": "preserved"},
+        }
+
         def handle(request):
             self.requests.append(request)
-            return httpx.Response(200, json={"test_result": "preserved"})
+            return httpx.Response(200, json=self.response)
 
         self.transport = httpx.MockTransport(handle)
         self.service = ServerArtifactService(
@@ -82,7 +90,7 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(phases, ["uploading", "waiting", "receiving", "retaining"])
         self.assertEqual(len(self.requests), 1)
         received = self.retainer.call_args.args[1]
-        self.assertEqual(received.response, {"test_result": "preserved"})
+        self.assertEqual(received.response, self.response)
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
         self.assertEqual(len(self.requests), 1)
 
@@ -121,13 +129,21 @@ class ServerImportTests(unittest.TestCase):
     def test_document_rejection_does_not_stop_other_selected_files(self):
         def reject(request):
             self.requests.append(request)
-            return httpx.Response(422 if len(self.requests) == 1 else 200, json={})
+            return httpx.Response(422 if len(self.requests) == 1 else 200, json=self.response)
 
         self.service.transport = httpx.MockTransport(reject)
         with self.assertRaises(ArtifactError):
             self.service.import_document(self.references[0])
         self.assertIs(self.service.import_document(self.references[1]), self.receipt)
         self.assertEqual(len(self.requests), 2)
+
+    def test_http_auth_failure_keeps_its_diagnostic_without_claiming_processing(self):
+        self.service.transport = httpx.MockTransport(lambda request: httpx.Response(401, json={}))
+        with self.assertRaises(ArtifactError) as caught:
+            self.service.import_document(self.references[0])
+        message = caught.exception.envelope().error.message.lower()
+        self.assertIn("http 401", message)
+        self.assertNotIn("may have started", message)
 
     def test_cancel_unapproved_and_changed_settings_never_submit(self):
         event = threading.Event()
@@ -140,6 +156,14 @@ class ServerImportTests(unittest.TestCase):
         save_destination("chatgpt", "local", home=self.home)
         with self.assertRaises(ArtifactError):
             self.service.import_document(self.references[0])
+        self.assertEqual(self.requests, [])
+
+    def test_corrupt_destination_settings_require_new_selection_without_upload(self):
+        destination = self.selection.root.parents[1] / "destination.json"
+        destination.write_text("corrupt")
+        with self.assertRaises(ArtifactError) as caught:
+            self.service.import_document(self.references[0])
+        self.assertEqual(caught.exception.code, "access_denied")
         self.assertEqual(self.requests, [])
 
     def test_keychain_refusal_stops_batch_without_anonymous_fallback(self):
@@ -251,12 +275,35 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "artifact_corrupt")
         self.assertEqual(self.requests, [])
 
+    def test_unusable_200_response_is_not_cached_as_a_retainable_result(self):
+        from runtime.server_selection import approval_name
+
+        self.service.transport = httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                json={
+                    "schema_version": "0.3",
+                    "status": {"state": "failed"},
+                    "backend": {"id": "synthetic", "type": "oss_library"},
+                    "document": {"page_count": 1},
+                },
+            )
+        )
+        with self.assertRaises(ArtifactError) as caught:
+            self.service.import_document(self.references[0])
+        self.assertEqual(caught.exception.code, "access_denied")
+        self.assertIn("select", caught.exception.envelope().error.message.lower())
+        response = self.service.transfers / (approval_name(self.references[0]) + ".response")
+        self.assertFalse(os.path.lexists(response))
+        self.retainer.assert_not_called()
+
     def test_deep_valid_response_remains_recoverable_from_local_cache(self):
         nested = "value"
-        for _ in range(64):
+        for _ in range(60):
             nested = {"next": nested}
+        response = {**self.response, "future": nested}
         self.service.transport = httpx.MockTransport(
-            lambda request: httpx.Response(200, json=nested)
+            lambda request: httpx.Response(200, json=response)
         )
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
@@ -356,7 +403,9 @@ class ServerImportTests(unittest.TestCase):
         from runtime.server_selection import approval_name
 
         self.service.transport = httpx.MockTransport(
-            lambda request: httpx.Response(200, json={"text": "界" * 1000})
+            lambda request: httpx.Response(
+                200, json={**self.response, "document": {"text": "界" * 1000}}
+            )
         )
         self.service.import_document(self.references[0])
         path = self.service.transfers / (approval_name(self.references[0]) + ".response")

@@ -21,7 +21,7 @@
 
 ## Development Core integration pin
 
-- Pin the Docling candidate and P0 runtime to development Core `e53e6a1`.
+- Pin the Docling candidate and P0 runtime to development Core `fb8967e`.
   This includes external response retention and trusted detached-job execution.
   The legacy v1 runtime retains its historical pin. This is a development pin, not a released package.
 

@@ -71,12 +71,12 @@ def verify_release(root: Path) -> dict:
             "files",
             "licenses",
         }
-        if isinstance(metadata, dict) and metadata.get("format_version") == "2":
+        if isinstance(metadata, dict) and metadata.get("format_version") in {"2", "3"}:
             expected.update({"profile", "distribution"})
         if not isinstance(metadata, dict) or set(metadata) != expected:
             raise ValueError("Unexpected release fields")
         if (
-            metadata["format_version"] not in ("1", "2")
+            metadata["format_version"] not in ("1", "2", "3")
             or metadata["os"] != "darwin"
             or metadata["arch"] != "arm64"
         ):
@@ -123,6 +123,14 @@ def verify_release(root: Path) -> dict:
                 or not actual[required[-1]]["executable"]
             ):
                 raise ValueError("Invalid Docling profile resources")
+        if metadata["format_version"] == "3" and (
+            metadata["profile"] != "server-client-v1"
+            or metadata["distribution"] != "development-only"
+            or "resources/server-runtime.uv.lock" not in actual
+            or metadata["dependency_lock_sha256"]
+            != actual["resources/server-runtime.uv.lock"]["sha256"]
+        ):
+            raise ValueError("Invalid server client profile")
         return metadata
     except (OSError, ValueError, TypeError, KeyError, RecursionError):
         raise ReleaseIntegrityError(
