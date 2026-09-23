@@ -12,7 +12,8 @@ This proposal changes no runtime pin, artifact identity, schema version or store
 
 Core stays free OSS, including its entire implemented MCP surface, ordinary APIs, adapters and strategies.
 Agent Tools stays free OSS and bundles only the selected slim Docling local runtime.
-It does not install, select or manage alternative local backends or someone else's core server.
+It does not install or manage alternative local backends or an operator's Core process.
+The [server destination implementation](../runtime/README.md#operator-run-server-transport) permits an explicit operator-run Core HTTP URL while keeping Docling as default.
 Power users can independently install full core and configure their assistant to connect directly to that core MCP server.
 No OpenReading company account or paid entitlement gates local tools.
 

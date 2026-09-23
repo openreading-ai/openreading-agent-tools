@@ -54,7 +54,15 @@ def adapter_extensions() -> tuple[str, ...]:
 
 
 def command(extensions=("pdf",)) -> list[str]:
-    script = _SCRIPT.replace("__ADAPTER_EXTENSIONS__", json.dumps(checked_extensions(extensions)))
+    script = _SCRIPT.replace(
+        "__ADAPTER_EXTENSIONS__",
+        json.dumps(None if extensions is None else checked_extensions(extensions)),
+    )
+    if extensions is None:
+        script = script.replace(
+            "Folders include supported files",
+            "You review a confirmation before any upload. Folders include regular files",
+        )
     return ["/usr/bin/osascript", "-l", "JavaScript", "-e", script]
 
 

@@ -6,7 +6,9 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 ## Current stage
 
 This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 17 targets Claude Desktop and a conditional, named local ChatGPT mode through the same Docling runtime.
+ProductSpec revision 19 requires all eight cells in the [compatibility matrix](README.md#required-compatibility-matrix).
+Claude Cowork, ChatGPT Work, local Claude Code, and Codex each need bundled Docling and optional server acceptance.
+Track each cell independently through the [matrix checklist](clients/README.md#matrix-acceptance); historical evidence never passes another surface.
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
@@ -30,6 +32,7 @@ The current picker and OCR toggle remain developer-only mechanisms.
 Native accessibility, installation and clean-machine acceptance still gate that public route.
 Existing directory forms and explicit grants remain developer-only mechanisms.
 Keep the bundled slim Docling runtime and no alternative local backend or server manager.
+An optional operator-run Core HTTP destination is approved in revision 18; its source implementation is tested; frozen and native acceptance remain separate gates.
 A power user's independent full-core MCP connection remains outside this package's configuration.
 Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
 Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.

@@ -216,3 +216,35 @@ The assembler applies the same runtime contract guards as the Desktop chat candi
 It copies the unchanged runtime, shared workflow and relative MCP launch configuration, then verifies the copied runtime inventory.
 Package metadata binds wrapper files separately from the engine inventory. No host configuration is changed during assembly.
 The plugin uses the existing `chatgpt` data namespace; switching wrappers does not migrate or erase retained documents.
+
+## Operator-run server transport
+
+`server_transport.py` sends one already-selected snapshot to an explicit Core HTTP destination.
+Its module documentation defines the request, response limits, and cancellation boundary.
+For example, a localhost destination can use an operator-configured Core parser without bundling that parser here.
+The chat launcher reads the separate destination setting. Absence keeps bundled Docling.
+`server_profile.py` supplies the trusted child factory and fixed client storage roots.
+
+`destination_settings.py` keeps a separate private destination choice with a new revision on every explicit save.
+`server_keychain.py` stores optional bearer credentials through macOS Security, keeping them out of argv and JSON.
+Changing a URL does not inherit its previous credential. Existing references remain available to pending jobs.
+`destination_ui.py` provides explicit Save and Test connection controls using the bundled Tk interface.
+The connection check reads health and authorized metadata without uploading a document or invoking a provider.
+The window and controller pass offline tests. Actual native Keychain prompts remain unverified.
+
+`server_selection.py` confirms the URL, names, count and total bytes before authorizing uploads.
+Changing settings invalidates unsubmitted approvals. Server mode keeps the existing snapshot exclusions without an adapter extension filter.
+`server_imports.py` serializes uploads and records attempts before HTTP begins.
+An interrupted request stops its selection batch. Completed downloads can retry local retention without another upload.
+The server may continue processing after local cancellation. No automatic retry or local parser fallback occurs.
+Transfer records and downloaded responses persist under `CLIENT/v2/server/`, outside Core's artifact staging.
+
+The ChatGPT package includes `OpenReading Settings.app` beside `server/`.
+Its fixed wrapper opens the verified runtime with `--client chatgpt --destination-settings`.
+It does not install a plugin or start a Core server. Use the ChatGPT plugin browser for installation.
+
+The offline gate keeps historical runtime tests on their original Core pin.
+`runtime/testing` runs `tests/server` against the same Core commit as the Docling candidate.
+The broader `tests/runtime` lane uses the historical `runtime` pin, including transport and Settings tests.
+The server lane exercises the current Core service through MCP, including synchronous progress notifications.
+Both lanes contribute to the existing line and branch coverage requirements.

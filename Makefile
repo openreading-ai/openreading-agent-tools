@@ -3,6 +3,7 @@
 sync:
 	npm ci --ignore-scripts --no-audit --no-fund
 	uv sync --frozen --project runtime --all-groups
+	uv sync --frozen --project runtime/testing --all-groups
 
 verify: runtime-check feasibility-lock-check p0-lock-check
 	npm run verify
@@ -30,9 +31,10 @@ hooks:
 	git config core.hooksPath .githooks
 
 runtime-check:
-	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py scripts/host_probe.py scripts/docling_package_smoke.py tests/runtime
-	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py scripts/host_probe.py scripts/docling_package_smoke.py tests/runtime
+	uv run --frozen --project runtime --all-groups ruff check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py scripts/host_probe.py scripts/docling_package_smoke.py tests/runtime tests/server
+	uv run --frozen --project runtime --all-groups ruff format --check --config runtime/pyproject.toml runtime measurement scripts/package_smoke.py scripts/docling_feasibility.py scripts/retrieval_check.py scripts/retrieval_restart.py scripts/probe_environment.py scripts/host_probe.py scripts/docling_package_smoke.py tests/runtime tests/server
 	uv run --frozen --project runtime --all-groups coverage run --rcfile=runtime/pyproject.toml -m unittest discover -s tests/runtime
+	uv run --frozen --project runtime/testing --all-groups coverage run --append --rcfile=runtime/pyproject.toml -m unittest discover -s tests/server
 	uv run --frozen --project runtime --all-groups coverage report --rcfile=runtime/pyproject.toml
 	uv run --frozen --project runtime --all-groups coverage json --rcfile=runtime/pyproject.toml -o coverage-report.json
 	uv run --frozen --project runtime --all-groups python -m runtime.coverage_gate coverage-report.json

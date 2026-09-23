@@ -10,14 +10,39 @@
 OpenReading Agent Tools packages local document processing for your AI assistant.
 The prototype retains extracted evidence and returns selected passages with physical PDF page references.
 
-**Status: revision 9 scope; shared configuration and an unsigned Docling runtime are implemented; a Desktop development package is available; native acceptance and signed distribution remain pending.**
+**Status: revision 19 requires all eight combinations below. The first release candidate targets macOS on Apple Silicon only. Native acceptance and signed distribution remain pending.**
 The Docling corpus, retrieval/restart checks, citation checker and historical offline accounting are documented in [measurement](measurement/README.md).
 Historical client packages remain the superseded revision 1 PyMuPDF prototype.
 The [P0 developer build](runtime/p0/README.md) bundles Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
-The [assistant design](design/assistant-clients.md) keeps Claude Desktop and a conditional, named ChatGPT conversation mode behind separate compatibility checks.
+The [assistant design](design/assistant-clients.md) requires separate compatibility checks for every matrix cell.
 Existing developer checks do not establish native installation or model invocation.
-No public binary or measured token-savings claim is released.
+No measured token-savings claim is released.
 The source license above does not describe bundled dependency licenses.
+
+## Required compatibility matrix
+
+The target has three dimensions: assistant, surface, and processing destination.
+Two assistants, two surfaces, and two destinations produce eight required acceptance cases.
+Desktop means Claude Cowork or ChatGPT Work. Code means Claude Code or Codex running locally.
+Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok is not supported.
+
+| Assistant | Desktop: bundled Docling (default) | Desktop: operator server (optional) | Code: bundled Docling (default) | Code: operator server (optional) |
+| --- | --- | --- | --- | --- |
+| Claude | Cowork: pending | Cowork: pending | Claude Code: partial | Claude Code: pending (current package, native acceptance pending) |
+| ChatGPT | Work: partial | Work: pending | Codex: partial | Codex: pending (current package, native acceptance pending) |
+
+**Partial** means an earlier native workflow has evidence, but current packaged acceptance remains incomplete.
+**Pending** means this exact combination has not completed native acceptance. Neither status means unsupported.
+Earlier Claude Desktop Chat extension checks do not pass the Cowork cells.
+Earlier server protocol checks and the ChatGPT connection probe do not pass full server acceptance.
+The [client evidence and acceptance checklist](clients/README.md#matrix-acceptance) defines how each cell passes.
+All eight cells must pass before this compatibility target is complete.
+
+Users install OpenReading through the host's supported installation flow and receive the default local runtime.
+Desktop packages need no separate Python, Node, uv, runtime installer, or GitHub checkout.
+Claude Code and Codex use their own CLI commands to add the released local marketplace.
+Packages share the processing runtime; host-specific packaging is allowed and must be tested separately.
+Choosing server mode is optional. Operating that server is outside plugin installation.
 
 ## The first proof
 
@@ -27,6 +52,19 @@ OpenReading keeps the extracted document locally and returns selected passages w
 The proposed Claude Desktop, ChatGPT desktop, Claude Code, and Codex integrations use the same frozen runtime.
 The [client matrix](clients/README.md) distinguishes documented routes from tested behavior.
 See the [runtime evidence table](runtime/README.md) for tested behavior and remaining host checks.
+
+## Release candidate contract
+
+The planned `v0.2.0-rc.1` Agent Tools release binds one immutable
+`openreading-core v0.3.0-rc.1` commit. Its release manifest records both tags,
+both commits, the dependency lock hash, and every worker SHA-256. A build never
+uses a mutable `main` reference.
+
+The first artifacts run only on macOS on Apple Silicon. Intel macOS, Linux, and
+Windows artifacts are pending. The release is unsigned and remains a release
+candidate until each host completes its own installation and lifecycle checks.
+The [client guides](clients/README.md) distinguish a package that can install
+from a client path that has completed native acceptance.
 
 Provider API studies and SDK execution are disabled. Testing uses the owner's existing Desktop apps.
 The next proof checks large-document access and reliable citations; token savings remain unmeasured.
@@ -56,6 +94,9 @@ The [OSS launch design](design/oss-launch.md) separates public v1 from internal 
 MCP means Model Context Protocol, the interface through which an assistant calls local tools.
 This repository consumes a pinned core build.
 Core never requires this checkout or a private company package.
+To operate the optional server destination, use the matching Core release and
+its [server setup](https://github.com/openreading-ai/openreading-core/tree/main/src/openreading/server).
+Installing an Agent Tools package never installs or starts that server.
 
 ## Read and review
 

@@ -1,5 +1,30 @@
 # Changelog
 
+- Harden optional server progress, Unicode consent rows, cached responses and stopped-selection recovery.
+- Expose the response download budget and clarify retained-token and storage behavior.
+
+## Optional server transport foundation
+
+- Include a client-bound Settings app in the Claude chat candidate as well as ChatGPT.
+
+- Preserve literal URL and filename text in the native upload confirmation.
+
+- Add a source HTTP client for one selected snapshot and an explicitly configured Core destination.
+- Reject unsafe URLs, redirects, oversized responses, duplicate JSON keys, and nonfinite values.
+- Stop local waiting on cancellation without claiming remote cancellation or retrying submitted work.
+- Add revisioned destination settings and a Keychain wrapper tested without real credentials.
+- Add a native Settings window and bounded document-free connection checks, covered by offline tests.
+- Wire the chat launcher to explicit settings and package a relocatable ChatGPT Settings app.
+- Confirm destination and selected byte counts before upload, and refuse stale or modified selections.
+- Serialize detached imports, stop batches after shared failures, and recover completed downloads without another upload.
+- Keep frozen/native feature acceptance separate under ProductSpec revision 18.
+
+## Development Core integration pin
+
+- Pin the Docling candidate and P0 runtime to development Core `fb8967e`.
+  This includes external response retention and trusted detached-job execution.
+  The legacy v1 runtime retains its historical pin. This is a development pin, not a released package.
+
 ## Unreleased ChatGPT development plugin
 
 - Replace the unexpanded plugin command placeholder with an explicit working directory and relative executable path.

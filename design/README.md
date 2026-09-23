@@ -15,3 +15,6 @@ The [ProductSpec](../product/specs/local-document-proof.product-spec.md) owns th
 The design defines interfaces once.
 The plan links those interfaces instead of redefining them.
 Completed sections move beside their implementation and leave this directory in the finishing PR.
+
+The optional server destination is implemented in the runtime modules and indexed in [the runtime guide](../runtime/README.md).
+ProductSpec tracks its remaining native and release acceptance.

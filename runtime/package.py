@@ -11,6 +11,7 @@ The chatgpt storage namespace remains unchanged, including existing intake and e
 WORKFLOW.md is a review copy; actual model instructions come from the pinned core server.
 The selected-documents variant removes the directory setting and adds a co-located GUI app.
 Its wrapper starts the verified worker without user-controlled shell interpolation.
+Both chat packages include a Settings helper bound to their own client namespace.
 The helper wrapper and plist have package hashes; signing remains a distribution gate.
 """
 
@@ -175,8 +176,75 @@ def _docling_runtime(runtime: Path, *, selection: bool = False, chat: bool = Fal
     return metadata
 
 
+def _server_destination(metadata: dict) -> None:
+    if not {
+        "_internal/runtime/server_profile.py",
+        "_internal/runtime/server_imports.py",
+        "_internal/runtime/server_selection.py",
+        "_internal/runtime/server_transport.py",
+        "_internal/runtime/server_keychain.py",
+        "_internal/runtime/destination_settings.py",
+        "_internal/runtime/destination_ui.py",
+        "_internal/openreading/artifacts/retention.py",
+        "_internal/openreading/schemas/local-document.v0.5.json",
+        "_internal/openreading/schemas/agent-document-tool.v0.5.json",
+        "_internal/openreading/schemas/import-job.v0.4.json",
+    }.issubset(metadata["files"]):
+        raise ValueError(
+            "Rebuild with optional server destination support before packaging Settings."
+        )
+
+
+def _chatgpt_runtime(runtime: Path) -> dict:
+    metadata = verify_release(runtime)
+    if metadata["format_version"] == "2":
+        metadata = _docling_runtime(runtime, chat=True)
+        _server_destination(metadata)
+        return metadata
+    if metadata["format_version"] != "3":
+        raise ValueError(
+            "The development candidate requires a Docling runtime or server client runtime."
+        )
+    _server_destination(metadata)
+    if not {
+        "_internal/runtime/selection.py",
+        "_internal/runtime/chat_selection.py",
+        "_internal/runtime/native_selection.py",
+        "_internal/_tcl_data/init.tcl",
+        "_internal/_tk_data/tk.tcl",
+        "_internal/openreading/mcp_server/selection.py",
+        "_internal/openreading/schemas/selection-tool.v0.2.json",
+    }.issubset(metadata["files"]):
+        raise ValueError("Rebuild with server document selection before using this manifest.")
+    return metadata
+
+
+def _settings_helper(target: Path, client: str) -> tuple[Path, Path]:
+    contents = target / "OpenReading Settings.app/Contents"
+    executable = contents / "MacOS/openreading-settings"
+    executable.parent.mkdir(parents=True)
+    executable.write_text(
+        f'#!/bin/sh\nset -eu\nbase=$(/usr/bin/dirname "$0")\nexec "$base/../../../server/openreading-worker" --client {client} --destination-settings\n'
+    )
+    executable.chmod(0o755)
+    (contents / "Info.plist").write_bytes(
+        plistlib.dumps(
+            {
+                "CFBundleExecutable": "openreading-settings",
+                "CFBundleIdentifier": f"ai.openreading.settings.{client}.preview",
+                "CFBundleName": "OpenReading Settings",
+                "CFBundlePackageType": "APPL",
+                "CFBundleVersion": "1",
+                "CFBundleShortVersionString": "0.2.0",
+                "NSHighResolutionCapable": True,
+            }
+        )
+    )
+    return contents, executable
+
+
 def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
-    metadata = _docling_runtime(runtime, chat=True)
+    metadata = _chatgpt_runtime(runtime)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     target = output / "plugins/openreading-local-documents"
@@ -186,6 +254,10 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     verify_release(target / "server")
     # Bind package-owned inputs separately; the unchanged runtime retains its own inventory.
     files = [".codex-plugin/plugin.json", ".mcp.json", "README.md"]
+    contents, executable = _settings_helper(target, "chatgpt")
+    files.extend(
+        path.relative_to(target).as_posix() for path in (executable, contents / "Info.plist")
+    )
     files.extend(
         path.relative_to(target).as_posix() for path in (target / "skills").rglob("SKILL.md")
     )
@@ -227,12 +299,95 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     return target
 
 
+def package_server_clients(runtime: Path, output: Path) -> dict[str, Path]:
+    """Assemble current Claude Code and Codex marketplaces from the full Docling runtime.
+
+    A format-3 worker is deliberately server-only. Code-client releases need format 2 because
+    an absent destination must keep processing local before an owner selects a Core server.
+    """
+    metadata = verify_release(runtime)
+    if metadata["format_version"] != "2":
+        raise ValueError(
+            "Code-client packages require a Docling runtime with bundled local processing."
+        )
+    metadata = _docling_runtime(runtime, chat=True)
+    _server_destination(metadata)
+    if output.exists():
+        raise ValueError("Choose a new package output directory.")
+    paths: dict[str, Path] = {}
+    for client in ("claude-code", "codex"):
+        target = output / client / "plugins/openreading-local-documents"
+        shutil.copytree(REPOSITORY / "clients" / client, target)
+        shutil.copytree(runtime, target / "server", symlinks=True)
+        shutil.copytree(REPOSITORY / "skills", target / "skills")
+        contents, executable = _settings_helper(target, client)
+        (target / "package-info.json").write_text(
+            json.dumps(
+                {
+                    "distribution": "development-only",
+                    "core_commit": metadata["core_commit"],
+                    "worker_sha256": metadata["worker_sha256"],
+                    "settings_helper_sha256": sha256(executable),
+                    "settings_info_sha256": sha256(contents / "Info.plist"),
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+        verify_release(target / "server")
+        paths[client] = target
+    claude_marketplace = output / "claude-code/.claude-plugin/marketplace.json"
+    claude_marketplace.parent.mkdir(parents=True)
+    claude_marketplace.write_text(
+        json.dumps(
+            {
+                "name": "openreading-development",
+                "owner": {"name": "OpenReading"},
+                "plugins": [
+                    {
+                        "name": "openreading-local-documents",
+                        "source": "./plugins/openreading-local-documents",
+                    }
+                ],
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    codex_marketplace = output / "codex/.agents/plugins/marketplace.json"
+    codex_marketplace.parent.mkdir(parents=True)
+    codex_marketplace.write_text(
+        json.dumps(
+            {
+                "name": "openreading-development",
+                "interface": {"displayName": "OpenReading development preview"},
+                "plugins": [
+                    {
+                        "name": "openreading-local-documents",
+                        "source": {
+                            "source": "local",
+                            "path": "./plugins/openreading-local-documents",
+                        },
+                        "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+                        "category": "Productivity",
+                    }
+                ],
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return paths
+
+
 def package_docling_desktop(
     runtime: Path, output: Path, *, selection: bool = False, chat: bool = False
 ) -> Path:
     if selection and chat:
         raise ValueError("Choose one selection candidate mode.")
     metadata = _docling_runtime(runtime, selection=selection, chat=chat)
+    if chat:
+        _server_destination(metadata)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
@@ -292,11 +447,13 @@ def package_docling_desktop(
     if chat:
         manifest = json.loads((output / "manifest.json").read_text())
         manifest["name"] = "openreading-chat-selection-preview"
+        manifest["version"] = "0.2.0-rc.1"
         manifest["display_name"] = "OpenReading Chat Documents (development)"
         manifest["long_description"] = (
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "
             "Ask OpenReading to choose local documents or folders. The configured adapter supplies the supported formats. "
-            "Ask a question in chat. OpenReading processes selected documents locally with automatic OCR where supported. "
+            "Bundled Docling processes selected documents locally with automatic OCR by default. "
+            "OpenReading Settings can select your own Core server, with confirmation before sending selected bytes. "
             "Selected copies and evidence remain locally until removed; requested document content enters "
             "your assistant context. OCR can misread words and identifiers. Verify important "
             "quotes against the printed page. Use Cancel in the file dialog to dismiss it; "
@@ -323,6 +480,11 @@ def package_docling_desktop(
         ]
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
+        contents, executable = _settings_helper(output, "claude-desktop")
+        helper_metadata = {
+            "helper_sha256": sha256(executable),
+            "helper_info_sha256": sha256(contents / "Info.plist"),
+        }
     # Bind the review materials without claiming these hashes authenticate a publisher.
     (output / "package-info.json").write_text(
         json.dumps(
@@ -356,6 +518,11 @@ def main() -> int:
         action="store_true",
         help="assemble a development ChatGPT local plugin marketplace without host registration",
     )
+    targets.add_argument(
+        "--server-clients",
+        action="store_true",
+        help="assemble current Claude Code and Codex marketplaces with bundled Docling",
+    )
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument(
         "--chat-documents",
@@ -372,6 +539,8 @@ def main() -> int:
         parser.error("Selection candidates require --docling-desktop")
     if args.chatgpt_plugin:
         paths = {"chatgpt": package_chatgpt_plugin(args.runtime.resolve(), args.output.resolve())}
+    elif args.server_clients:
+        paths = package_server_clients(args.runtime.resolve(), args.output.resolve())
     elif args.docling_desktop:
         paths = {
             "claude-desktop": package_docling_desktop(
