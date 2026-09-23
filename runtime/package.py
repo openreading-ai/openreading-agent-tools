@@ -13,6 +13,8 @@ The selected-documents variant removes the directory setting and adds a co-locat
 Its wrapper starts the verified worker without user-controlled shell interpolation.
 Both chat packages include a Settings helper bound to their own client namespace.
 The helper wrapper and plist have package hashes; signing remains a distribution gate.
+The Cowork installer output separates a small native plugin upload from its bundled runtime.
+Setup stages execution outside Downloads and backs up existing Claude state before a fresh trial.
 """
 
 from __future__ import annotations
@@ -21,6 +23,7 @@ import argparse
 import json
 import plistlib
 import shutil
+import zipfile
 from pathlib import Path
 
 from runtime.verify import sha256, verify_release
@@ -39,24 +42,25 @@ def package_clients(runtime: Path, output: Path) -> dict[str, Path]:
     paths = {}
     for client in ["claude-desktop", "claude-code", "codex"]:
         target = output / client
-        template = REPOSITORY / "clients" / client
         if client != "claude-desktop":
             target = target / "plugins" / "openreading-local-proof"
-            # Current wrappers require flags absent from historical format-1 workers.
-            template = template / "historical"
         shutil.copytree(
-            template,
+            REPOSITORY / "clients" / client / ("historical" if client != "claude-desktop" else ""),
             target,
             ignore=shutil.ignore_patterns("docling", "historical", "selection", "chat"),
         )
-        if client == "claude-desktop":
+        if client in {"claude-desktop", "codex"}:
             # The repository index describes newer candidates that this archive cannot run.
             shutil.copy2(
-                REPOSITORY / "clients/claude-desktop/historical/README.md", target / "README.md"
+                REPOSITORY / "clients" / client / "historical/README.md", target / "README.md"
             )
         shutil.copytree(runtime, target / "server", symlinks=True)
         if client != "claude-desktop":
-            shutil.copytree(REPOSITORY / "skills", target / "skills")
+            shutil.copytree(
+                REPOSITORY / "skills",
+                target / "skills",
+                ignore=shutil.ignore_patterns("openreading-settings"),
+            )
         verify_release(target / "server")
         paths[client] = target
     claude = output / "claude-code/.claude-plugin/marketplace.json"
@@ -185,9 +189,12 @@ def _server_destination(metadata: dict) -> None:
         "_internal/runtime/server_imports.py",
         "_internal/runtime/server_selection.py",
         "_internal/runtime/server_transport.py",
-        "_internal/runtime/server_keychain.py",
         "_internal/runtime/destination_settings.py",
         "_internal/runtime/destination_ui.py",
+        "_internal/runtime/settings_server.py",
+        "_internal/runtime/app_settings.py",
+        "_internal/runtime/storage_settings.py",
+        "_internal/runtime/public_profile.py",
         "_internal/openreading/artifacts/retention.py",
         "_internal/openreading/schemas/local-document.v0.5.json",
         "_internal/openreading/schemas/agent-document-tool.v0.5.json",
@@ -196,30 +203,6 @@ def _server_destination(metadata: dict) -> None:
         raise ValueError(
             "Rebuild with optional server destination support before packaging Settings."
         )
-
-
-def _chatgpt_runtime(runtime: Path) -> dict:
-    metadata = verify_release(runtime)
-    if metadata["format_version"] == "2":
-        metadata = _docling_runtime(runtime, chat=True)
-        _server_destination(metadata)
-        return metadata
-    if metadata["format_version"] != "3":
-        raise ValueError(
-            "The development candidate requires a Docling runtime or server client runtime."
-        )
-    _server_destination(metadata)
-    if not {
-        "_internal/runtime/selection.py",
-        "_internal/runtime/chat_selection.py",
-        "_internal/runtime/native_selection.py",
-        "_internal/_tcl_data/init.tcl",
-        "_internal/_tk_data/tk.tcl",
-        "_internal/openreading/mcp_server/selection.py",
-        "_internal/openreading/schemas/selection-tool.v0.2.json",
-    }.issubset(metadata["files"]):
-        raise ValueError("Rebuild with server document selection before using this manifest.")
-    return metadata
 
 
 def _settings_helper(target: Path, client: str) -> tuple[Path, Path]:
@@ -247,7 +230,8 @@ def _settings_helper(target: Path, client: str) -> tuple[Path, Path]:
 
 
 def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
-    metadata = _chatgpt_runtime(runtime)
+    metadata = _docling_runtime(runtime, chat=True)
+    _server_destination(metadata)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
     target = output / "plugins/openreading-local-documents"
@@ -302,87 +286,184 @@ def package_chatgpt_plugin(runtime: Path, output: Path) -> Path:
     return target
 
 
-def package_server_clients(runtime: Path, output: Path) -> dict[str, Path]:
-    """Assemble current Claude Code and Codex marketplaces from the full Docling runtime.
-
-    A format-3 worker is deliberately server-only. Code-client releases need format 2 because
-    an absent destination must keep processing local before an owner selects a Core server.
-    """
-    metadata = verify_release(runtime)
-    if metadata["format_version"] != "2":
-        raise ValueError(
-            "Code-client packages require a Docling runtime with bundled local processing."
-        )
+def package_cowork_plugin(runtime: Path, output: Path) -> Path:
+    """Assemble a self-contained local Cowork candidate with a separate Settings connector."""
     metadata = _docling_runtime(runtime, chat=True)
     _server_destination(metadata)
     if output.exists():
         raise ValueError("Choose a new package output directory.")
-    paths: dict[str, Path] = {}
-    for client in ("claude-code", "codex"):
-        target = output / client / "plugins/openreading-local-documents"
-        shutil.copytree(
-            REPOSITORY / "clients" / client, target, ignore=shutil.ignore_patterns("historical")
-        )
-        shutil.copytree(runtime, target / "server", symlinks=True)
-        shutil.copytree(REPOSITORY / "skills", target / "skills")
-        contents, executable = _settings_helper(target, client)
-        (target / "package-info.json").write_text(
-            json.dumps(
-                {
-                    "distribution": "development-only",
-                    "core_commit": metadata["core_commit"],
-                    "worker_sha256": metadata["worker_sha256"],
-                    "settings_helper_sha256": sha256(executable),
-                    "settings_info_sha256": sha256(contents / "Info.plist"),
-                },
-                indent=2,
-            )
-            + "\n"
-        )
-        verify_release(target / "server")
-        paths[client] = target
-    claude_marketplace = output / "claude-code/.claude-plugin/marketplace.json"
-    claude_marketplace.parent.mkdir(parents=True)
-    claude_marketplace.write_text(
+    (output / ".claude-plugin").mkdir(parents=True)
+    (output / ".claude-plugin/plugin.json").write_text(
         json.dumps(
             {
-                "name": "openreading-development",
-                "owner": {"name": "OpenReading"},
-                "plugins": [
-                    {
-                        "name": "openreading-local-documents",
-                        "source": "./plugins/openreading-local-documents",
-                    }
-                ],
+                "name": "openreading-local-documents",
+                "version": "0.2.0-alpha.6",
+                "description": "Local document tools and native OpenReading Settings. Development candidate.",
+                "author": {"name": "OpenReading"},
             },
             indent=2,
         )
         + "\n"
     )
-    codex_marketplace = output / "codex/.agents/plugins/marketplace.json"
-    codex_marketplace.parent.mkdir(parents=True)
-    codex_marketplace.write_text(
+    servers = {}
+    for name, flag in (
+        ("openreading", "--chat-documents"),
+        ("openreading-settings", "--settings-tools"),
+    ):
+        servers[name] = {
+            "command": "${CLAUDE_PLUGIN_ROOT}/server/openreading-worker",
+            "args": ["--client", "claude-desktop", flag],
+        }
+    (output / ".mcp.json").write_text(json.dumps({"mcpServers": servers}, indent=2) + "\n")
+    shutil.copytree(runtime, output / "server", symlinks=True)
+    shutil.copytree(REPOSITORY / "skills", output / "skills")
+    shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
+    _settings_helper(output, "claude-desktop")
+    verify_release(output / "server")
+    files = {
+        p.relative_to(output).as_posix(): sha256(p)
+        for p in output.rglob("*")
+        if p.is_file() and "server" not in p.relative_to(output).parts
+    }
+    (output / "package-info.json").write_text(
         json.dumps(
             {
-                "name": "openreading-development",
-                "interface": {"displayName": "OpenReading development preview"},
-                "plugins": [
-                    {
-                        "name": "openreading-local-documents",
-                        "source": {
-                            "source": "local",
-                            "path": "./plugins/openreading-local-documents",
-                        },
-                        "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
-                        "category": "Productivity",
-                    }
-                ],
+                "distribution": "development-only",
+                "core_commit": metadata["core_commit"],
+                "worker_sha256": metadata["worker_sha256"],
+                "package_files": files,
             },
             indent=2,
         )
         + "\n"
     )
-    return paths
+    return output
+
+
+def package_cowork_installer(runtime: Path, output: Path) -> Path:
+    """Package an offline macOS setup command and Claude-owned plugin registration."""
+    metadata = _docling_runtime(runtime, chat=True)
+    _server_destination(metadata)
+    if "_internal/runtime/fresh_install.py" not in metadata["files"]:
+        raise ValueError("Rebuild with fresh-install support before packaging setup.")
+    output.mkdir(parents=True, exist_ok=False)
+    shutil.copytree(runtime, output / "runtime", symlinks=True)
+    worker_hash = metadata["worker_sha256"]
+    plugin = output / "plugin"
+    (plugin / ".claude-plugin").mkdir(parents=True)
+    (plugin / ".claude-plugin/plugin.json").write_text(
+        json.dumps(
+            {
+                "name": "openreading-local-documents",
+                "version": "0.2.0-alpha.7",
+                "description": "OpenReading document tools and native settings. Uses the accompanying offline runtime installer.",
+                "author": {"name": "OpenReading"},
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    (plugin / ".mcp.json").write_text(
+        json.dumps(
+            {
+                "mcpServers": {
+                    name: {"command": "/bin/sh", "args": ["${CLAUDE_PLUGIN_ROOT}/launch.sh", flag]}
+                    for name, flag in (
+                        ("openreading", "--chat-documents"),
+                        ("openreading-settings", "--settings-tools"),
+                    )
+                }
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    launcher = plugin / "launch.sh"
+    launcher.write_text(
+        '#!/bin/sh\nset -eu\ncd "$HOME"\n'
+        f'worker="$HOME/Library/Application Support/OpenReading/agent-tools/runtime-cache/{worker_hash}/openreading-worker"\n'
+        'if [ ! -x "$worker" ]; then\n'
+        '  echo "Run Install OpenReading.command from the matching setup package first." >&2\n'
+        '  exit 2\nfi\nexec "$worker" --client claude-desktop "$@"\n'
+    )
+    launcher.chmod(0o755)
+    shutil.copytree(REPOSITORY / "skills", plugin / "skills")
+    (plugin / "README.md").write_text(
+        "# OpenReading for Claude\n\nRun the accompanying offline installer before uploading this plugin.\n"
+        "Use `/openreading-settings` for Processing, Storage and Advanced.\n"
+        "The runtime lives in Application Support and never executes from the downloaded setup folder.\n"
+        "This is a development build. Signing and clean-machine acceptance remain pending.\n"
+    )
+    with zipfile.ZipFile(output / "OpenReading-Claude.zip", "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(plugin.rglob("*")):
+            if path.is_file():
+                archive.write(path, path.relative_to(plugin))
+    setup = output / "Install OpenReading.command"
+    setup.write_text(
+        """#!/bin/sh
+set -eu
+package_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+install_base="$HOME/Library/Application Support/OpenReading/agent-tools"
+for folder in "$HOME/Library" "$HOME/Library/Application Support" "$HOME/Library/Application Support/OpenReading" "$install_base"; do
+  if [ -L "$folder" ]; then echo "Setup refuses a symbolic-link installation directory." >&2; exit 2; fi
+done
+mkdir -p "$install_base"
+stage=$(mktemp -d "$install_base/.setup.XXXXXXXX")
+trap 'rm -rf "$stage"' EXIT
+echo "Copying the bundled runtime into Application Support..."
+/usr/bin/ditto "$package_dir/runtime" "$stage/runtime"
+actual=$(LC_ALL=C /usr/bin/shasum -a 256 "$stage/runtime/openreading-worker")
+actual=${actual%% *}
+"""
+        + f'expected="{worker_hash}"\n'
+        + """if [ "$actual" != "$expected" ]; then echo "Runtime checksum failed. Setup stopped." >&2; exit 2; fi
+cd "$HOME"
+"$stage/runtime/openreading-worker" --fresh-install
+echo "Plugin to upload in Claude: $package_dir/OpenReading-Claude.zip"
+"""
+    )
+    setup.chmod(0o755)
+    (output / "OpenReading-test.md").write_text(
+        "# OpenReading fresh-install check\n\nReference: OR-FRESH-001\n\n"
+        "The test delivery contains 12 blue notebooks and 7 green folders.\n"
+        "The total is 19 items.\n"
+    )
+    (output / "README.txt").write_text(
+        "OPENREADING: FRESH CLAUDE INSTALL (macOS Apple Silicon)\n\n"
+        "1. Finish or cancel OpenReading imports. Remove old OpenReading plugins/extensions in Claude.\n"
+        "2. Quit Claude and close existing OpenReading Settings windows.\n"
+        "3. Double-click Install OpenReading.command. Wait for the installed message in Terminal.\n"
+        "4. Open Claude > Customize > Plugins > Add > Upload plugin. Select OpenReading-Claude.zip.\n"
+        "5. Enable the plugin and accept its local-connector prompt.\n"
+        "6. In a new Cowork task, run /openreading-settings.\n"
+        "7. Check Processing, Storage and Advanced. Defaults are bundled Docling, ~/.openreading,\n"
+        "   1000000 inline bytes and a 256 MiB server download limit. Save only changes you want.\n"
+        "8. Reconnect the document connector after saving. Ask Claude to import a local document\n"
+        "   with OpenReading and choose OpenReading-test.md. Ask for its reference and total.\n"
+        "   Expected: OR-FRESH-001 and 19 items.\n\n"
+        "Fresh setup backs up Claude's prior settings and default data partition. It does not delete them.\n"
+        "Other clients and custom data directories stay intact. The backup path is printed.\n"
+        "The installed runtime lives under ~/Library/Application Support/OpenReading/agent-tools/runtime-cache/.\n"
+        "Claude manages the uploaded plugin. No user-installed Python, model download or server is required.\n"
+        "After setup succeeds, the downloaded setup folder is not needed by the running plugin.\n"
+        "Terminal may request access to Downloads while reading this installer. Normal runtime startup\n"
+        "reads Application Support instead. Selecting documents in protected folders may require permission.\n\n"
+        "This is a development build with ad-hoc signing. Signed distribution and clean-machine acceptance\n"
+        "remain unverified. Optional Core server mode requires a separately running Core server.\n"
+    )
+    (output / "build.json").write_text(
+        json.dumps(
+            {
+                "distribution": "development-only",
+                "worker_sha256": worker_hash,
+                "core_commit": metadata["core_commit"],
+                "plugin_sha256": sha256(output / "OpenReading-Claude.zip"),
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+    return output
 
 
 def package_docling_desktop(
@@ -397,7 +478,7 @@ def package_docling_desktop(
         raise ValueError("Choose a new package output directory.")
     shutil.copytree(REPOSITORY / "clients/claude-desktop/docling", output)
     shutil.copytree(runtime, output / "server", symlinks=True)
-    shutil.copy2(REPOSITORY / "skills/read-local-document/SKILL.md", output / "WORKFLOW.md")
+    shutil.copy2(REPOSITORY / "skills/openreading/SKILL.md", output / "WORKFLOW.md")
     verify_release(output / "server")
     helper_metadata = {}
     if selection:
@@ -452,7 +533,7 @@ def package_docling_desktop(
     if chat:
         manifest = json.loads((output / "manifest.json").read_text())
         manifest["name"] = "openreading-chat-selection-preview"
-        manifest["version"] = "0.2.0-rc.1"
+        manifest["version"] = "0.2.0-alpha.3+server.20260920"
         manifest["display_name"] = "OpenReading Chat Documents (development)"
         manifest["long_description"] = (
             "The launcher disables ONNX Runtime telemetry before the document engine starts. "
@@ -466,22 +547,11 @@ def package_docling_desktop(
             "does not establish public installation or measured token savings."
             "\n\nOpenReading Managed: Coming soon"
         )
-        manifest["user_config"] = {
-            "document_response_bytes": {
-                "type": "number",
-                "title": "Complete result response budget (bytes)",
-                "description": "Advanced delivery setting. Enter a whole number of at least 4096. Default 1000000 counts the serialized MCP response. Larger results are saved under Downloads/OpenReading; document processing is not limited.",
-                "default": 1_000_000,
-                "min": 4096,
-                "required": False,
-            }
-        }
+        manifest["user_config"] = {}
         manifest["server"]["mcp_config"]["args"] = [
             "--client",
             "claude-desktop",
             "--chat-documents",
-            "--document-response-bytes",
-            "${user_config.document_response_bytes}",
         ]
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         shutil.copy2(REPOSITORY / "clients/claude-desktop/chat/README.md", output / "README.md")
@@ -519,14 +589,19 @@ def main() -> int:
         help="assemble only a development Docling Desktop candidate for local checks",
     )
     targets.add_argument(
+        "--cowork-installer",
+        action="store_true",
+        help="assemble offline fresh setup plus the Claude plugin upload archive",
+    )
+    targets.add_argument(
+        "--cowork-plugin",
+        action="store_true",
+        help="assemble a self-contained Cowork development plugin with native settings",
+    )
+    targets.add_argument(
         "--chatgpt-plugin",
         action="store_true",
         help="assemble a development ChatGPT local plugin marketplace without host registration",
-    )
-    targets.add_argument(
-        "--server-clients",
-        action="store_true",
-        help="assemble current Claude Code and Codex marketplaces with bundled Docling",
     )
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument(
@@ -542,10 +617,12 @@ def main() -> int:
     args = parser.parse_args()
     if (args.selected_documents or args.chat_documents) and not args.docling_desktop:
         parser.error("Selection candidates require --docling-desktop")
-    if args.chatgpt_plugin:
+    if args.cowork_installer:
+        paths = {"cowork": package_cowork_installer(args.runtime.resolve(), args.output.resolve())}
+    elif args.cowork_plugin:
+        paths = {"cowork": package_cowork_plugin(args.runtime.resolve(), args.output.resolve())}
+    elif args.chatgpt_plugin:
         paths = {"chatgpt": package_chatgpt_plugin(args.runtime.resolve(), args.output.resolve())}
-    elif args.server_clients:
-        paths = package_server_clients(args.runtime.resolve(), args.output.resolve())
     elif args.docling_desktop:
         paths = {
             "claude-desktop": package_docling_desktop(

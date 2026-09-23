@@ -1,6 +1,6 @@
 """Upload one selected snapshot to an operator-run Core server without parse retries.
 
-The trusted launcher supplies destination settings and an optional existing bearer token.
+The trusted launcher supplies the URL and response limit. No authentication is sent.
 Tools cannot choose URLs, request metadata, headers, credentials, or redirect destinations.
 Only loopback permits HTTP. Other destinations require verified HTTPS; upload redirects fail.
 The request uses Core's configured default backend or strategy through backend.id=null.
@@ -18,7 +18,6 @@ import hashlib
 import ipaddress
 import json
 import os
-import re
 import stat
 from dataclasses import dataclass
 from pathlib import Path
@@ -35,7 +34,7 @@ UPLOAD_BYTES = 100 * 1024 * 1024
 class ServerDestination:
     base_url: str
     revision: str
-    response_bytes: int = 128 * 1024 * 1024
+    response_bytes: int = 256 * 1024 * 1024
 
     def __post_init__(self):
         url = urlsplit(self.base_url)
@@ -149,7 +148,6 @@ async def parse_document(
     destination: ServerDestination,
     source: Path,
     *,
-    token: str | None = None,
     cancelled=None,
     progress=None,
     transport=None,
@@ -171,9 +169,6 @@ async def parse_document(
 
     if cancellation():
         raise DestinationError("Cancelled before submission.")
-    if token is not None and not re.fullmatch(r"[\x21-\x7e]+", token):
-        raise DestinationError("The configured server credential is invalid.")
-    headers = {"Authorization": "Bearer " + token} if token else {}
     timeout = httpx.Timeout(connect=10, write=30, read=None, pool=10)
     fd = (
         os.dup(source_fd)
@@ -235,7 +230,6 @@ async def parse_document(
                     async with client.stream(
                         "POST",
                         destination.base_url + "/v1/parse",
-                        headers=headers,
                         data={"request": REQUEST},
                         files={"file": (source.name, Upload(), "application/octet-stream")},
                     ) as received:
@@ -292,15 +286,12 @@ async def parse_document(
     )
 
 
-async def check_connection(destination: ServerDestination, *, token=None, transport=None) -> dict:
-    """Check HTTP health and authorized metadata without uploading or calling providers.
+async def check_connection(destination: ServerDestination, *, transport=None) -> dict:
+    """Check HTTP health and server metadata without uploading or calling providers.
 
     Both GETs have a ten-second overall deadline and a one-MiB decoded body limit.
     A passing check proves these endpoints answer, never that document parsing will succeed.
     """
-    if token is not None and not re.fullmatch(r"[\x21-\x7e]+", token):
-        raise DestinationError("The configured server credential is invalid.")
-    headers = {"Authorization": "Bearer " + token} if token else {}
     values = []
     try:
         with anyio.fail_after(10):
@@ -311,7 +302,6 @@ async def check_connection(destination: ServerDestination, *, token=None, transp
                     async with client.stream(
                         "GET",
                         destination.base_url + path,
-                        headers=headers if path == "/v1/backends" else {},
                     ) as received:
                         if received.status_code != 200:
                             raise DestinationError(

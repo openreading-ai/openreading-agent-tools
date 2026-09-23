@@ -1,10 +1,108 @@
 # Client compatibility
 
-Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the server connector. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
-OpenReading has one proposed Docling runtime and separately tested client connections.
+Revision 28 requires a server connector with separately tested client connections.
+Bundled Docling evidence and routes below are historical and preserved by tag bundled-docling-2.126.0-checkpoint.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
+
+## Alpha.20 URL-only connector, September 22, 2026
+
+Revision 28 removes credential controls and Keychain access from the connector. Core authentication remains unchanged.
+Legacy destinations preserve URLs and limits without reading or sending saved credentials.
+All four development packages use worker SHA-256 `9faed06afaa7a4d4d5266d36e68506c6eb9bde70b9d642b3f129d2082e3626e9`.
+The Core client pin remains `ce65c565636b71221f23be7021028bbff9cf317f`.
+Offline verification and package inventory checks pass. Each package retains nine document tools and one Settings opener.
+A frozen synthetic localhost check covers uploads without Authorization, retained retrieval, exports, background imports, cancellation and failure recovery.
+Selection and consent are injected in that check. Native Settings, host installation and HTTPS acceptance remain separate tests for this build.
+Previously tested packages remain historical evidence and are not relabeled as alpha.20 acceptance.
+
+## Claude archive preflight, September 21, 2026
+
+Claude Desktop 2.2553.1 accepts the alpha.15 archive preview without the nested-ZIP error reported for alpha.14.
+The 28,600,502-byte ZIP has SHA-256 `4cebc54794f87fd19c14d62ad9a5505a4e7f14fc265d92d2b86c2f2e3c795d2c`.
+The check selected the archive and verified its preview. Upload, installation and native document testing remain pending for this build.
+
+## Claude device discovery, September 21, 2026
+
+Claude Desktop 2.2553.1 can announce both plugin connectors while a fresh chat cannot discover their tools through cloud connector search.
+The native Settings request must follow the host's device-connection flow before resolving the device-qualified opener.
+A fresh-chat trial with the alpha.16 skill instructions and installed alpha.15 worker called the opener successfully without changing settings.
+A discovery-only trial correctly stopped when device activation conflicted with its permission constraints. Missing session tools do not prove a missing installation.
+The installed alpha.16 slash command still failed after restart. Its generic device-connection instruction did not identify the activation gate.
+The Settings skill now names Claude's computer activation gate for this explicit native-window request, while preserving permission refusals.
+A native editor revision on alpha.16 returned `window_requested` from the real Settings tool in two fresh slash-command trials without restarting Claude.
+One repeat also attempted generic app discovery before calling the opener. That unnecessary host detour remains a workflow limitation.
+These receipts prove Settings tool discovery for those trials, not file selection, processing, or every compatibility-matrix surface.
+
+## Alpha.17 clean-install candidate
+
+Alpha.17 packages the Settings skill tested through alpha.16's native editor revision.
+The worker, manifest and locked package version identify alpha.17 consistently.
+Offline verification, frozen synthetic processing, Settings catalog checks and isolated storage migration pass.
+Fresh alpha.17 installation remains owner-operated acceptance. Existing native trials do not substitute for that check.
+
+## Client-only package boundary, September 22, 2026
+
+Alpha.19 packages Core's explicit client wheel instead of the full engine distribution.
+Its archive contains shared retention and MCP modules with seven client schema resources.
+Adapters, routing, Core HTTP/CLI code, parser libraries and full-engine metadata are absent.
+The Claude Code marketplace ZIP is 20,902,911 bytes. Its SHA-256 is `79588a5bf916f5c5605e6258f7999fc37bb685f84f508563db6b18925accc582`.
+Core and Agent Tools offline gates pass. Frozen checks cover a real localhost server, retained retrieval, export integrity, jobs, cancellation and failure recovery.
+Claude Code 2.1.278 installs the exact private archive in isolated configuration and connects both cached MCP servers.
+These checks use synthetic documents and no model session. Alpha.19's native picker and owner-operated document walkthrough remain manual acceptance.
+
+## Alpha.19 owner checkpoint and Codex packaging, September 22, 2026
+
+The owner reports successful Claude Desktop and Claude Code testing with localhost Core after client-only cleanup.
+Tag `claude-server-only-alpha.19-tested` preserves the Agent Tools commit, Core pin and exact Claude archive hashes.
+The report establishes the development-machine workflows, not every matrix criterion or clean-machine acceptance.
+
+Codex packaging reuses that alpha.19 worker without rebuilding or adding parser dependencies.
+Codex CLI 0.155.1 installs the native marketplace package in an isolated configuration.
+Its app server discovers both installed skills and both MCP connectors, with nine document tools and one settings opener.
+The installed worker passes localhost Core processing, retrieval, exports, retained jobs and stopped-server recovery.
+The protocol test injects selection and confirmation. Manual Codex model and chooser acceptance remain pending.
+
+## Codex owner report and ChatGPT candidate, September 22, 2026
+
+The owner reports that the Codex server-only plugin works, including the native settings opener.
+Its settings workflow first tried an unnecessary computer-use app lookup before calling the correct tool.
+The shared skills now explicitly direct Codex and ChatGPT Work to their installed plugin tools.
+Manual retesting must establish whether that clarification removes the detour.
+
+The ChatGPT server-only candidate uses the unchanged alpha.19 worker with the `chatgpt` client partition.
+Its `openreading-chatgpt` plugin and connector names avoid replacing or colliding with the installed Codex variant.
+Shared OpenAI host configuration can expose both plugins. Enable one variant per conversation for an unambiguous test.
+Bundled CLI installation and protocol checks remain separate from the owner-operated ChatGPT Work conversation.
+The owner-observed New Plugin uploader rejected the initial marketplace-wrapped ZIP.
+The replacement ZIP contains a standalone plugin and obeys the displayed 100 MB limit.
+Upload acceptance remains pending the owner's next test.
+
+## OpenReading command rename, September 22, 2026
+
+Alpha.18 names the plugin and marketplace `openreading`. Its only skills are `openreading` and `openreading-settings`.
+Explicit frontmatter names provide the short commands in Claude Code. The host may also display qualified names.
+Claude Code 2.1.278 installs the private archive and connects both servers from its own plugin cache in an isolated check.
+The client label remains `claude-code`, preserving existing settings and retained documents across the plugin rename.
+The owner verified alpha.17 Settings and document retrieval in Claude Code. Alpha.18's manual command invocation remains a separate check.
+
+## Claude Code server-only candidate, September 21, 2026
+
+Claude Code 2.1.278 validates and installs alpha.17 through its native archive marketplace in an isolated configuration.
+The authenticated GitHub download passes its SHA-256 pin, and both connectors start from Claude Code's own plugin cache.
+The private marketplace uses the existing GitHub CLI login. The archive omits plugin manifests because strict=false rejects them on this host.
+The packaged worker hash matches the previously verified server-only runtime. No manual file copying or state reset is needed.
+Both document and Settings connectors report connected. Plugin and marketplace removal also pass.
+The packaged launcher uses the `claude-code` partition and the same frozen worker as Desktop alpha.17.
+A synthetic PDF passed through a real localhost Core server at the pinned commit using its local PyMuPDF backend.
+Background import, complete export hashing, search, exact reads and job discovery across connector sessions passed.
+Stopping Core causes failure. The old selection is refused after restart, and a new selection processes successfully.
+Synthetic transport checks also cover cancellation, HTTP refusal and stale destinations without local parser fallback.
+These checks used temporary storage, no personal documents and no provider calls.
+Native picker and confirmation were injected in the protocol checks. A model-driven Claude Code session remains owner-operated acceptance.
+Remote HTTPS, clean-machine installation and release signing remain pending for this cell.
 
 ## Matrix acceptance
 
@@ -14,29 +112,29 @@ The dated records below preserve earlier results without promoting them to a new
 Claude Code and Codex have September 16 local workflow evidence; ChatGPT Work has September 17 local workflow evidence.
 Claude Desktop Chat extension evidence does not establish Cowork support.
 
-Each of the eight cells requires its own recorded acceptance result:
+Each of the four server-backed cells requires its own recorded acceptance result:
 
 1. Record the application version, exact surface, OS/architecture, package hash, runtime hash, and Core commit.
 2. Install through the supported host flow from a clean client configuration. Preserve existing user data before resetting it.
    Verify the package on a machine without separately installed Python, Node, uv, or other runtime prerequisites.
-   Automatic provisioning may be part of the package flow; its supported host behavior needs independent proof.
+   The embedded connector must start without provisioning or downloading another runtime.
 3. Verify native startup and all nine current tools. Select synthetic files and a folder through OpenReading, including selection cancellation.
 4. Import, retrieve complete content, search, read, and answer with exact evidence. Check OCR, pageless content, and oversized export access.
 5. Exercise background progress, disconnect/reconnect, discovery, explicit cancellation, and reuse without repeating processing.
 6. Restart, update, remove, and reinstall. Record retained-data behavior and actual host permission prompts.
 7. Record failures and evidence locations. A protocol harness, another surface, or a different package cannot pass this cell.
 
-For every local cell, absent settings must select bundled Docling. Verify processing offline after installation, without a running Core server.
-For every server cell, test settings and credentials, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
-Check consent cancellation, exact uploaded bytes, authentication/TLS refusal, no automatic resubmission, and stopped-selection recovery.
+Absent settings and old bundled-parser preferences must request server setup without selecting or uploading documents.
+For every cell, test settings, successful localhost and valid remote HTTPS destinations, and native upload confirmation.
+Check consent cancellation, exact uploaded bytes, HTTP 401/403 and TLS refusal, no automatic resubmission, and stopped-selection recovery.
 Server results must preserve partial status, warnings, and provenance. Local cancellation must not claim remote processing stopped.
-Switch back to bundled Docling and verify the next import uses it; no failure may silently change the destination.
+Change the saved server and verify stale selections are refused. No failure may invoke a local parser.
 Only synthetic documents are used for server acceptance. Server operation remains the operator's responsibility.
 
 Use `pending`, `partial`, `blocked` with a reason, or `passed` with exact-build evidence for each cell.
 A clean configuration on a development machine does not replace a clean-machine prerequisite check.
 Signing and notarization remain release gates even after a development walkthrough succeeds.
-Test Claude first, then ChatGPT. Neither assistant is complete until its four cells pass.
+Test Claude first, then ChatGPT. Neither assistant is complete until its two client cells pass.
 
 ## Documented routes
 
@@ -159,7 +257,7 @@ Full plugin installation acceptance, ordinary Chat, signing and clean-machine ch
 
 - [Claude Desktop](claude-desktop/README.md): partial owner-run Docling checks, manual developer setup, and historical package walkthrough.
 - [ChatGPT desktop](chatgpt/README.md): documented connection candidate and remaining verification.
-- [Claude Code](claude-code/README.md): historical marketplace and configuration evidence.
+- [Claude Code](claude-code/README.md): native marketplace installation and server-only acceptance.
 - [Codex](codex/README.md): historical package and configuration evidence.
 
 Every future compatibility entry must name the tested runtime, application version, execution mode, and actual result.

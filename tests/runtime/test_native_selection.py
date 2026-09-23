@@ -162,6 +162,32 @@ class NativeSelectionTests(unittest.IsolatedAsyncioTestCase):
                 await m.choose()
 
     def test_server_chooser_has_no_adapter_extension_filter(self):
-        script = self.module().command(None)[-1]
-        self.assertIn("panel.allowedFileTypes = null", script)
-        self.assertIn("confirmation before any upload", script)
+        import subprocess
+
+        # JXA bridges JavaScript null to NSNull, which cannot satisfy NSArray's count.
+        # Exercise the generated script against that native property boundary.
+        boundary = """
+const filters = [];
+const nativePanel = {runModal: 0};
+Object.defineProperty(nativePanel, 'allowedFileTypes', {set(value) {
+    if (!Array.isArray(value)) throw new TypeError('Native file types require an array');
+    filters.push(value);
+}});
+const ObjC = {import() {}};
+const $ = {NSApplication: {sharedApplication: {setActivationPolicy() {}, activateIgnoringOtherApps() {}}},
+    NSOpenPanel: {openPanel: nativePanel}, NSApplicationActivationPolicyAccessory: 1, NSModalResponseOK: 1};
+const selection = JSON.parse(eval(SCRIPT));
+console.log(JSON.stringify({selection, filters}));
+"""
+        for extensions in (None, ("pdf",)):
+            script = self.module().command(extensions)[-1]
+            result = subprocess.run(
+                ["node", "-e", boundary.replace("SCRIPT", json.dumps(script))],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                json.loads(result.stdout),
+                {"selection": None, "filters": [] if extensions is None else [["pdf"]]},
+            )

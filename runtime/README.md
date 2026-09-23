@@ -1,4 +1,14 @@
-# Native runtime
+# Current server-only connector
+
+Build current Apple Silicon packages with [runtime/server_client](server_client/README.md) and `runtime.build_server`.
+That environment installs only Core's client profile. It never freezes the full engine or a local parser.
+The builder accepts `claude-desktop`, `claude-code`, `chatgpt` and `codex`.
+Do not use `runtime.build`, `runtime.build_docling` or `runtime.package` for the current preview.
+
+The sections below preserve historical developer mechanisms and their evidence.
+Their dependency pins and artifacts do not define the current release.
+
+## Historical native runtime
 
 **Revision status:** this guide describes the superseded revision 1 PyMuPDF prototype.
 The [revision 2 design](../design/local-document-proof.md) targets a Docling distribution.
@@ -222,25 +232,20 @@ The plugin uses the existing `chatgpt` data namespace; switching wrappers does n
 `server_transport.py` sends one already-selected snapshot to an explicit Core HTTP destination.
 Its module documentation defines the request, response limits, and cancellation boundary.
 For example, a localhost destination can use an operator-configured Core parser without bundling that parser here.
-The chat launcher reads the separate destination setting. Absence keeps bundled Docling.
+The server-only launcher reads the separate destination setting. Absence requests server setup.
 `server_profile.py` supplies the trusted child factory and fixed client storage roots.
-Unsafe local configuration returns a diagnostic and exit 2 before serving tools, without a traceback.
 
 `destination_settings.py` keeps a separate private destination choice with a new revision on every explicit save.
-`server_keychain.py` stores optional bearer credentials through macOS Security, keeping them out of argv and JSON.
-Changing a URL does not inherit its previous credential. Existing references remain available to pending jobs.
+Schema 2 contains no credential reference. Reading schema 1 preserves the URL and limits but discards its old reference.
+The connector never reads Keychain or sends authentication. Servers requiring credentials are unsupported.
 `destination_ui.py` provides explicit Save and Test connection controls using the bundled Tk interface.
-The connection check reads health and authorized metadata without uploading a document or invoking a provider.
-The window and controller pass offline tests. Actual native Keychain prompts remain unverified.
+The connection check reads health and server metadata without uploading a document or invoking a provider.
+Native settings acceptance remains separate from offline controller checks.
 
 `server_selection.py` confirms the URL, names, count and total bytes before authorizing uploads.
 Changing settings invalidates unsubmitted approvals. Server mode keeps the existing snapshot exclusions without an adapter extension filter.
-Cancelling consent revokes every selected copy, even when the approval directory becomes inaccessible or unsafe.
 `server_imports.py` serializes uploads and records attempts before HTTP begins.
 An interrupted request stops its selection batch. Completed downloads can retry local retention without another upload.
-An unusable completed result rejects only that document; its selected siblings can still run.
-Check the server response before reselecting the rejected document. Its old reference never uploads again.
-Keychain refusal reports that nothing was uploaded. Restore credential access, then select and confirm again.
 The server may continue processing after local cancellation. No automatic retry or local parser fallback occurs.
 Transfer records and downloaded responses persist under `CLIENT/v2/server/`, outside Core's artifact staging.
 
@@ -249,9 +254,114 @@ Its fixed wrapper opens the verified runtime with `--client chatgpt --destinatio
 It does not install a plugin or start a Core server. Use the ChatGPT plugin browser for installation.
 
 The offline gate keeps historical runtime tests on their original Core pin.
-`runtime/testing` runs `tests/server` against the same Core commit as the Docling candidate.
+`runtime/testing` runs `tests/server` against the current server connector Core commit.
+The Docling feasibility and P0 environments retain their historical pins.
 The broader `tests/runtime` lane uses the historical `runtime` pin, including transport and Settings tests.
 The server lane exercises the current Core service through MCP, including synchronous progress notifications.
-Detached-job regressions require a confirmed HTTP 401 diagnostic and cached retention recovery after a local lock collision.
-That recovery sends exactly one upload. Duplicate physical page numbers are rejected before caching an ambiguous result.
 Both lanes contribute to the existing line and branch coverage requirements.
+
+## Server-only Claude candidate
+
+Build the current plugin through [the server connector environment](server_client/README.md).
+It preserves the plugin identity and includes the connector directly, without parsing engines or downloads.
+Existing server settings and client data remain in place. Missing or legacy local-mode settings require server setup.
+The server handles parsing and OCR. The connector retains selection, consent, jobs, retrieval, citations, exports and settings.
+Historical Docling builders below remain reproducible at tag `bundled-docling-2.126.0-checkpoint`.
+
+## Native settings and public storage
+
+Ask to open OpenReading Settings or select `/openreading-settings` in a plugin with the settings connector.
+The tabs are **Processing**, **Storage**, and **Advanced**, in that order.
+Processing configures your Core server URL, token and connection check. No bundled-parser choice is available.
+**Test connection** sends no document. Success appears green and failure appears red.
+Feedback retains descriptive text, and changes during a check invalidate its displayed result.
+Storage selects the local directory for intermediate processing values, retained documents and exported results.
+Advanced sets the file-delivery threshold and maximum downloaded server response, defaulting to 256 MiB.
+Each tab saves its own values. **Restore defaults** resets that tab for review; Save applies those values.
+Saving Advanced settings never requests a storage move or applies unsaved processing choices.
+Existing saved limits remain effective until you change them. The Settings window contains no Managed promotion.
+After saving in Claude, fully quit with Command-Q and reopen the app.
+Start a new task and ask to open the OpenReading file picker to apply saved changes.
+Opening Settings alone does not apply a pending storage move. Finish or cancel imports before moving storage.
+The separate settings connector remains available when invalid preferences prevent document startup.
+
+Public sessions default to `~/.openreading/clients/CLIENT/v2`, including an `exports` directory.
+An optional selected folder replaces `~/.openreading`; it never becomes a source-document grant.
+An existing installation keeps its location until preferences are explicitly saved.
+After that request, private intake and evidence are copied when the connection can migrate safely.
+The old copy remains intact. An occupied target partition is refused rather than merged.
+Historical developer directory/OCR setup and version 1 storage keep their original paths.
+The control records remain in the original Application Support client directory.
+
+`app_settings.py` defines persisted defaults and validation, including the separate `advanced.json` limits record. `storage_settings.py` owns switching and rollback.
+`settings_server.py` exposes only `openreading_open_settings`, with no configuration arguments.
+`destination_settings.py` stores the URL and download limit without credentials.
+`public_profile.py` applies these choices to local and server processing without changing Core's tool catalog.
+The integrated build's native and release gaps are tracked in [native settings acceptance](../design/native-settings.md).
+
+## Small native Claude plugin
+
+Upload `OpenReading-Claude-Plugin.zip` in Claude and enable its local connectors.
+The frozen `bootstrap.py` launcher automatically downloads the pinned runtime and models into Application Support.
+The user runs no installer command and needs no Python installation.
+Tool discovery responds during download. Early tool calls report setup progress and can retry afterward.
+Archive hashes, safe extraction and full runtime verification precede execution. Concurrent connectors share a download lock.
+Later launches verify the cached runtime without contacting the download endpoint. User settings and documents stay intact.
+The build command is `python -m runtime.bootstrap_package --runtime RUNTIME --bootstrap BINARY --output OUTPUT --url HTTPS_URL`.
+It produces a small plugin ZIP and a separate runtime archive for the supplied HTTPS address.
+Development downloads use the owner's temporary ngrok endpoint. Durable GitHub hosting follows the OSS release decision.
+The exact local and server catalogs are collected from the frozen worker and checked before forwarding tool calls.
+Before startup, discovery describes both destinations and retains conservative upload annotations.
+After startup, Claude receives the active profile verbatim, with a catalog-change notification when needed.
+Changing processing mode requires reconnecting the document connector. Both approved modes remain valid for the same pinned runtime.
+Native and clean-machine acceptance remain separate gates.
+
+## Historical offline setup package
+
+The separate command installer is retained for historical development trials. It is not the current native installation flow.
+
+Build the offline setup directory with `python -m runtime.package --cowork-installer --runtime RUNTIME --output OUTPUT`.
+The directory includes a verified runtime, `Install OpenReading.command`, `OpenReading-Claude.zip`, and a synthetic test document.
+The setup command copies the runtime into Application Support before executing the packaged installer.
+Claude owns the plugin upload and local-connector approval through Customize > Plugins.
+The generated launcher starts from the home directory and uses a versioned Application Support runtime cache.
+It never depends on the downloaded setup directory after installation.
+
+`fresh_install.py` owns reset and backup behavior. It refuses active Claude workers, locked connections and unfinished imports.
+Prior Claude settings and the default data partition move into private backups, with original paths recorded for restoration.
+A failed backup operation restores earlier moves. Custom data directories and other clients remain intact.
+The installer needs no user-installed Python or network download. It does not sign code or change macOS privacy permissions.
+This supports a fresh local-install trial; signed distribution and clean-machine acceptance remain separate gates.
+
+## Server-only Claude packages
+
+The server connector packages no parsing engine or model assets. Start your Core server separately.
+The builder freezes a macOS Apple Silicon worker by default. An existing verified release can be packaged for either Claude client.
+
+~~~sh
+python -m runtime.build_server --client claude-code --runtime /absolute/path/to/verified-runtime --output /absolute/path/to/new-build
+~~~
+
+Use `--client claude-desktop` for the Desktop ZIP. Claude Code also receives a local marketplace around the plugin directory.
+Each launch passes its client name, so saved destinations, storage and jobs remain isolated between the two clients.
+The output `package/build.json` records its client, worker hash, Core commit and plugin ZIP hash.
+Claude Code also receives `OpenReading-Claude-Code-Marketplace.zip` and its `marketplace_sha256` digest.
+That archive omits plugin manifests because the authenticated marketplace owns its skills and connector definitions.
+Packaging never registers a host, edits user settings, or starts the configured Core server.
+See the [Claude Code guide](../clients/claude-code/README.md) for installation and manual acceptance.
+
+## Codex server-only package
+
+`runtime.build_server --client codex --runtime /path/to/verified-runtime --output /path/to/new-build`
+assembles the same server-only worker into a Codex native marketplace and ZIP.
+The relative launcher fixes the `codex` client partition and exposes document and settings connectors.
+The [Codex guide](../clients/codex/README.md) records native installation, isolated checks and manual acceptance limits.
+
+## ChatGPT Work server-only package
+
+`runtime.build_server --client chatgpt --runtime /path/to/verified-runtime --output /path/to/new-build`
+assembles the unchanged worker with the `chatgpt` client label and native plugin metadata.
+Its upload ZIP contains the plugin at the archive root, without a marketplace wrapper.
+The generated marketplace remains available separately for development checks.
+The `openreading-chatgpt` identity avoids replacing the separately installed Codex plugin.
+Shared host configuration is not an application boundary. The [ChatGPT guide](../clients/chatgpt/README.md) explains manual testing and enablement.

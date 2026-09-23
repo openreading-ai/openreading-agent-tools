@@ -82,9 +82,16 @@ def checked_extensions(extensions) -> tuple[str, ...]:
 
 
 class SelectionStore:
-    def __init__(self, client: str, *, home: Path | None = None, extensions=("pdf",)):
+    def __init__(
+        self,
+        client: str,
+        *,
+        home: Path | None = None,
+        extensions=("pdf",),
+        data_root: Path | None = None,
+    ):
         self.extensions = checked_extensions(extensions)
-        self.root = client_root(client, home=home) / "v2/selection"
+        self.root = (data_root or (client_root(client, home=home) / "v2")) / "selection"
         self.grant = self.root / "ready"
         self.staging = self.root / "staging"
         self.discarded = self.root / "discarded"

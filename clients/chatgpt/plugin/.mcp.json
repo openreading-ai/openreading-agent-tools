@@ -8,6 +8,15 @@
         "--chat-documents"
       ],
       "cwd": "."
+    },
+    "openreading-settings": {
+      "command": "./server/openreading-worker",
+      "args": [
+        "--client",
+        "chatgpt",
+        "--settings-tools"
+      ],
+      "cwd": "."
     }
   }
 }

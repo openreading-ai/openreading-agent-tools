@@ -131,9 +131,7 @@ class EntrypointTests(unittest.TestCase):
             verify.assert_not_called()
             self.assertIn("packaged", output.getvalue())
 
-    def test_selection_server_uses_private_intake_without_overwriting_saved_grants(
-        self,
-    ):
+    def test_selection_server_uses_private_intake_without_overwriting_saved_grants(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()
             client = root / "Library/Application Support/OpenReading/agent-tools/claude-desktop"
@@ -142,23 +140,12 @@ class EntrypointTests(unittest.TestCase):
             for path in saved:
                 path.write_bytes(b"existing settings must not be read or replaced")
             with (
-                patch(
-                    "runtime.entrypoint.verify_release",
-                    return_value={"format_version": "2"},
-                ),
+                patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
                 patch("pathlib.Path.home", return_value=root),
                 patch("runtime.docling_profile.launch", return_value=0) as launch,
             ):
                 self.assertEqual(
-                    main(
-                        [
-                            "--client",
-                            "claude-desktop",
-                            "--selected-documents",
-                            "--ocr",
-                            "false",
-                        ]
-                    ),
+                    main(["--client", "claude-desktop", "--selected-documents", "--ocr", "false"]),
                     0,
                 )
                 args = launch.call_args.args[0]
@@ -170,45 +157,27 @@ class EntrypointTests(unittest.TestCase):
                 self.assertTrue(args.input_root.is_dir())
                 for path in saved:
                     self.assertEqual(
-                        path.read_bytes(),
-                        b"existing settings must not be read or replaced",
+                        path.read_bytes(), b"existing settings must not be read or replaced"
                     )
                 for forbidden in (["--input-root", str(root)], ["--configure"]):
                     with contextlib.redirect_stderr(io.StringIO()):
                         self.assertEqual(
                             main(
-                                [
-                                    "--client",
-                                    "claude-desktop",
-                                    "--selected-documents",
-                                    *forbidden,
-                                ]
+                                ["--client", "claude-desktop", "--selected-documents", *forbidden]
                             ),
                             2,
                         )
 
     def test_picker_dispatch_has_no_source_or_settings_override(self):
         with (
-            patch(
-                "runtime.entrypoint.verify_release",
-                return_value={"format_version": "2"},
-            ),
+            patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
             patch("runtime.selection_ui.run", return_value=0) as picker,
         ):
             self.assertEqual(main(["--client", "claude-desktop", "--select-document"]), 0)
             picker.assert_called_once()
             with contextlib.redirect_stderr(io.StringIO()):
                 self.assertEqual(
-                    main(
-                        [
-                            "--client",
-                            "claude-desktop",
-                            "--select-document",
-                            "--ocr",
-                            "true",
-                        ]
-                    ),
-                    2,
+                    main(["--client", "claude-desktop", "--select-document", "--ocr", "true"]), 2
                 )
 
     def test_selection_startup_does_not_wait_for_publisher(self):
@@ -232,8 +201,7 @@ class EntrypointTests(unittest.TestCase):
                 self.assertTrue(held.wait(2))
                 with (
                     patch(
-                        "runtime.entrypoint.verify_release",
-                        return_value={"format_version": "2"},
+                        "runtime.entrypoint.verify_release", return_value={"format_version": "2"}
                     ),
                     patch("pathlib.Path.home", return_value=root),
                     patch("runtime.docling_profile.launch", return_value=0) as launch,
@@ -250,8 +218,7 @@ class EntrypointTests(unittest.TestCase):
     def test_destination_settings_and_server_child_require_verified_v2(self):
         with (
             patch(
-                "runtime.entrypoint.verify_release",
-                return_value={"format_version": "2"},
+                "runtime.entrypoint.verify_release", return_value={"format_version": "2"}
             ) as verify,
             patch("runtime.destination_ui.run", return_value=0) as settings,
         ):
@@ -259,30 +226,18 @@ class EntrypointTests(unittest.TestCase):
             settings.assert_called_once_with("chatgpt")
             verify.assert_called_once()
         with (
-            patch(
-                "runtime.entrypoint.verify_release",
-                return_value={"format_version": "2"},
-            ),
+            patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
             patch("runtime.server_profile.job_main", return_value=0) as child,
         ):
             self.assertEqual(main(["--internal-server-job", "/private/job"]), 0)
             self.assertEqual(child.call_args.args[0], ["/private/job"])
         with (
-            patch(
-                "runtime.entrypoint.verify_release",
-                return_value={"format_version": "2"},
-            ),
+            patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
             contextlib.redirect_stderr(io.StringIO()),
         ):
             self.assertEqual(
                 main(
-                    [
-                        "--client",
-                        "chatgpt",
-                        "--destination-settings",
-                        "--input-root",
-                        "/documents",
-                    ]
+                    ["--client", "chatgpt", "--destination-settings", "--input-root", "/documents"]
                 ),
                 2,
             )
@@ -294,10 +249,7 @@ class EntrypointTests(unittest.TestCase):
             home = Path(temporary).resolve()
             with (
                 patch("pathlib.Path.home", return_value=home),
-                patch(
-                    "runtime.entrypoint.verify_release",
-                    return_value={"format_version": "2"},
-                ),
+                patch("runtime.entrypoint.verify_release", return_value={"format_version": "2"}),
                 patch("runtime.docling_profile.launch", return_value=0) as local,
                 patch("runtime.server_profile.launch", return_value=0) as server,
                 patch("runtime.native_selection.adapter_extensions", return_value=("pdf",)),
@@ -313,38 +265,3 @@ class EntrypointTests(unittest.TestCase):
                 with contextlib.redirect_stderr(io.StringIO()):
                     self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 2)
                 self.assertEqual(server.call_count, 1)
-
-    def test_server_only_runtime_requires_an_explicit_server_destination(self):
-        with (
-            patch(
-                "runtime.entrypoint.verify_release",
-                return_value={"format_version": "3"},
-            ),
-            patch("runtime.destination_ui.run", return_value=0) as settings,
-            patch(
-                "runtime.server_profile.launch",
-                side_effect=ValueError("Configure an explicit Core server destination."),
-            ),
-            contextlib.redirect_stderr(io.StringIO()) as output,
-        ):
-            self.assertEqual(main(["--client", "chatgpt", "--destination-settings"]), 0)
-            settings.assert_called_once_with("chatgpt")
-            self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 2)
-            self.assertIn("Core server destination", output.getvalue())
-
-    def test_server_only_runtime_dispatches_the_server_profile(self):
-        from runtime.destination_settings import save_destination
-
-        with tempfile.TemporaryDirectory() as temporary:
-            home = Path(temporary).resolve()
-            with (
-                patch("pathlib.Path.home", return_value=home),
-                patch(
-                    "runtime.entrypoint.verify_release",
-                    return_value={"format_version": "3"},
-                ),
-                patch("runtime.server_profile.launch", return_value=0) as server,
-            ):
-                setting = save_destination("chatgpt", "server", base_url="http://localhost:8787")
-                self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 0)
-                self.assertEqual(server.call_args.args[2], setting)

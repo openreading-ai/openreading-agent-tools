@@ -8,17 +8,16 @@ from runtime import server_transport
 
 
 class ConnectionTests(unittest.IsolatedAsyncioTestCase):
-    async def check(self, handler, token=None):
+    async def check(self, handler):
         self.assertTrue(
             hasattr(server_transport, "check_connection"), "Missing metadata-only connection check"
         )
         return await server_transport.check_connection(
             server_transport.ServerDestination("http://localhost:8787/core", "r"),
-            token=token,
             transport=httpx.MockTransport(handler),
         )
 
-    async def test_connection_uses_metadata_only_and_limits_credential_to_auth_endpoint(self):
+    async def test_connection_uses_metadata_only_without_authorization(self):
         seen = []
 
         def handle(request):
@@ -28,10 +27,10 @@ class ConnectionTests(unittest.IsolatedAsyncioTestCase):
             if request.url.path.endswith("healthz"):
                 self.assertNotIn("authorization", request.headers)
                 return httpx.Response(200, json={"status": "ok", "version": "0.3.0"})
-            self.assertEqual(request.headers["authorization"], "Bearer synthetic")
+            self.assertNotIn("authorization", request.headers)
             return httpx.Response(200, json=[{"slug": "pymupdf", "ready": True}])
 
-        result = await self.check(handle, "synthetic")
+        result = await self.check(handle)
         self.assertEqual(seen, ["/core/healthz", "/core/v1/backends"])
         self.assertEqual(result, {"version": "0.3.0", "backend_count": 1})
 
@@ -62,11 +61,9 @@ class ConnectionTests(unittest.IsolatedAsyncioTestCase):
                     self.assertFalse(caught.exception.submitted)
                     self.assertEqual(len(calls), 1 if stage == "healthz" else 2)
 
-    async def test_network_failures_and_invalid_token_are_sanitized(self):
+    async def test_network_failures_are_sanitized(self):
         def fail(request):
             raise httpx.ReadTimeout("private connection detail")
 
         with self.assertRaisesRegex(server_transport.DestinationError, "connection"):
             await self.check(fail)
-        with self.assertRaisesRegex(server_transport.DestinationError, "credential"):
-            await self.check(lambda request: self.fail("No request expected"), "bad\nkey")

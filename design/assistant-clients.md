@@ -1,5 +1,8 @@
 # Assistant integration and compatibility design
 
+Revision 27 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
+
 **Status:** revision 12 native-client proposal. Shared version 2 configuration and the P0 diagnostic launcher are implemented; native adapters and signed distribution remain unbuilt.
 **Intent:** [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-1, AC-2, AC-12, AC-15 through AC-17, and AC-23 through AC-25.
 **Dependencies:** [engine design](local-document-proof.md), [evaluation design](token-evaluation.md), and [ordered implementation plan](implementation-plan.md).

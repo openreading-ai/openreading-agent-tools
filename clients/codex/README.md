@@ -1,49 +1,63 @@
-# Codex release candidate
+# OpenReading for Codex
 
-OpenReading Agent Tools `0.2.0-rc.1` supplies a local Codex marketplace. It
-contains the full bundled Docling runtime and the optional owner-operated
-OpenReading Core server destination. It does not need Python, Node, uv, or a
-Core checkout after you unpack the release.
+Select documents and use retained results through your separately running OpenReading Core server.
+This Apple Silicon development package includes the connector runtime, file picker, settings and document tools.
+It includes no parser, model download, Core server, adapter catalog or server manager.
 
-## Platform
+Core setup is documented in the [separate server guide](../full-core/README.md#run-core-for-the-connector).
+Only macOS Apple Silicon binaries are available for this preview. Other platforms remain pending.
 
-This release candidate supports macOS on Apple Silicon only. Intel macOS,
-Linux, and Windows packages are pending. It is unsigned, and native
-installation, update, removal, and clean-machine acceptance remain separate
-release checks.
+## Install and test
 
-## Install
+Extract `OpenReading-Codex-Plugin.zip` into a permanent folder, such as `~/Downloads/OpenReading-Codex-alpha21`.
+Install through Codex's native marketplace commands:
 
-Unpack `OpenReading-Codex-0.2.0-rc.1.zip`, then run:
+```sh
+codex plugin marketplace add "$HOME/Downloads/OpenReading-Codex-alpha21"
+codex plugin add openreading@openreading
+```
 
-~~~sh
-codex plugin marketplace add /absolute/path/to/codex
-codex plugin add openreading-local-documents@openreading-development
-~~~
+Start a new local Codex thread to load the installed plugin.
+Ask to open OpenReading settings, then enter your Core server URL, test the connection and save.
+Start Core separately. Localhost permits HTTP; remote destinations require HTTPS.
+Quit and reopen Codex after saving settings, then ask to open OpenReading and select a document.
+Choose Process when the assistant reports the selection is ready, or Add more to extend it.
+Ask a question and verify the returned evidence against the document.
 
-Start a new Codex session and ask it to choose a document. The default path
-opens OpenReading's local picker and processes selected documents with bundled
-Docling. OpenReading retains its selected copies and artifacts locally.
-Requested document content enters the assistant context.
+The plugin provides `openreading` and `openreading-settings` skills, nine document tools and one settings opener.
+The host may display qualified skill names such as `openreading:openreading-settings`.
+Codex owns tool permissions. OpenReading's native chooser and confirmation select which files go to the configured server.
+Server failure never switches to a local parser or automatically resubmits a document.
+After a stopped selection, choose and confirm the remaining files again before retrying.
 
-## Optional Core server
+## State, updates and removal
 
-The default remains bundled Docling. To send selected copies to an operator-run
-Core server, open `OpenReading Settings.app` inside the installed plugin, choose
-**Your OpenReading Core server**, test the destination, save it, and restart
-Codex. Loopback servers can use HTTP. Other destinations require valid HTTPS.
-The picker asks for confirmation before an upload.
+The launcher fixes its client label to `codex`. Settings and retained files survive plugin replacement or removal.
+Codex preferences live under `~/Library/Application Support/OpenReading/agent-tools/codex`.
+The default retained-data partition is `~/.openreading/clients/codex/v2`; Storage settings can select another location.
+Claude's settings and data partitions are separate. Installing this package does not register the ChatGPT Work client.
 
-Switching back to **Bundled Docling** affects the next import. It does not
-delete retained files or alter already started jobs.
+Keep the extracted marketplace folder available for reinstalling or upgrading.
+Install a newer package through the same host commands and start a new thread.
+Remove this plugin with `codex plugin remove openreading@openreading`.
+That command removes the installed plugin, not your OpenReading settings, selected copies or retained results.
 
-## Limits
+## Build and verification
 
-The historical format-1 assembler uses separate revision 1 templates, never these RC wrappers.
-Its directory-grant guide ships inside that historical package. It does not support server processing.
+Reuse the verified server-only runtime matching the package version:
 
-This package is a release candidate, not a claim that Codex support is
-complete. Record host version, package hash, worker hash, Core commit, tool
-discovery, citations, cancellation, update, removal, and reinstall results for
-native acceptance. No token-savings or parsing-accuracy claim follows from a
-successful installation.
+```sh
+python -m runtime.build_server --runtime /path/to/verified-runtime --client codex --output /path/to/new-build
+```
+
+The output contains `package/.agents/plugins/marketplace.json`, `package/plugins/openreading`,
+`package/OpenReading-Codex-Plugin.zip` and `package/build.json` with archive and worker hashes.
+The ZIP contains the complete marketplace. No manual MCP configuration or separately installed Python is required.
+
+Historical alpha.19 evidence: Codex CLI 0.155.1 installs this package through its native marketplace flow in an isolated configuration.
+Its app server discovers both skills, nine document tools and the settings opener from the installed cache.
+The installed worker passes synthetic localhost processing, retained retrieval, export hashing and job recovery checks.
+Stopping Core fails. The old selection stays refused after Core restarts, and a new selection succeeds.
+Those checks inject the chooser and native confirmation. No model turn or personal document is used.
+Manual native settings, chooser, document answers and lifecycle acceptance remain separate checks.
+Remote HTTPS, clean-machine prerequisites, signing and notarization remain pending.

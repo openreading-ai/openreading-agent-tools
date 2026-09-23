@@ -217,6 +217,9 @@ class DoclingLaunchTests(unittest.TestCase):
 
         settings = Settings(self.grant, False)
         with profile_file("codex", settings, self.bundle) as (first, _):
+            from runtime.storage_settings import profile_in_use
+
+            self.assertTrue(profile_in_use(first))
             first_content = first.read_bytes()
             with profile_file("codex", settings, self.bundle) as (second, _):
                 self.assertNotEqual(first, second)
@@ -233,7 +236,7 @@ class DoclingLaunchTests(unittest.TestCase):
             self.assertEqual(args[args.index("--document-response-bytes") + 1], "1000000")
             self.assertEqual(
                 Path(args[args.index("--document-export-root") + 1]),
-                self.home / "Downloads" / "OpenReading",
+                self.home / ".openreading/clients/claude-desktop/v2/exports",
             )
             self.assertIsNone(selection_timeout_seconds)
             self.assertIsInstance(selection_provider, LocalSelectionProvider)
@@ -320,3 +323,48 @@ class DoclingLaunchTests(unittest.TestCase):
                     2,
                 )
             profile.assert_not_called()
+
+    def test_chat_launch_uses_native_storage_and_delivery_preferences(self):
+        from runtime.app_settings import save_preferences
+
+        folder = self.home / "Downloads/Chosen"
+        save_preferences("chatgpt", folder, 8192)
+
+        def serve(args, **options):
+            self.assertEqual(
+                Path(args[args.index("--artifact-root") + 1]),
+                folder / "clients/chatgpt/v2/artifacts",
+            )
+            self.assertEqual(
+                Path(args[args.index("--document-export-root") + 1]),
+                folder / "clients/chatgpt/v2/exports",
+            )
+            self.assertEqual(args[args.index("--document-response-bytes") + 1], "8192")
+            self.assertEqual(
+                options["selection_provider"].store.grant,
+                folder / "clients/chatgpt/v2/selection/ready",
+            )
+            return 0
+
+        with patch("openreading.mcp_server.main.main", side_effect=serve):
+            self.assertEqual(main(["--client", "chatgpt", "--chat-documents"]), 0)
+
+    def test_settings_connector_is_independent_of_document_configuration(self):
+        from unittest.mock import AsyncMock
+
+        with patch("runtime.settings_server.serve", AsyncMock()) as serve:
+            self.assertEqual(main(["--client", "chatgpt", "--settings-tools"]), 0)
+            serve.assert_awaited_once_with("chatgpt")
+            self.assertEqual(
+                main(["--client", "chatgpt", "--settings-tools", "--input-root", str(self.grant)]),
+                2,
+            )
+
+    def test_fresh_installer_dispatches_only_verified_bundle_and_reports_refusal(self):
+        with patch(
+            "runtime.fresh_install.install", return_value={"backup": "/synthetic/backup"}
+        ) as install:
+            self.assertEqual(main(["--fresh-install"]), 0)
+            install.assert_called_once_with(self.bundle)
+            install.side_effect = ValueError("Close existing connections")
+            self.assertEqual(main(["--fresh-install"]), 2)

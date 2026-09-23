@@ -30,9 +30,12 @@ class DesktopPackageTests(unittest.TestCase):
             "_internal/runtime/server_imports.py",
             "_internal/runtime/server_selection.py",
             "_internal/runtime/server_transport.py",
-            "_internal/runtime/server_keychain.py",
             "_internal/runtime/destination_settings.py",
             "_internal/runtime/destination_ui.py",
+            "_internal/runtime/settings_server.py",
+            "_internal/runtime/app_settings.py",
+            "_internal/runtime/storage_settings.py",
+            "_internal/runtime/public_profile.py",
             "_internal/openreading/artifacts/retention.py",
             "_internal/openreading/schemas/local-document.v0.5.json",
             "_internal/openreading/schemas/agent-document-tool.v0.5.json",
@@ -297,7 +300,7 @@ console.log(JSON.stringify(results));
             package.main()
         self.assertEqual(error.exception.code, 2)
 
-    def test_chat_package_requires_provider_and_only_optional_delivery_setting(self):
+    def test_chat_package_uses_native_settings_without_host_config_placeholders(self):
         source = self.fixture()
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "chat"
@@ -318,19 +321,10 @@ console.log(JSON.stringify(results));
             source.write_metadata()
             package.package_docling_desktop(source.root, target, chat=True)
             manifest = json.loads((target / "manifest.json").read_text())
-            self.assertEqual(set(manifest["user_config"]), {"document_response_bytes"})
-            self.assertEqual(manifest["user_config"]["document_response_bytes"]["default"], 1000000)
-            self.assertFalse(manifest["user_config"]["document_response_bytes"]["required"])
-            self.assertEqual(manifest["user_config"]["document_response_bytes"]["min"], 4096)
+            self.assertEqual(manifest["user_config"], {})
             self.assertEqual(
                 manifest["server"]["mcp_config"]["args"],
-                [
-                    "--client",
-                    "claude-desktop",
-                    "--chat-documents",
-                    "--document-response-bytes",
-                    "${user_config.document_response_bytes}",
-                ],
+                ["--client", "claude-desktop", "--chat-documents"],
             )
             self.assertEqual(manifest["name"], "openreading-chat-selection-preview")
             self.assertIn("configured adapter", manifest["long_description"])

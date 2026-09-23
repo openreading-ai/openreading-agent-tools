@@ -1,11 +1,97 @@
 # Changelog
 
-- Release sibling documents after rejecting an unusable server result, without reuploading the rejected reference.
-- Explain pre-upload Keychain failures in detached jobs without exposing credential diagnostics or claiming server processing.
+## OpenReading alpha.21 preview
 
-- Keep historical code-client manifests and directory-grant guides separate from current RC packages.
-- Revoke selected copies even when approval cleanup encounters an unsafe directory.
-- Return a configuration diagnostic and exit 2 when server-profile setup fails before startup.
+- Reconcile the URL-only, parser-free connector with the reviewed server reliability fixes.
+- Pin current client and test environments to Core review commit `29fa166b9d34791bf8cfa87dec03aa1e48603621`.
+  That commit includes current Core main and its canonical client-only build profile. Historical engine pins remain separate.
+- Preserve HTTP diagnostics, completed downloads and cached retention recovery without duplicate uploads.
+- Reject unusable responses before caching while releasing the remaining selected documents.
+- Restore launch exit handling, corrupt-settings refusal and snapshot cleanup safeguards.
+- Package a complete local Claude Code marketplace alongside the other three client forms.
+- Clarify separate Core setup and Apple Silicon-only preview status. No release approval or native acceptance is implied.
+
+## OpenReading alpha.20
+
+- Remove bearer-token settings, Keychain integration and authenticated requests from Agent Tools.
+- Preserve saved server URLs and limits when reading legacy settings, and drop credential references from new saves.
+- Keep Core server authentication unchanged. This connector supports URL-only connections.
+
+## ChatGPT Work server-only development package
+
+- Place the ChatGPT upload plugin at the ZIP root, without its development marketplace wrapper.
+- Document installation through the New Plugin dialog and enforce its 100 MB archive limit.
+- Package the verified alpha.19 worker as a native ChatGPT plugin with its existing data partition.
+- Use a separate plugin identity and connector names to preserve the working Codex installation.
+- Clarify direct Settings and picker tool routing for local Codex and ChatGPT Work.
+- Record the owner's successful Codex workflow report, with the app-opening detour still awaiting retest.
+
+## Codex server-only development package
+
+- Add native Codex packaging around the unchanged alpha.19 client-only worker.
+- Include both skills and connectors with Codex-specific settings and retained data.
+- Verify isolated native installation, tool discovery and localhost processing without a model turn.
+- Record the owner's successful Claude Desktop and Claude Code localhost checkpoint.
+
+## OpenReading alpha.18
+
+- Rename the current plugin to OpenReading and expose `openreading` and `openreading-settings` as its only two skills.
+- Preserve client settings, server destinations and retained documents through the rename.
+
+## Server-only connector candidate
+
+- Install the Claude Code candidate through a GitHub marketplace and a pinned complete plugin archive, without manual copying or state resets.
+
+- Add a Claude Code local marketplace using the verified server-only worker and isolated Claude Code settings.
+- Replace the Claude Code installation guide and preserve the old assembler inputs under historical/.
+
+- Package the native-tested Settings activation instructions in alpha.17 for clean installation.
+
+- Explicitly activate Claude's connected computer when the Settings command cannot yet see its local opener.
+
+- Discover local plugin tools through Claude's connected device before reporting unavailable settings or selection.
+- Report session discovery failures without falsely claiming the installed package lacks a connector.
+- Remove the nested Python standard-library ZIP that caused Claude to reject alpha.14 uploads.
+- Reject nested ZIP contents during packaging before producing an upload candidate.
+- Package a parser-free Claude connector directly, with no Docling, OCR binaries, model assets or runtime download.
+- Require an explicit Core server URL while preserving native settings, file selection, job control, retained results and exports.
+- Preserve existing server credentials and storage; old local-mode preferences request server setup.
+- Keep Advanced download limits separate from destination approval identity.
+- Reduce current client acceptance to four server-backed surfaces.
+
+## Native settings integration candidate
+
+- Replace vague Settings reconnect instructions with quit, reopen, and open the OpenReading file picker steps.
+- Show the saved storage choice with active, pending or blocked migration status in Settings.
+- Ignore abandoned legacy launch records after checking live workers, while preserving active-session and unfinished-job migration guards.
+- Queue selected files, offer Process or Add more, and wait for the user's processing instruction.
+- Label native server selection approval Add files and report selection errors without guessing connection state.
+
+- Refuse new selections and imports through a stale Claude plugin connection after saving a processing destination.
+- Keep existing jobs and retained-result access available while the document connector awaits reconnect.
+
+- Fix the native server-mode picker failing before display when an absent file-type filter was bridged as NSNull.
+
+- Continue from document or folder selection into processing every selected file without an extra conversational confirmation.
+- Keep explicit selection-only tests, native server consent, cancellation and per-file progress in the workflow.
+
+- Accept both verified processing-mode catalogs and expose the active mode's descriptions and upload annotations to Claude.
+
+- Add a small native Claude plugin that downloads its verified runtime automatically through the development ngrok route.
+- Preserve settings and documents during setup, share concurrent downloads, and answer tool discovery while installation proceeds.
+
+- Add a complete offline Claude setup package with an Application Support runtime cache and reversible fresh-state backups.
+
+- Color server connection results and disable server checks while bundled processing is selected.
+
+- Organize Settings into Processing, Storage and Advanced with independent saves and Restore defaults.
+- Move response limits into Advanced, default server downloads to 256 MiB, and remove Managed from Settings.
+
+- Add `/openreading-settings` with native storage, delivery, processing and credential controls.
+- Default public data and exports to client partitions beneath `~/.openreading`.
+- Copy and rebind retained evidence at reconnect while preserving the original store and refusing active imports.
+- Keep Settings available independently of document startup and preserve the pinned Core tool catalog.
+- Track exact-build host, accessibility and distribution acceptance separately under ProductSpec revision 20.
 
 - Harden optional server progress, Unicode consent rows, cached responses and stopped-selection recovery.
 - Expose the response download budget and clarify retained-token and storage behavior.
@@ -26,13 +112,11 @@
 - Serialize detached imports, stop batches after shared failures, and recover completed downloads without another upload.
 - Keep frozen/native feature acceptance separate under ProductSpec revision 18.
 
-## Merged Core integration pin
+## Development Core integration pin
 
-- Pin the Docling candidate, P0 runtime and integration tests to merged Core `846450d`.
-  This includes confirmed server diagnostics, cached retention retries and unambiguous physical evidence.
-  Core also includes CLI/manual and adapter documentation corrections.
-  This replaces development pin `ba55eb6` with its tree-identical squash-merged commit.
-  The legacy v1 runtime retains its historical pin. RC tags, frozen builds and native acceptance remain pending.
+- Pin the Docling candidate and P0 runtime to development Core `e53e6a1`.
+  This includes external response retention and trusted detached-job execution.
+  The legacy v1 runtime retains its historical pin. This is a development pin, not a released package.
 
 ## Unreleased ChatGPT development plugin
 

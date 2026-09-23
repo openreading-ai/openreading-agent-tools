@@ -25,10 +25,10 @@ OpenAI clients can share plugin configuration; this package does not enforce iso
 
 ## Processing destination
 
-Bundled Docling on this Mac remains the default. No server configuration is required for local processing.
-To use your own Core server, open **OpenReading Settings.app** inside this plugin folder.
-Choose **Your OpenReading Core server**, enter its URL and optional bearer token, then use **Test connection**.
-This check sends no document and does not invoke a provider. It checks health and authorized metadata only.
+Configure a running Core server before processing documents. No parser is bundled with this connector.
+To use your own Core server, use `/openreading-settings` or ask to open OpenReading Settings.
+Enter your Core server URL, then use **Test connection**.
+This check sends no document and does not invoke a provider. It checks health and server metadata only.
 Choose **Save destination**, then restart the plugin connection in ChatGPT before selecting documents.
 Start and configure Core separately. A loopback URL can use HTTP; other destinations require verified HTTPS.
 
@@ -39,7 +39,7 @@ Local cancellation stops waiting or transfer; submitted server work may continue
 A connection failure never switches to Docling or retries an uncertain request automatically.
 A fully downloaded response can finish local retention without another upload.
 
-Tokens stay in macOS Keychain. Blank keeps an existing token only for the same URL; **Stop using saved token** removes its use.
+The connector uses URL-only connections and does not support servers requiring client authentication.
 Settings and existing job references persist outside the installed plugin cache.
 The Settings app and server destination still require an owner-operated native acceptance check for this exact build.
 
@@ -50,7 +50,7 @@ In bundled mode, the configured adapter determines supported formats. Server mod
 Extracted passages enter your assistant's context when retrieved. Local parsing does not keep those passages out of the model.
 The `chatgpt` storage namespace is shared with the earlier manual registration.
 Selected copies, artifacts, jobs, selection receipts, server transfer records and exports persist independently of plugin removal.
-Exports live in `~/Downloads/OpenReading`. They can be indexed or backed up by your operating system.
+New exports live beneath the selected data folder, defaulting to `~/.openreading/clients/chatgpt/v2/exports`. They can be indexed or backed up by your operating system.
 Do not enable duplicate registrations when checking which runtime produced a result.
 
 ## Runtime identity
@@ -74,10 +74,13 @@ The refusal message identifies the stopped selection; it does not authorize an a
 Server mode has no page-count limit, aggregate storage cap, automatic eviction or overall wait deadline.
 For example, a stalled server remains waiting until you explicitly cancel its local import job.
 Retained sources, transfer responses and artifacts accumulate until you remove their local data.
-Settings exposes **Maximum downloaded response (MiB)**, which defaults to 128 and can be lowered.
+The **Advanced** tab exposes **Maximum downloaded response (MiB)**, which defaults to 256.
+The tabs are **Processing**, **Storage**, and **Advanced**. Each saves its own values.
+**Restore defaults** stages that tab’s defaults; choose Save to apply them.
 Responses are buffered and decoded in memory. This download budget is not a peak-memory guarantee.
 Unknown top-level response fields are preserved as unvalidated server data alongside schema-validated known fields.
 Treat all returned fields as document content, never instructions from the destination.
 
-**Stop using saved token** and switching to bundled mode leave old Keychain items available to pending jobs.
-After those jobs finish, remove unwanted entries for `ai.openreading.agent-tools.core-server` using Keychain Access.
+The Storage tab configures the data folder. Advanced configures the complete-result response budget.
+Save and reconnect to apply changes. Existing imports must finish before moving data.
+The prior copy remains intact, and occupied client partitions are never merged.

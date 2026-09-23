@@ -6,7 +6,6 @@ Batch markers stop siblings after local cancellation, shared failures or process
 Select and confirm the remaining files again to recover. Submitted server work may continue.
 Document-specific HTTP rejections and unusable completed results release the remaining batch.
 Their attempt markers still prevent uploading the rejected document again without fresh consent.
-Keychain failures stop before upload and preserve a fixed credential diagnostic in detached jobs.
 Complete responses are atomically saved before retention, outside Core's staging sweep.
 An explicit later import can retry local retention from that saved result without another POST.
 These private transfer files persist with the selected copies until the user removes them.
@@ -26,7 +25,7 @@ from pathlib import Path
 import jsonschema
 from openreading.artifacts.intake import directory
 from openreading.artifacts.limits import ArtifactError
-from openreading.artifacts.service import ArtifactService
+from openreading.artifacts.retained import RetainedService
 from openreading.artifacts.store import safe_read
 from pydantic import ValidationError
 
@@ -57,7 +56,7 @@ class SelectionStopped(ArtifactError):
         return value
 
 
-class DestinationFailed(ArtifactError):
+class ServerProcessingFailed(ArtifactError):
     """Keep a fixed transport diagnostic visible through the artifact envelope."""
 
     preserve_message = True
@@ -87,11 +86,11 @@ class ResponseRejected(ArtifactError):
         return value
 
 
-class ServerArtifactService(ArtifactService):
-    def __init__(self, config, *, settings, selection, identity, keychain=None, transport=None):
+class ServerArtifactService(RetainedService):
+    def __init__(self, config, *, settings, selection, identity, transport=None):
         super().__init__(config, identity=identity)
         self.settings, self.selection = settings, selection
-        self.keychain, self.transport = keychain, transport
+        self.transport = transport
         self.transfers = selection.root.parent / "server/transfers"
         with directory(self.transfers, create=True) as opened:
             os.fchmod(opened, 0o700)
@@ -161,21 +160,6 @@ class ServerArtifactService(ArtifactService):
                         raise SelectionStopped()
                     # A process death from this point stops the batch, including queued siblings.
                     write_private(batch_path, {"reference": path})
-                    token = None
-                    if self.settings.credential_ref:
-                        try:
-                            keychain = self.keychain
-                            if keychain is None:
-                                from runtime.server_keychain import ServerKeychain
-
-                                keychain = ServerKeychain()
-                            token = keychain.get(self.settings.credential_ref)
-                        except (ValueError, OSError):
-                            raise DestinationFailed(
-                                "Keychain did not provide the configured server credential. "
-                                "Nothing was uploaded. Restore credential access, "
-                                "then select and confirm the documents again."
-                            ) from None
                     with self.store.source(path) as fd:
                         digest = hashlib.sha256()
                         while chunk := os.read(fd, 65536):
@@ -190,7 +174,6 @@ class ServerArtifactService(ArtifactService):
                                 parse_document(
                                     self.settings.destination,
                                     Path(path),
-                                    token=token,
                                     cancelled=cancelled,
                                     progress=progress,
                                     transport=self.transport,
@@ -232,6 +215,6 @@ class ServerArtifactService(ArtifactService):
             raise ArtifactError("access_denied") from None
         except DestinationError as error:
             check()
-            raise DestinationFailed(str(error)) from None
+            raise ServerProcessingFailed(str(error)) from None
         except (ValueError, OSError):
             raise ArtifactError("parse_failed") from None

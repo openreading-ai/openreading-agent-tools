@@ -1,6 +1,0 @@
-{
-  "name": "openreading-local-documents",
-  "version": "0.2.0-rc.1",
-  "description": "Choose local documents, retrieve complete normalized content, and cite exact evidence.",
-  "author": {"name": "OpenReading"}
-}

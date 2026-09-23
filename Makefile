@@ -4,8 +4,9 @@ sync:
 	npm ci --ignore-scripts --no-audit --no-fund
 	uv sync --frozen --project runtime --all-groups
 	uv sync --frozen --project runtime/testing --all-groups
+	uv sync --frozen --project runtime/server_client --all-groups
 
-verify: runtime-check feasibility-lock-check p0-lock-check
+verify: runtime-check feasibility-lock-check p0-lock-check server-client-lock-check
 	npm run verify
 
 lint:
@@ -44,3 +45,6 @@ feasibility-lock-check:
 
 p0-lock-check:
 	uv lock --check --offline --project runtime/p0
+
+server-client-lock-check:
+	uv lock --check --offline --project runtime/server_client

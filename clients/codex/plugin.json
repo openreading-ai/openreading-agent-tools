@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "openreading-local-documents",
-  "version": "0.2.0-rc.1",
-  "description": "Choose local documents, retrieve complete normalized content, and cite exact evidence.",
+  "name": "openreading-local-proof",
+  "version": "0.1.0-alpha.1",
+  "description": "Retrieve local document evidence with physical page citations.",
   "author": {"name": "OpenReading"}
 }

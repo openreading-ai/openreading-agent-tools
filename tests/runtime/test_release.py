@@ -97,29 +97,6 @@ class ReleaseTests(unittest.TestCase):
                 with self.assertRaises(ReleaseIntegrityError):
                     verify_release(self.root)
 
-    def test_server_only_profile_requires_its_declared_profile(self):
-        self.metadata.update(
-            {
-                "format_version": "3",
-                "profile": "server-client-v1",
-                "distribution": "development-only",
-            }
-        )
-        lock = self.root / "resources/server-runtime.uv.lock"
-        lock.parent.mkdir()
-        lock.write_text("synthetic lock")
-        self.metadata["dependency_lock_sha256"] = __import__(
-            "runtime.verify", fromlist=["sha256"]
-        ).sha256(lock)
-        self.metadata["files"] = inventory(self.root)
-        self.metadata["worker_sha256"] = self.metadata["files"]["openreading-worker"]["sha256"]
-        self.write_metadata()
-        self.assertEqual(verify_release(self.root)["format_version"], "3")
-        self.metadata["profile"] = "local-document-proof-v2"
-        self.write_metadata()
-        with self.assertRaises(ReleaseIntegrityError):
-            verify_release(self.root)
-
     def test_special_files_and_symlink_metadata_are_refused(self):
         import os
 

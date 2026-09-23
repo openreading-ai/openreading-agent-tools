@@ -3,149 +3,110 @@
 # OpenReading Agent Tools
 
 [![Repository checks](https://github.com/openreading-ai/openreading-agent-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/openreading-ai/openreading-agent-tools/actions/workflows/ci.yml)
-[![Stage](https://img.shields.io/badge/stage-local_preview-blue)](product/specs/local-document-proof.product-spec.md)
-[![ProductSpec](https://img.shields.io/badge/ProductSpec-0.1-blue)](https://github.com/gokulrajaram/ProductSpec)
 [![Source license](https://img.shields.io/badge/source-Apache--2.0-blue)](LICENSE)
 
-OpenReading Agent Tools packages local document processing for your AI assistant.
-The prototype retains extracted evidence and returns selected passages with physical PDF page references.
+Connect your assistant to an [OpenReading Core](https://github.com/openreading-ai/openreading-core) server you run separately.
+Agent Tools handles native file selection, upload, retained results and evidence retrieval. Core handles document processing.
 
-**Status: revision 19 requires all eight combinations below. The first release candidate targets macOS on Apple Silicon only. Native acceptance and signed distribution remain pending.**
-The Docling corpus, retrieval/restart checks, citation checker and historical offline accounting are documented in [measurement](measurement/README.md).
-Historical client packages remain the superseded revision 1 PyMuPDF prototype.
-The [P0 developer build](runtime/p0/README.md) bundles Docling, local ONNX layout, PDFium, and setup-enabled Tesseract.
-The [assistant design](design/assistant-clients.md) requires separate compatibility checks for every matrix cell.
-Existing developer checks do not establish native installation or model invocation.
-No measured token-savings claim is released.
-The source license above does not describe bundled dependency licenses.
+**Apple Silicon macOS preview only. Intel Mac, Windows and Linux binaries are pending.**
+Alpha.21 reconciles the server-only connector with reviewed reliability fixes. It is unsigned and not a public release.
+Native acceptance, clean-machine checks, licensing review, signing and notarization remain release gates.
+
+## What you install
+
+| Form | Installation | Guide |
+| --- | --- | --- |
+| Claude Desktop / Cowork | Upload the standalone plugin ZIP | [Claude Desktop](clients/claude-desktop/README.md) |
+| Claude Code | Install the local preview marketplace with the CLI | [Claude Code](clients/claude-code/README.md) |
+| ChatGPT Work | Upload the standalone plugin ZIP, not a marketplace ZIP | [ChatGPT Work](clients/chatgpt/README.md) |
+| Local Codex | Extract and install the marketplace with the CLI | [Codex](clients/codex/README.md) |
+
+All four forms embed the same small connector worker, its Python interpreter and client dependencies.
+They include two skills, nine document tools and one Settings opener.
+The Core client-only package supplies canonical schemas, retention, job control, search and read.
+There is no parser, OCR executable, model, backend catalog, Core server, runtime download or server manager in these packages.
+Historical Docling and PyMuPDF builders are not the current release path.
+
+## Set up processing
+
+An operator [installs and starts Core separately](clients/full-core/README.md#run-core-for-the-connector).
+Core owns backend installation, provider credentials and [commented openreading.yaml examples](https://github.com/openreading-ai/openreading-core/tree/main/examples/configs).
+Configuration chooses a backend or strategy on that server. The plugin does not install or configure one.
+
+Open the installed plugin's `openreading-settings` skill. Save and test the Core URL, then restart your client connection.
+Loopback permits HTTP. Remote destinations require verified HTTPS.
+This connector sends no credentials. A server requiring client authentication is not supported by this preview.
+Do not expose an unauthenticated Core server to an untrusted network.
+
+Use `openreading` to select files or a folder snapshot. Selection creates a queue and does not upload it.
+Choose Process to send the selected bytes, or Add more to extend the queue.
+The server can use external providers according to its own configuration. Requested results enter the assistant's context.
+A failed submission never switches to a local parser or silently resubmits uncertain work.
+
+Settings and retained results survive plugin replacement and removal.
+The default data folder is `~/.openreading`, partitioned by client. Storage settings can select another location.
+Cancel unwanted background jobs before uninstalling.
 
 ## Required compatibility matrix
 
-The target has three dimensions: assistant, surface, and processing destination.
-Two assistants, two surfaces, and two destinations produce eight required acceptance cases.
-Desktop means Claude Cowork or ChatGPT Work. Code means Claude Code or Codex running locally.
-Ordinary Chat, web/mobile, and cloud code sessions are outside this matrix. Grok is not supported.
+ProductSpec revision 28 requires independent acceptance for these four server-backed surfaces.
+Earlier alpha.19/20 results are historical evidence, not acceptance of alpha.21.
 
-| Assistant | Desktop: bundled Docling (default) | Desktop: operator server (optional) | Code: bundled Docling (default) | Code: operator server (optional) |
-| --- | --- | --- | --- | --- |
-| Claude | Cowork: pending | Cowork: pending | Claude Code: partial | Claude Code: pending (current package, native acceptance pending) |
-| ChatGPT | Work: partial | Work: pending | Codex: partial | Codex: pending (current package, native acceptance pending) |
+| Client | Alpha.21 native acceptance |
+| --- | --- |
+| Claude Cowork | Pending exact-build owner walkthrough |
+| Claude Code | Pending exact-build owner walkthrough |
+| ChatGPT Work | Pending exact-build owner walkthrough |
+| Local Codex | Pending exact-build owner walkthrough |
 
-**Partial** means an earlier native workflow has evidence, but current packaged acceptance remains incomplete.
-**Pending** means this exact combination has not completed native acceptance. Neither status means unsupported.
-Earlier Claude Desktop Chat extension checks do not pass the Cowork cells.
-Earlier server protocol checks and the ChatGPT connection probe do not pass full server acceptance.
-The [client evidence and acceptance checklist](clients/README.md#matrix-acceptance) defines how each cell passes.
-All eight cells must pass before this compatibility target is complete.
+The [matrix checklist](clients/README.md#matrix-acceptance) separates protocol checks, native use and clean-machine evidence.
+Ordinary Chat, web/mobile and cloud code sessions are outside this release scope.
+Token savings remain unmeasured.
 
-Users install OpenReading through the host's supported installation flow and receive the default local runtime.
-Desktop packages need no separate Python, Node, uv, runtime installer, or GitHub checkout.
-Claude Code and Codex use their own CLI commands to add the released local marketplace.
-Packages share the processing runtime; host-specific packaging is allowed and must be tested separately.
-Choosing server mode is optional. Operating that server is outside plugin installation.
+## Build and release
 
-## The first proof
+Use the [server-client build guide](runtime/server_client/README.md) for current packages.
+It rejects parsing-engine content and records the Core commit, dependency lock, platform and worker hash.
+The old `v0.2.0-rc.1` checkpoint uses bundled-parser packaging and is not this candidate.
+Do not install that draft's binaries to test the thin connector.
 
-The first profile targets macOS on Apple Silicon.
-The revised proof targets a bundled local layout model and optional OCR, with resource limits selected from measured host timing.
-OpenReading keeps the extracted document locally and returns selected passages with physical page references.
-The proposed Claude Desktop, ChatGPT desktop, Claude Code, and Codex integrations use the same frozen runtime.
-The [client matrix](clients/README.md) distinguishes documented routes from tested behavior.
-See the [runtime evidence table](runtime/README.md) for tested behavior and remaining host checks.
+Preview branches are review inputs, not a rolling release channel.
+Maintainers merge Core first, repin Agent Tools to that merged commit, then merge Agent Tools.
+A release tags the reviewed main commits and builds those exact versions. Moving main never silently replaces tagged binaries.
+The repository remains private until the owner approves publication and the applicable distribution gates pass.
+The private Claude Code repository marketplace remains pinned to its historical alpha.19 archive until a new asset is explicitly published.
+Use the local alpha.21 marketplace for this preview.
 
-## Release candidate contract
-
-The planned `v0.2.0-rc.1` Agent Tools release binds one immutable
-`openreading-core v0.3.0-rc.1` commit. Its release manifest records both tags,
-both commits, the dependency lock hash, and every worker SHA-256. A build never
-uses a mutable `main` reference.
-
-The first artifacts run only on macOS on Apple Silicon. Intel macOS, Linux, and
-Windows artifacts are pending. The release is unsigned and remains a release
-candidate until each host completes its own installation and lifecycle checks.
-The [client guides](clients/README.md) distinguish a package that can install
-from a client path that has completed native acceptance.
-
-Provider API studies and SDK execution are disabled. Testing uses the owner's existing Desktop apps.
-The next proof checks large-document access and reliable citations; token savings remain unmeasured.
-An API result does not establish a native chat app's token usage or subscription savings.
-Local parsing alone does not establish that claim.
-Excerpts returned to a cloud assistant enter that assistant's context.
-
-> **OpenReading Managed: Coming soon**
+> OpenReading Managed: Coming soon.
 >
-> Document processing on OpenReading's servers, without managing local compute.
-> Planned after the public OSS launch.
-
-This is a static preview of future intent. It contains no service connection or signup flow.
-Launch v1 remains free, local, and account-free, with the full implemented MCP catalog of its pinned core.
-The candidate currently exposes import, search, read, and optional local selection. Broader MCP operations are not claimed before core implements them.
-The slim Docling bundle does not configure other local backends; the [independent core guide](clients/full-core/README.md) explains the separate installation and current MCP profile limits.
-The [OSS launch design](design/oss-launch.md) separates public v1 from internal v2 profile/settings names and later managed v2.
+> Static future intent only. No hosted endpoint, signup flow or managed component ships here.
 
 ## Repository boundaries
 
 | Repository | Responsibility |
 | --- | --- |
-| [openreading-core](https://github.com/openreading-ai/openreading-core) | Parsing, adapters, schemas, provenance, document artifacts, and MCP behavior. |
-| This repository | Client packages, workflow skills, runtime assembly, launchers, installation tests, and client measurement tooling. |
-| Private company repository | Private research, customer documents, benchmark ground truth, trial transcripts, and business decisions. |
+| [OpenReading Core](https://github.com/openreading-ai/openreading-core) | Processing engine and canonical client contracts |
+| Agent Tools | Native integration, workflow skills, connector packaging and host acceptance |
+| Private company repository | Customer data, private evaluations and business material |
 
-MCP means Model Context Protocol, the interface through which an assistant calls local tools.
-This repository consumes a pinned core build.
-Core never requires this checkout or a private company package.
-To operate the optional server destination, use the matching Core release and
-its [server setup](https://github.com/openreading-ai/openreading-core/tree/main/src/openreading/server).
-Installing an Agent Tools package never installs or starts that server.
+Core never depends on this repository. Agent Tools pins immutable Core source.
+The source license does not replace bundled dependency notices.
 
-## Read and review
+## Read and verify
 
-| Need | Read |
-| --- | --- |
-| Goals, scope, user experience, and pass/fail criteria | [Product specification](product/specs/local-document-proof.product-spec.md) |
-| Build, package, verify, and inspect implementation evidence | [Runtime guide](runtime/README.md) |
-| Client compatibility and setup | [Client matrix](clients/README.md), [ChatGPT desktop](clients/chatgpt/README.md), [Claude Desktop](clients/claude-desktop/README.md), [Claude Code](clients/claude-code/README.md), [Codex](clients/codex/README.md) |
-| Verify citations and replay historical offline reports | [Measurement guide](measurement/README.md) |
-| Engine migration, timing, configuration, and distribution contract | [Docling engine design](design/local-document-proof.md) |
-| Development chat chooser and retention | [Chat chooser candidate](clients/claude-desktop/chat/README.md) |
-| Production acceptance for chat selection and automatic local OCR | [Public document experience](design/public-document-experience.md) |
-| Shared configuration and assistant boundaries | [Assistant integration design](design/assistant-clients.md) |
-| Native mode, setup, timeout, isolation, and frozen-build experiments | [Probe plan](design/native-probes.md) |
-| Revision 3 design review decisions | [Review adjudication](design/revision3-review.md) |
-| Claude review resolutions | [Finding dispositions](design/review-disposition.md) |
-| Desktop document-access comparisons and token-claim limits | [Token evaluation design](design/token-evaluation.md) |
-| OSS launch, full MCP catalog parity, and static Coming soon scope | [OSS launch design](design/oss-launch.md) |
-| Ordered tasks, exact files, tests, and handoff rules | [Implementation plan](design/implementation-plan.md) |
-| Agent instructions and repository ownership | [AGENTS.md](AGENTS.md) |
-| Contribution workflow and checks | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Vulnerability reporting | [SECURITY.md](SECURITY.md) |
+- [Client guides and historical evidence](clients/README.md)
+- [Current build profile](runtime/server_client/README.md) and [historical runtime guide](runtime/README.md)
+- [Product specification](product/specs/local-document-proof.product-spec.md) and [release acceptance design](design/oss-launch.md)
+- [Measurement boundaries](measurement/README.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and [agent instructions](AGENTS.md)
 
-## Verify this repository
-
-Contributors need Node.js 24 or newer, npm, and uv 0.11.26.
-The lockfile selects Python 3.11.15; uv can install that interpreter for contributors.
-The frozen end-user runtime includes its interpreter.
+Contributors need Node.js 24 or newer and uv 0.11.26. Locks select Python 3.11.15.
+End users do not install a separate Python runtime.
 
 ~~~sh
 make sync
 make verify
-make audit    # Requires internet access.
+make audit    # Separate network-dependent advisory checks.
 ~~~
 
-The gate checks Python formatting, runtime integrity, packaging, synthetic dataset generation, usage accounting, and report decisions.
-Python line and branch coverage and Node line, branch, and function coverage each enforce a 95% floor.
-Python coverage includes runtime, measurement, and all proof scripts.
-Markdown, repository policy, local links, JSON/YAML, and ProductSpec checks also run.
-After dependency installation, verification needs no network, model credentials, backend server, or sibling checkout.
-
-GitHub runs the same gate and a separate dependency advisory lookup.
-Real Desktop installation checks remain separate from this offline gate. Provider API trials are prohibited.
-
-## Contributing
-
-Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
-Open a branch and submit a pull request.
-Human maintainers review and merge changes.
-
-The [Docling feasibility harness](runtime/feasibility/README.md) provides the revision 2 developer engine candidate.
-It does not replace the historical client bundle or establish token savings.
+Verification is offline after dependency installation. Python and Node coverage gates enforce a 95% floor.
+Native installation and owner-operated assistant walkthroughs remain separate checks. Provider API trials are prohibited.

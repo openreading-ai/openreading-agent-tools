@@ -1,5 +1,8 @@
 # OSS launch v1 and the Coming soon boundary
 
+Revision 28 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
+
 Status: ProductSpec revision 16 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-30.
 Execution order: A1, D0, C0 and N3 in the [implementation plan](implementation-plan.md).
@@ -21,7 +24,7 @@ No OpenReading company account or paid entitlement gates local tools.
 
 MCP tools are discovered with `tools/list` and invoked with `tools/call`.
 “All endpoints” means the implemented tools of the immutable core version included in the release, not a new HTTP API or an unimplemented core roadmap.
-The historical candidate `3ff02d4` implements:
+The current candidate `3ff02d4` implements:
 
 | Tool | Required behavior |
 | --- | --- |

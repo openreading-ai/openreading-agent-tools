@@ -1,11 +1,11 @@
 """Keep destination choices separate from legacy document grants and plugin caches.
 
 Settings live in CLIENT/destination.json with mode 0600 and a fresh revision on each save.
-An absent file selects bundled Docling. Invalid explicit settings never fall back to local.
-The file contains only a Keychain reference. Old references remain available to pending jobs.
-Stopping token use or switching to local mode drops the reference, not the Keychain item.
-Remove unused items in Keychain Access after their pending jobs finish.
-Changing the URL never reuses the old credential unless you explicitly supply it again.
+An absent file has the legacy local marker; the server-only launcher requests setup.
+Invalid explicit settings never fall back to local processing.
+Schema 2 stores only the URL, response limit, mode and revision.
+Schema 1 is readable for upgrades, but its credential reference is discarded.
+Existing Keychain items are neither accessed nor deleted by the connector.
 No setting grants document access, sends a document, or starts a server.
 """
 
@@ -31,15 +31,13 @@ class DestinationSettings:
     mode: str = "local"
     revision: str = "default"
     destination: ServerDestination | None = None
-    credential_ref: str | None = None
 
     def wire(self):
-        value = {"schema_version": 1, "mode": self.mode, "revision": self.revision}
+        value = {"schema_version": 2, "mode": self.mode, "revision": self.revision}
         if self.destination is not None:
             value.update(
                 base_url=self.destination.base_url,
                 response_bytes=self.destination.response_bytes,
-                credential_ref=self.credential_ref,
             )
         return value
 
@@ -49,7 +47,7 @@ def decode_settings(value: dict) -> DestinationSettings:
     if (
         not isinstance(value, dict)
         or type(value.get("schema_version")) is not int
-        or value["schema_version"] != 1
+        or value["schema_version"] not in {1, 2}
     ):
         raise ValueError("Invalid destination settings.")
     revision = value.get("revision")
@@ -57,22 +55,21 @@ def decode_settings(value: dict) -> DestinationSettings:
         raise ValueError("Invalid destination settings.")
     if value.get("mode") == "local" and set(value) == {"schema_version", "mode", "revision"}:
         return DestinationSettings(revision=revision)
-    if value.get("mode") != "server" or set(value) != {
-        "schema_version",
-        "mode",
-        "revision",
-        "base_url",
-        "response_bytes",
-        "credential_ref",
-    }:
+    fields = {"schema_version", "mode", "revision", "base_url", "response_bytes"}
+    if value["schema_version"] == 1:
+        fields.add("credential_ref")
+    if value.get("mode") != "server" or set(value) != fields:
         raise ValueError("Invalid destination settings.")
-    key = value["credential_ref"]
-    if key is not None and (not isinstance(key, str) or re.fullmatch(r"[0-9a-f]{32}", key) is None):
-        raise ValueError("Invalid destination settings.")
+    if value["schema_version"] == 1:
+        key = value["credential_ref"]
+        if key is not None and (
+            not isinstance(key, str) or re.fullmatch(r"[0-9a-f]{32}", key) is None
+        ):
+            raise ValueError("Invalid destination settings.")
     if not isinstance(value["base_url"], str):
         raise ValueError("Invalid destination settings.")
     destination = ServerDestination(value["base_url"], revision, value["response_bytes"])
-    return DestinationSettings("server", revision, destination, key)
+    return DestinationSettings("server", revision, destination)
 
 
 def read_destination(client: str, *, home: Path | None = None) -> DestinationSettings:
@@ -101,39 +98,18 @@ def save_destination(
     mode: str,
     *,
     base_url: str = "",
-    token: str | None = None,
-    response_bytes: int = 128 * 1024 * 1024,
+    response_bytes: int = 256 * 1024 * 1024,
     home: Path | None = None,
-    keychain=None,
 ) -> DestinationSettings:
-    """Save a native user's choice; None preserves a key only for the identical URL."""
-    try:
-        previous = read_destination(client, home=home)
-    except ValueError:
-        # An explicit native save can repair malformed settings. Startup still refuses them.
-        previous = DestinationSettings()
+    """Save a URL-only destination with a new revision for selection consent."""
     revision = uuid.uuid4().hex
     if mode == "local":
         settings = DestinationSettings(revision=revision)
     elif mode == "server":
         destination = ServerDestination(base_url, revision, response_bytes)
-        reference = None
-        if token:
-            if keychain is None:
-                from runtime.server_keychain import ServerKeychain
-
-                keychain = ServerKeychain()
-            reference = uuid.uuid4().hex
-            keychain.put(reference, token)
-        elif (
-            token is None
-            and previous.destination is not None
-            and previous.destination.base_url == destination.base_url
-        ):
-            reference = previous.credential_ref
-        settings = DestinationSettings(mode, revision, destination, reference)
+        settings = DestinationSettings(mode, revision, destination)
     else:
-        raise ValueError("Choose bundled Docling or your Core server.")
+        raise ValueError("Invalid processing destination mode.")
     root = client_root(client, home=home)
     with directory(root, create=True) as parent:
         os.fchmod(parent, 0o700)

@@ -5,6 +5,7 @@ The [ProductSpec](../product/specs/local-document-proof.product-spec.md) owns th
 
 | Record | Purpose |
 | --- | --- |
+| [Native settings acceptance](native-settings.md) | Exact-build host, accessibility, migration, and distribution checks for revision 20. |
 | [Public document experience](public-document-experience.md) | Chat-driven local selection, automatic OCR and production acceptance beyond the helper prototype. |
 | [OSS launch](oss-launch.md) | Public v1, complete pinned-core MCP catalog, static Coming soon presentation, and post-launch managed v2 boundary. |
 | [Local document proof](local-document-proof.md) | Revision 2 Docling migration, grants, supervision, evidence, timing decisions, and signing fallback. |

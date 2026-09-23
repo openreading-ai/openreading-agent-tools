@@ -1,6 +1,6 @@
 {
   "name": "openreading-local-documents",
-  "version": "0.2.0-rc.1",
+  "version": "0.2.0-alpha.6+settings.20260921",
   "description": "Select local documents and retrieve complete normalized content with exact evidence. Unsigned development preview.",
   "author": {
     "name": "OpenReading"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "OpenReading Local Documents (development)",
     "shortDescription": "Local document tools with exact evidence",
-    "longDescription": "Select documents or folders for bundled Docling processing and automatic OCR by default. Optionally configure your own Core server in the included Settings app. Server uploads require native confirmation and may use external providers. Retrieved content enters your assistant context. Local copies and exports persist until removed. Unsigned development preview; native server-mode, clean-machine and ordinary Chat acceptance remain pending. No token savings claim. OpenReading Managed: Coming soon.",
+    "longDescription": "Select documents or folders for bundled Docling processing and automatic OCR by default. Optionally configure your own Core server through /openreading-settings. Server uploads require native confirmation and may use external providers. Retrieved content enters your assistant context. Local copies and exports persist until removed. Unsigned development preview; native server-mode, clean-machine and ordinary Chat acceptance remain pending. No token savings claim. OpenReading Managed: Coming soon.",
     "developerName": "OpenReading",
     "category": "Productivity",
     "capabilities": [

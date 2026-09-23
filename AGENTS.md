@@ -5,9 +5,10 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 
 ## Current stage
 
-This repository implements the revision 1 PyMuPDF prototype, client packaging, and measurement tooling.
-ProductSpec revision 19 requires all eight cells in the [compatibility matrix](README.md#required-compatibility-matrix).
-Claude Cowork, ChatGPT Work, local Claude Code, and Codex each need bundled Docling and optional server acceptance.
+Current packages are URL-only connectors built with `runtime.build_server` and `runtime/server_client`.
+Historical PyMuPDF and Docling builders remain development records, not the current release path.
+ProductSpec revision 28 requires all four server-backed cells in the [compatibility matrix](README.md#required-compatibility-matrix).
+Claude Cowork, ChatGPT Work, local Claude Code, and Codex each need operator-run Core server acceptance.
 Track each cell independently through the [matrix checklist](clients/README.md#matrix-acceptance); historical evidence never passes another surface.
 The revision 2 developer feasibility harness and corpus/retrieval gate are implemented; historical API execution and preparation are disabled.
 Versioned configuration, the diagnostic Docling launcher, E0, citation checking and synthetic host probes are implemented.
@@ -27,12 +28,13 @@ Expose every implemented MCP tool from the pinned core release, with no commerci
 The candidate has import, complete normalized retrieval, search, read, local selection and background import start/status/cancel; plus grant-scoped job discovery; planned core MCP operations are not already implemented.
 Core pin changes require full catalog parity and functional cases before release.
 Public installation requires no directory-path configuration. A per-file picker and private intake are implemented as a development candidate.
-Production selection must return its reference to chat without manual copying, and local OCR must work automatically.
-The current picker and OCR toggle remain developer-only mechanisms.
+Production selection must return its reference to chat without manual copying. The configured Core server owns parsing and OCR.
+Historical directory forms and OCR toggles do not belong in the current connector.
 Native accessibility, installation and clean-machine acceptance still gate that public route.
 Existing directory forms and explicit grants remain developer-only mechanisms.
-Keep the bundled slim Docling runtime and no alternative local backend or server manager.
-An optional operator-run Core HTTP destination is approved in revision 18; its source implementation is tested; frozen and native acceptance remain separate gates.
+Ship only the server connector, with no bundled parser, models, OCR executable, runtime download or server manager.
+The bundled Docling implementation is preserved by tag bundled-docling-2.126.0-checkpoint.
+An operator-run Core HTTP destination is required in revision 28. Source, frozen and native acceptance remain separate gates.
 A power user's independent full-core MCP connection remains outside this package's configuration.
 Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
 Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.

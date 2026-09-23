@@ -35,13 +35,12 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn(b'filename="report.md"', payload)
             self.assertNotIn(str(self.source.parent).encode(), payload)
             self.assertEqual(request.url.path, "/prefix/v1/parse")
-            self.assertEqual(request.headers["Authorization"], "Bearer temporary-test-token")
+            self.assertNotIn("authorization", request.headers)
             return httpx.Response(200, json=self.response)
 
         result = await parse_document(
             self.destination,
             self.source,
-            token="temporary-test-token",
             transport=httpx.MockTransport(handle),
         )
         self.assertEqual(result.response, self.response)
@@ -79,10 +78,10 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             b'{"a":NaN}',
             b'{"a":Infinity}',
             b'{"a":1e999}',
+            b'{"a":"\\ud800"}',
             b"[]",
             b"not json",
             b'{"a":"\xff"}',
-            b'{"a":"\\ud800"}',
             b"[" * 70 + b"0" + b"]" * 70,
         ):
             with self.subTest(body=body):
@@ -125,6 +124,7 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(DestinationError, "connection failed") as caught:
             await parse_document(self.destination, self.source, transport=httpx.MockTransport(fail))
         self.assertFalse(caught.exception.submitted)
+        self.assertNotIn("may continue", str(caught.exception))
         self.assertEqual(len(calls), 1)
         cancelled = threading.Event()
         cancelled.set()
@@ -161,36 +161,6 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.wait_for(task, 2)
         self.assertTrue(caught.exception.submitted)
         self.assertIn("may continue", str(caught.exception))
-
-    async def test_cancellation_after_complete_body_preserves_the_response(self):
-        from unittest.mock import patch
-
-        from runtime.server_transport import _decode
-
-        cancelled = threading.Event()
-
-        class CompleteThenCancel(httpx.AsyncByteStream):
-            async def __aiter__(self):
-                yield b'{"status":{"state":"succeeded"},"document":{"text":"complete"}}'
-
-            async def aclose(self):
-                await asyncio.sleep(0.1)
-
-        def decode(payload):
-            value = _decode(payload)
-            cancelled.set()
-            return value
-
-        with patch("runtime.server_transport._decode", side_effect=decode):
-            result = await parse_document(
-                self.destination,
-                self.source,
-                cancelled=cancelled,
-                transport=httpx.MockTransport(
-                    lambda request: httpx.Response(200, stream=CompleteThenCancel())
-                ),
-            )
-        self.assertEqual(result.response["document"]["text"], "complete")
 
     async def test_progress_and_preflight_limits(self):
         from unittest.mock import patch
@@ -229,14 +199,6 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
                 )
         self.assertTrue(caught.exception.submitted)
         self.assertFalse(caught.exception.shared_failure)
-
-    async def test_invalid_credentials_never_start_a_request(self):
-        for token in ("", "line\nsecret", "has space", "界"):
-            with (
-                self.subTest(token=token),
-                self.assertRaisesRegex(DestinationError, "credential"),
-            ):
-                await parse_document(self.destination, self.source, token=token)
 
     async def test_write_timeout_does_not_retry(self):
         calls = []
@@ -297,6 +259,36 @@ class ServerTransportTests(unittest.IsolatedAsyncioTestCase):
             "https://example.invalid/core",
         ):
             self.assertEqual(ServerDestination(url, "r").base_url, url)
+
+    async def test_cancellation_after_complete_body_preserves_the_response(self):
+        from unittest.mock import patch
+
+        from runtime.server_transport import _decode
+
+        cancelled = threading.Event()
+
+        class CompleteThenCancel(httpx.AsyncByteStream):
+            async def __aiter__(self):
+                yield b'{"status":{"state":"succeeded"},"document":{"text":"complete"}}'
+
+            async def aclose(self):
+                await asyncio.sleep(0.1)
+
+        def decode(payload):
+            value = _decode(payload)
+            cancelled.set()
+            return value
+
+        with patch("runtime.server_transport._decode", side_effect=decode):
+            result = await parse_document(
+                self.destination,
+                self.source,
+                cancelled=cancelled,
+                transport=httpx.MockTransport(
+                    lambda request: httpx.Response(200, stream=CompleteThenCancel())
+                ),
+            )
+        self.assertEqual(result.response["document"]["text"], "complete")
 
 
 if __name__ == "__main__":

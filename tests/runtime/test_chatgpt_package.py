@@ -28,9 +28,13 @@ class ChatGPTPackageTests(unittest.TestCase):
             "_internal/runtime/server_imports.py",
             "_internal/runtime/server_selection.py",
             "_internal/runtime/server_transport.py",
-            "_internal/runtime/server_keychain.py",
             "_internal/runtime/destination_settings.py",
             "_internal/runtime/destination_ui.py",
+            "_internal/runtime/settings_server.py",
+            "_internal/runtime/app_settings.py",
+            "_internal/runtime/storage_settings.py",
+            "_internal/runtime/public_profile.py",
+            "_internal/runtime/fresh_install.py",
             "_internal/openreading/artifacts/retention.py",
             "_internal/openreading/schemas/local-document.v0.5.json",
             "_internal/openreading/schemas/agent-document-tool.v0.5.json",
@@ -92,10 +96,10 @@ class ChatGPTPackageTests(unittest.TestCase):
             self.assertTrue(command.stat().st_mode & 0o111)
             self.assertEqual(server["args"], ["--client", "chatgpt", "--chat-documents"])
             self.assertEqual(set(server), {"command", "args", "cwd"})
-            skill = target / manifest["skills"] / "read-local-document/SKILL.md"
+            skill = target / manifest["skills"] / "openreading/SKILL.md"
             self.assertEqual(
                 skill.read_bytes(),
-                (package.REPOSITORY / "skills/read-local-document/SKILL.md").read_bytes(),
+                (package.REPOSITORY / "skills/openreading/SKILL.md").read_bytes(),
             )
             self.assertEqual(verify_release(target / "server"), source.metadata)
             info = json.loads((target / "package-info.json").read_text())
@@ -110,7 +114,8 @@ class ChatGPTPackageTests(unittest.TestCase):
                     ".codex-plugin/plugin.json",
                     ".mcp.json",
                     "README.md",
-                    "skills/read-local-document/SKILL.md",
+                    "skills/openreading/SKILL.md",
+                    "skills/openreading-settings/SKILL.md",
                     "OpenReading Settings.app/Contents/Info.plist",
                     "OpenReading Settings.app/Contents/MacOS/openreading-settings",
                 },

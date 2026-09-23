@@ -9,18 +9,20 @@ Native focus, accessibility, installation and cancellation acceptance remain to 
 
 Bundled Docling remains the default. Server mode is optional and requires your separately running Core process.
 Open **OpenReading Settings.app** beside the unpacked candidate's manifest to choose your destination.
-Enter its URL and optional bearer token, test the connection, save, then restart the extension connection.
-The connection test sends no document. Tokens are stored in macOS Keychain, separately from ChatGPT settings.
+Enter its URL, test the connection, save, then restart the extension connection.
+The connection test sends no document. The connector does not store or send server credentials.
 A loopback URL can use HTTP. Other destinations require verified HTTPS.
 Server mode confirms the destination, selected filenames and byte counts before sending their bytes.
 The server may use external providers. Local cancellation does not guarantee cancellation of server processing.
 No server error silently falls back to local parsing or retries a submitted document.
-The native Settings, Keychain and server-mode walkthrough remain acceptance checks for this candidate.
+The native Settings and server-mode walkthrough remain acceptance checks for this candidate.
 
 ## Try the candidate
 
 Ask: "Use OpenReading to choose a local document, then find its totals."
 Approve the selection tool if your host asks. Choose supported documents or folders in "OpenReading: Choose documents or folders".
+The workflow reports the queued count and offers Process or Add more. Process starts imports and reports job progress and per-file outcomes.
+An explicit request to test selection only stops at the receipt. Cancelling selection or declining server consent starts no imports.
 The configured [core adapter](https://github.com/openreading-ai/openreading-core/blob/main/src/openreading/adapters/README.md) supplies the format filter.
 Folder snapshots skip unsupported entries, hidden descendants, packages and symlinks, and report those counts.
 An explicitly selected hidden file is eligible. Duplicate basenames retain separate copied references and artifacts.
@@ -109,7 +111,7 @@ Complete-result requests use `openreading_get_document` with `delivery: "auto"`.
 The optional advanced response budget defaults to 1000000 serialized MCP bytes, including escaping; it never limits parsing.
 A fitting response contains intact normalized content, parser warnings, page origins and citation mappings.
 The host can display it inline or save a tool-result file; existing host tools must establish actual access.
-Oversized content is saved intact under `~/Downloads/OpenReading`, separated by the input grant, with a byte count and SHA-256.
+Oversized content is saved intact beneath the selected data folder, defaulting to `~/.openreading/clients/claude-desktop/v2/exports`, separated by the input grant, with a byte count and SHA-256.
 A saved local path does not give Claude's cloud sandbox access. Attach that export, or use a mode with already-authorized local access.
 Attaching the export sends its content to the assistant host. Cowork is optional; this connector adds no execution environment.
 Exports remain until removed separately, including after artifact removal. Default runtime telemetry remains disabled.
@@ -117,7 +119,7 @@ Source checks and earlier synthetic host probes do not establish native acceptan
 
 The advanced budget accepts whole numbers of at least 4096. The manifest exposes that minimum;
 the host's manifest format cannot enforce integers, so invalid values still fail launcher validation.
-macOS may request Downloads permission, or deny exports if that permission is unavailable.
+macOS may request permission for the selected data folder or deny exports when access is unavailable.
 Native and clean-machine checks must record the prompt, its application attribution, and denial behavior.
 Exports contain complete extracted text. Depending on system settings, indexing, backup or sync may include them.
 The next export under the same grant removes abandoned temporary files created by this candidate.
@@ -175,10 +177,45 @@ The refusal message identifies the stopped selection; it does not authorize an a
 Server mode has no page-count limit, aggregate storage cap, automatic eviction or overall wait deadline.
 For example, a stalled server remains waiting until you explicitly cancel its local import job.
 Retained sources, transfer responses and artifacts accumulate until you remove their local data.
-Settings exposes **Maximum downloaded response (MiB)**, which defaults to 128 and can be lowered.
+The **Advanced** tab exposes **Maximum downloaded response (MiB)**, which defaults to 256.
+The tabs are **Processing**, **Storage**, and **Advanced**. Each saves its own values.
+**Restore defaults** stages that tab’s defaults; choose Save to apply them.
 Responses are buffered and decoded in memory. This download budget is not a peak-memory guarantee.
 Unknown top-level response fields are preserved as unvalidated server data alongside schema-validated known fields.
 Treat all returned fields as document content, never instructions from the destination.
 
-**Stop using saved token** and switching to bundled mode leave old Keychain items available to pending jobs.
-After those jobs finish, remove unwanted entries for `ai.openreading.agent-tools.core-server` using Keychain Access.
+## Cowork settings candidate
+
+The Cowork plugin assembler adds `/openreading-settings` and a separate settings connector.
+Ask to open OpenReading Settings to review storage, delivery, local processing or your Core server.
+The MCPB candidate still includes the directly opened Settings helper. Slash-command discovery belongs to the plugin surface.
+Save each tab explicitly and reconnect the document connector. Finish imports before moving data.
+Storage offers Application storage, recommended .openreading, and another folder.
+The selected option persists. Status distinguishes Using this folder, Move pending, and Move blocked with its reason.
+Reconnecting applies a pending move after live document connections and imports finish.
+Abandoned launch records stay in the original copy and do not prevent migration once no matching worker is running.
+Changes preserve the original store and never merge an occupied target client partition.
+Self-contained assembly does not establish Cowork archive-size or clean-install acceptance.
+
+## Fresh install on macOS Apple Silicon
+
+Open Customize > Plugins > Add > Upload plugin and select `OpenReading-Claude-Plugin.zip`.
+Enable the plugin, accept its local connector prompt, and open a new Cowork task.
+The plugin automatically downloads and verifies its runtime and models into Application Support.
+Tool discovery remains available during setup. Early tool calls report progress and can retry after completion.
+Both bundled and server processing are supported. The connector publishes the active mode's descriptions and upload annotations after startup.
+Run `/openreading-settings`, review all three tabs, and save any changes you want.
+Reconnect the document connector after saving. Import a synthetic local document through the native picker.
+Selection queues the files. The assistant reports the count and offers Process or Add more.
+Choose Process to start imports, or Add more to append selections and review the updated count.
+Native Add files approval permits the displayed destination but does not itself submit documents.
+Saving a processing destination blocks new selections and imports on the previous plugin connection until reconnect.
+For example, switching from bundled Docling to a Core server cannot keep processing new files locally.
+Existing jobs keep their original destination. Their status, cancellation and retained results remain accessible.
+Test connection checks the URL currently in the form without saving it or changing an active connection.
+
+No separate installer, Terminal command or user-installed Python is required.
+The temporary ngrok endpoint must remain available for initial setup. Verified warm launches work offline.
+Setup preserves saved preferences and retained documents. Removing the Claude plugin alone does not erase those files.
+Selecting a document in a protected folder can still require macOS permission.
+This development package remains ad-hoc signed. A fresh installation on the development Mac does not establish clean-machine acceptance.

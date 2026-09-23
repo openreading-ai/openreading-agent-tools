@@ -260,60 +260,6 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, "access_denied")
         self.assertEqual(self.requests, [])
 
-    def require_keychain(self):
-        import json
-
-        from runtime.server_selection import approval_name, write_private
-
-        self.settings = save_destination(
-            "chatgpt",
-            "server",
-            base_url="http://localhost:8787",
-            token="synthetic",
-            home=self.home,
-            keychain=Mock(),
-        )
-        self.service.settings = self.settings
-        for reference in self.references:
-            path = self.selection.approvals / approval_name(reference)
-            value = json.loads(path.read_text())
-            value["revision"] = self.settings.revision
-            write_private(path, value)
-        self.service.keychain = Mock()
-        self.service.keychain.get.side_effect = ValueError("private credential diagnostic")
-
-    def test_keychain_refusal_stops_batch_without_anonymous_fallback(self):
-        self.require_keychain()
-        for reference in self.references:
-            with self.assertRaises(ArtifactError):
-                self.service.import_document(reference)
-        self.service.keychain.get.assert_called_once()
-        self.assertEqual(self.requests, [])
-
-    def test_detached_keychain_refusal_reports_no_upload_without_private_diagnostics(self):
-        self.require_keychain()
-        status = self.run_detached_job()
-        self.assertEqual(status["state"], "failed")
-        message = status["error"]["message"].lower()
-        self.assertIn("keychain", message)
-        self.assertIn("nothing was uploaded", message)
-        self.assertNotIn("may continue", message)
-        self.assertNotIn("private credential diagnostic", message)
-        self.assertEqual(self.requests, [])
-        self.assertEqual(list(self.service.transfers.glob("*.attempt")), [])
-
-    def test_keychain_initialization_failure_reports_no_upload(self):
-        self.require_keychain()
-        self.service.keychain = None
-        with patch("runtime.server_keychain.ServerKeychain", side_effect=OSError("private path")):
-            with self.assertRaises(ArtifactError) as caught:
-                self.service.import_document(self.references[0])
-        message = caught.exception.envelope().error.message.lower()
-        self.assertIn("keychain", message)
-        self.assertIn("nothing was uploaded", message)
-        self.assertNotIn("private path", message)
-        self.assertEqual(self.requests, [])
-
     def test_real_retention_and_mcp_delivery_preserve_server_values(self):
         import asyncio
         import json
@@ -339,10 +285,8 @@ class ServerImportTests(unittest.TestCase):
             lambda request: httpx.Response(200, json=response)
         )
         retained = ServerArtifactService._retain.__get__(self.service)
-        with (
-            patch.object(self.service, "_retain", retained),
-            patch.object(self.service, "_worker", side_effect=AssertionError("No local parse")),
-        ):
+        self.assertFalse(hasattr(self.service, "_worker"))
+        with patch.object(self.service, "_retain", retained):
             receipt = self.service.import_document(self.references[0])
         self.assertEqual(receipt.schema_version, "0.5")
         self.assertEqual(receipt.extraction_state, "partial")
@@ -534,3 +478,28 @@ class ServerImportTests(unittest.TestCase):
         value = json.loads(path.read_bytes())
         path.write_text(json.dumps(value, ensure_ascii=True))
         self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+
+    def test_legacy_settings_import_without_reading_or_sending_credentials(self):
+        import json
+
+        from runtime.destination_settings import read_destination
+
+        path = next(self.home.rglob("destination.json"))
+        value = json.loads(path.read_text())
+        value.update(schema_version=1, credential_ref="c" * 32)
+        path.write_text(json.dumps(value))
+        self.service.settings = read_destination("chatgpt", home=self.home)
+        with patch("ctypes.CDLL", side_effect=AssertionError("No Keychain access")):
+            self.assertIs(self.service.import_document(self.references[0]), self.receipt)
+        self.assertEqual(len(self.requests), 1)
+        self.assertNotIn("authorization", self.requests[0].headers)
+        self.assertNotIn("credential_ref", self.service.settings.wire())
+
+    def test_server_failure_reports_safe_reason_without_claiming_local_processing(self):
+        self.service.transport = httpx.MockTransport(lambda request: httpx.Response(403))
+        with self.assertRaises(ArtifactError) as raised:
+            self.service.import_document(self.references[0])
+        error = raised.exception.envelope().error
+        self.assertEqual(error.code, "parse_failed")
+        self.assertIn("403", error.message)
+        self.assertFalse(error.retryable)

@@ -1,72 +1,63 @@
-# ChatGPT desktop integration
+# OpenReading for ChatGPT Work
 
-Launch scope: [OSS product v1](../../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the slim Docling runtime. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
+Select local documents and process them through your separately running OpenReading Core server.
+This Apple Silicon alpha.21 preview includes the same connector worker as the other three current packages.
+It includes no parser, model download, Core server, adapter catalog or server manager.
 
-**Status:** owner-operated Work tests passed through manual STDIO registration on September 17, 2026.
-The owner later reported an exact Markdown read after plugin reinstall; independent GUI startup capture and full packaged installation acceptance remain pending.
-Ordinary Chat acceptance remains pending.
-The [client matrix](../README.md) separates documented routes from tested behavior.
+Core setup is documented in the [separate server guide](../full-core/README.md#run-core-for-the-connector).
+Only macOS Apple Silicon binaries are available for this preview. Other platforms remain pending.
 
-The `0.2.0-rc.1` package targets macOS on Apple Silicon only. Intel macOS,
-Linux, and Windows packages are pending. It is unsigned and does not turn the
-pending host acceptance into a support claim.
+## Install as a plugin
 
-## Connection candidate
+Open ChatGPT's **Plugins** view and its **New Plugin** upload dialog.
+Choose `OpenReading-ChatGPT-Plugin.zip`, then select **Add plugin**.
+Upload the ZIP directly. No extraction, Terminal command or marketplace registration is required by this workflow.
+The archive places `.codex-plugin/plugin.json`, `.mcp.json`, skills and runtime at the plugin root.
+The uploader accepts archives up to 100 MB. The build receipt records its exact size.
 
-[OpenAI's MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli) describes adding a local STDIO server through ChatGPT desktop settings.
-It also describes configuration shared with Codex clients on the same host.
-Check the installed application and execution mode before following that route.
-A shared registration can expose the same OpenReading internal intake grant to multiple local clients.
-That grant limits only OpenReading; it does not restrict the assistant's other file or shell tools.
-The route must execute locally and cannot set `experimental_environment = "remote"`.
+The earlier marketplace-wrapped ZIP was rejected by the uploader.
+This corrected archive's structure and extracted connectors are checked locally.
+Acceptance by the upload service and tool availability remain exact-build manual checks.
 
-The desired target is a local Chat conversation, with Work and Codex local threads checked separately in [E1](../../design/native-probes.md).
-A Codex-thread pass does not establish support for Chat conversations.
-The development plugin bundles the same verified worker and shared workflow in a local marketplace.
-Its [installation guide](plugin/README.md) describes the owner-operated native check without a pasted executable path.
-ChatGPT 26.911.61220's bundled CLI resolved `cwd: "."` to the installed plugin directory, leaving `./server/openreading-worker` relative.
-A separate network-denied MCP process launched from that resolved configuration and passed the nine-tool check.
-Native GUI startup after reinstall has not been independently captured.
-The legacy plugin MCP loader leaves `${PLUGIN_ROOT}` literal in commands, so this package does not use that placeholder.
-Packaging writes only its output directory. It never registers a server or changes shared host configuration.
-Public setup asks for neither a document directory nor an OCR decision. Bundled OCR works automatically within its verified limits.
-The earlier manual registration remains valid development evidence, separately from plugin installation acceptance.
-The [assistant design](../../design/assistant-clients.md) retains native, signing and clean-machine gates.
+Start a new **Work** conversation on this Mac. Enable this plugin and ask to open its OpenReading settings.
+Enter your Core URL, test the connection and save. Start Core separately.
+Localhost permits HTTP; remote destinations require HTTPS.
+After changing saved settings, quit and reopen ChatGPT, then start a new Work conversation.
+Ask OpenReading to select a document, choose Process, and ask a question about the extracted content.
 
-## Assemble the development plugin
+The two skills are `openreading` and `openreading-settings`, qualified by the `openreading-chatgpt` plugin name.
+Its connectors are `openreading-chatgpt` and `openreading-chatgpt-settings`.
+Use the installed plugin's settings tool directly. Opening a guessed standalone OpenReading application is unnecessary.
 
-Use a verified format-2 runtime with the current delivery, selection and pageless evidence contracts:
+## Shared host configuration
+
+ChatGPT and Codex can share installed plugins and enablement settings on this Mac.
+This candidate uses a separate plugin identity so installation does not replace the working Codex package.
+For an unambiguous test, enable only **OpenReading for ChatGPT** in the conversation, not both OpenReading variants.
+If the host only offers a global toggle, disabling the Codex variant also affects future Codex sessions until you enable it again.
+A plugin name does not enforce isolation between applications.
+
+This launcher's fixed client label is `chatgpt`. Preferences live under `~/Library/Application Support/OpenReading/agent-tools/chatgpt`.
+The default retained-data partition is `~/.openreading/clients/chatgpt/v2`. Storage settings can select another location.
+The launcher does not migrate or overwrite Codex or Claude preferences.
+Existing historical ChatGPT preferences remain readable. An old bundled-parser selection requires saving a Core server URL.
+
+## Build and verification
+
+Reuse the verified server-only runtime without rebuilding its executable:
 
 ```sh
-python -m runtime.package --chatgpt-plugin --runtime /path/to/verified-runtime --output /path/to/new-marketplace
+python -m runtime.build_server --runtime /path/to/verified-runtime --client chatgpt --output /path/to/new-build
 ```
 
-The output contains `.agents/plugins/marketplace.json` and `plugins/openreading-local-documents`.
-The plugin contains `.codex-plugin/plugin.json`, `.mcp.json`, the shared skill and the unchanged `server` runtime.
-Its package record binds the manifest, launch configuration, workflow and README to the worker and core commit.
-The compatibility manifest follows [OpenAI's supported plugin packaging layout](https://developers.openai.com/plugins/build/plugins).
-It is a local development marketplace, not a public directory submission or an MCPB archive.
-An existing output directory or incompatible runtime is refused before copying.
-The template version identifies the host cache entry; the assembler does not increment it.
-Bump that version before assembling changed plugin inputs, because reusing a version can reuse an installed cache entry.
+The output contains a development marketplace, plugin directory, standalone upload ZIP and `build.json` recording the worker and archive hashes.
+Installation and protocol checks use isolated settings and synthetic documents, without model calls or personal files.
+The native Work conversation, settings window, picker and answer workflow require owner-operated testing.
+Ordinary Chat, web, cloud execution, clean-machine prerequisites, signing and notarization are not established by those checks.
 
-Before native testing, disable the earlier manual test connection so the result identifies the installed plugin.
-OpenAI clients can share plugin configuration. Record the affected applications rather than assuming application isolation.
-Plugin removal does not delete OpenReading's retained data or exports.
+## Removal
 
-## Required proof
+Remove **OpenReading for ChatGPT** through ChatGPT's plugin controls.
 
-Verify local startup and tool discovery first, then run the same synthetic cited-answer and refusal cases used for Claude Desktop.
-Record exact quotes, physical pages, tool calls, restart, cancellation, permissions, and host timeouts.
-The earlier investigation observed version 26.901.51231 with bundle identifier `com.openai.codex`; Computer Use could not inspect its UI.
-The September 17 Work test observed installed version 26.903.61454 and used owner-operated Settings screenshots and host result reports.
-The [Work acceptance record](../README.md#owner-operated-chatgpt-work-checks-september-17-2026) distinguishes these reports from independent retained-file checks and remaining gates.
-Codex CLI results do not replace mode-specific ChatGPT acceptance.
-
-ChatGPT web is outside this first local integration.
-[OpenAI's plugin connection guide](https://developers.openai.com/plugins/deploy/connect-chatgpt) describes remote endpoint and tunnel testing paths.
-Those would require a separate transport and data-access design; this proposal does not start a tunnel or expose a local service.
-
-Local extraction keeps the retained document on the machine, while retrieved excerpts enter the calling assistant's context.
-Functional success does not prove lower ChatGPT subscription usage or billing.
-If the host does not expose complete task token counters, report functionality and quality without a token-savings percentage.
+Removal deletes the installed package, not OpenReading preferences, copied documents, jobs or retained exports.
+Keep the upload ZIP available for another manual installation.

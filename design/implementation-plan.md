@@ -1,5 +1,8 @@
 # Revision 19 implementation plan
 
+Revision 28 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
+
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
 **Contracts:** [ProductSpec revision 19](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
 
@@ -381,3 +384,36 @@ At core `e25b101`, the frozen candidate preserves the OCR code and reconstructs 
 Each job survives its first MCP server process. Recorded supervisors and parser processes exit.
 The eight-tool catalogs match; two retrieval restarts reproduce 51 exact reads each.
 Both repository gates pass. Native progress UI remains open. The uncapped frozen candidate at core `56c1a6f` completes the 251-page owner document and returns readable normalized content. This does not establish extraction accuracy or 10,000-page support.
+
+## Native settings integration, revision 20
+
+- [x] Add a separate no-argument Settings connector and namespaced workflow skill without changing Core's catalog.
+- [x] Persist private storage and delivery choices outside the data root, with defaults and invalid-input tests.
+- [x] Apply client storage changes at reconnect, protect live connections and jobs, and preserve readable artifacts through migration.
+- [x] Extend the native controls and exercise saving through the real window with an isolated home.
+- [x] Complete the repository verification gate and frozen candidate protocol checks.
+- [ ] Record exact-build Cowork and Work installation, URL-only settings and clean-machine acceptance independently.
+
+The remaining release checks are in [native settings acceptance](native-settings.md).
+
+## Native plugin download, revision 24
+
+- Replace the manual installer handoff with a small Claude upload and automatic pinned HTTPS runtime download.
+- Verify archive failure, safe extraction, shared installation, protocol responsiveness and offline cache reuse.
+- Build the exact frozen downloader and host only the runtime archive through the owner's existing ngrok tunnel.
+- Verify the cold download and forwarding path before the owner's native upload and settings acceptance.
+- Keep durable GitHub hosting and clean-machine distribution as later release gates.
+
+## Selection continuation, revision 25
+
+- Make successful selection continue into imports in the shared skill, preserving native server consent and explicit selection-only requests.
+- Package the workflow update without changing the frozen downloader or document runtime.
+- Run EVAL-3 in the native host with synthetic multi-file and folder inputs. Confirm complete counts and no extra import question.
+
+## URL-only connector, revision 28
+
+- Remove credential controls, Keychain calls and Authorization headers from the connector.
+- Read legacy destinations without their credential references and write schema 2 on save.
+- Verify URL and storage preservation, metadata checks, uploads and package exclusion.
+- Rebuild all four client packages and repeat native settings acceptance on the new build.
+- Leave Core server authentication and provider credentials unchanged.

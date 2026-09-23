@@ -5,13 +5,14 @@ Memory use is not capped by this launcher. Explicit cancellation and OS failures
 Background imports retain their own profile after the launcher exits.
 Each invocation writes its own private profile until core has closed its owned workers.
 No model tool or environment variable selects the backend, resources, or input grant.
-Chat exports use the trusted Downloads/OpenReading directory, with grant separation owned by core.
+Chat exports live beneath the selected client data partition, with grant separation owned by core.
 The optional document-response-bytes argument controls delivery only; it never caps parsing.
 HF_HUB_OFFLINE and TRANSFORMERS_OFFLINE are set for launch and restored on exit.
 """
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import secrets
@@ -22,12 +23,12 @@ from runtime.configuration import client_root, configure_v2, ocr_value, select_s
 
 
 @contextmanager
-def profile_file(client, settings, bundle):
+def profile_file(client, settings, bundle, *, data_root=None):
     from openreading.artifacts.intake import directory
     from openreading.artifacts.limits import ProfileConfig
     from openreading.artifacts.store import Store
 
-    root = client_root(client) / "v2"
+    root = data_root or client_root(client) / "v2"
     with directory(root, create=True):
         store = Store(ProfileConfig(settings.input_root, root / "artifacts"))
         close = getattr(store, "close", None)
@@ -59,6 +60,10 @@ def profile_file(client, settings, bundle):
         os.mkdir(name, 0o700, dir_fd=parent)
         try:
             with directory(launch / name) as child:
+                lease = os.open(
+                    "session.lock", os.O_CREAT | os.O_EXCL | os.O_RDWR, 0o600, dir_fd=child
+                )
+                fcntl.flock(lease, fcntl.LOCK_EX)
                 fd = os.open(
                     "profile.json", os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600, dir_fd=child
                 )
@@ -70,6 +75,8 @@ def profile_file(client, settings, bundle):
                     yield launch / name / "profile.json", root / "artifacts"
                 finally:
                     os.unlink("profile.json", dir_fd=child)
+                    os.close(lease)
+                    os.unlink("session.lock", dir_fd=child)
         finally:
             os.rmdir(name, dir_fd=parent)
 
@@ -89,7 +96,9 @@ def launch(args, bundle: Path, *, selection_provider=None) -> int:
     previous = {key: os.environ.get(key) for key in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE")}
     try:
         os.environ.update(dict.fromkeys(previous, "1"))
-        with profile_file(args.client, settings, bundle) as (path, store):
+        with profile_file(
+            args.client, settings, bundle, data_root=getattr(args, "runtime_data_root", None)
+        ) as (path, store):
             from openreading.mcp_server.main import main as core_main
 
             return core_main(
@@ -105,7 +114,7 @@ def launch(args, bundle: Path, *, selection_provider=None) -> int:
                     "--document-response-bytes",
                     str(getattr(args, "document_response_bytes", 1_000_000)),
                     *(
-                        ["--document-export-root", str(Path.home() / "Downloads" / "OpenReading")]
+                        ["--document-export-root", str(store.parent / "exports")]
                         if selection_provider is not None
                         else []
                     ),

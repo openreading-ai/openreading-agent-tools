@@ -1,10 +1,45 @@
-# Connect an independently installed core
+# OpenReading Core setup
+
+## Run Core for the connector
+
+Agent Tools requires an independently running [OpenReading Core](https://github.com/openreading-ai/openreading-core) HTTP server.
+Install Core and the backend dependencies you choose using its [installation guide](https://github.com/openreading-ai/openreading-core#install).
+A backend is a document parser. A strategy is a recipe that chooses or combines backends.
+The plugin contains neither and does not install them.
+
+Choose a [commented openreading.yaml example](https://github.com/openreading-ai/openreading-core/tree/main/examples/configs).
+Install each backend's requirements and validate the configuration before use.
+From the Core environment, start your server:
+
+~~~sh
+OPENREADING_CONFIG=/absolute/path/to/openreading.yaml openreading serve --host 127.0.0.1 --port 8787
+~~~
+
+Keep this process running. In the plugin's Settings window, save `http://127.0.0.1:8787` and test the connection.
+The check reads server health and metadata. A synthetic document import separately tests processing.
+Use Core's [server guide](https://github.com/openreading-ai/openreading-core/tree/main/src/openreading/server) for server configuration and security.
+
+This URL-only connector does not send bearer tokens or provider credentials.
+Core authentication is unchanged. A server requiring client authentication returns a visible refusal.
+Do not disable protection on a shared server to work around that refusal.
+Keep unauthenticated testing on loopback. HTTPS alone does not authorize callers on a public endpoint.
+
+Provider keys, model assets and `openreading.yaml` belong on the server, never in the plugin.
+Core may use hosted providers if its configuration selects them.
+Each backend reads the formats its [descriptor claims](https://github.com/openreading-ai/openreading-core/tree/main/src/openreading/adapters).
+
+## Independent MCP route, not the connector
+
+The older guide below describes connecting an assistant directly to Core's local MCP profiles.
+It bypasses the server-only Agent Tools plugin and is not required for its installation.
+
+### Historical independent Core candidate
 
 This is the power-user route for managing your own OpenReading installation and MCP process.
 It does not use the Agent Tools bundle or add settings to that bundle.
 You manage Python, dependencies, model assets and updates yourself.
 
-Status: configuration below was checked against the historical candidate contract at core `3ff02d415ca5389093c2ea16b54e1ec65caa015c`.
+Status: configuration below is checked against the current candidate contract at core `3ff02d415ca5389093c2ea16b54e1ec65caa015c`.
 The released-version installation and native walkthrough remain R1 acceptance work in the [implementation plan](../../design/implementation-plan.md).
 Replace `<released-version>` with the merged core release selected by R0 before running the installation recipe or publishing it as release instructions.
 This guide does not imply that the candidate's MCP features are already on PyPI.
