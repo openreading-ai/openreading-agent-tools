@@ -24,9 +24,9 @@
     "@anthropic-ai/mcpb": "2.1.2",
     "@productspec/parser": "0.27.0",
     "ajv": "8.20.0",
-    "markdown-it": "15.0.1",
-    "markdownlint-cli2": "0.23.2",
-    "prettier": "3.9.6",
-    "yaml": "2.9.0"
+    "markdown-it": "15.0.2",
+    "markdownlint-cli2": "0.23.3",
+    "prettier": "3.9.8",
+    "yaml": "2.9.1"
   }
 }
