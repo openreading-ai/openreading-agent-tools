@@ -1,5 +1,15 @@
 # Changelog
 
+## OpenReading alpha.22 GitHub preview
+
+- Assemble complete parser-free packages for GitHub-backed native marketplaces across all four clients.
+- Keep immutable distribution pins and native executable permissions without archive download helpers or local-folder installation.
+- Give Cowork the separate openreading-cowork identity while retaining its existing claude-desktop settings and data partition.
+- Document personal ChatGPT marketplace registration without workspace-admin prerequisites.
+- Repin current client and test environments to merged Core main `02a2061eae3486ac1513ac8216cd79422c8e3c66`.
+  Its source tree matches the reviewed alpha.21 Core pin. No dependency versions or historical engine pins change.
+- Require independent desktop GitHub installation and update acceptance in ProductSpec revision 29. Signing and clean-machine gates remain pending.
+
 ## OpenReading alpha.21 preview
 
 - Reconcile the URL-only, parser-free connector with the reviewed server reliability fixes.

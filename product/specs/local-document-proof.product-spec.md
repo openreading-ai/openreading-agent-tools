@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 28
+spec_revision: 29
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-22T00:00:00Z"
+updated_at: "2026-09-23T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -31,7 +31,10 @@ A convincing answer without a resolvable document and page reference cannot supp
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
 The first platform remains macOS on Apple Silicon.
-Revision 28 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Revision 29 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Install all four forms from GitHub through native host marketplaces, without manually extracted folders or binary installation.
+Personal ChatGPT Work uses CLI marketplace registration and desktop discovery, not workspace-admin import.
+GitHub-backed installation and updates require exact-host evidence. CLI discovery does not establish desktop conversation acceptance.
 Claude Cowork and ChatGPT Work are the desktop targets; local Claude Code and Codex are the code targets.
 Each surface connects to a required operator-run Core server. No parser or model is bundled with the connector.
 Ordinary Chat and cloud code sessions do not satisfy these targets. No other client is claimed.
@@ -379,7 +382,9 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-38
   criterion: A namespaced openreading-settings command or natural-language request opens native controls for storage, server URL, server download limits and complete-result delivery limits; the opener accepts no configuration arguments, no credentials are stored or sent, and cancelled or discarded edits leave saved values unchanged.
 - id: AC-41
-  criterion: A small plugin installs through Claude's native upload and connector approval flow without a separate installer, terminal command or Python installation. The archive embeds its verified parser-free connector with no model or runtime download. Tool discovery and Settings remain available before server setup. Missing, malformed or legacy local-mode settings refuse document work with setup guidance. Existing server URLs, limits, storage choices and documents remain intact. Legacy credential references are discarded without accessing Keychain. No parser or OCR executable is bundled or used as fallback. Native and clean-machine acceptance are independently verified.
+  criterion: A small plugin installs through the host's GitHub marketplace and connector approval flow without a separate binary installer, manually cloned or extracted folder, or Python installation. Personal ChatGPT Work may use Codex CLI to register its GitHub marketplace. The host fetches the complete verified parser-free connector with no document-time model or runtime download. Tool discovery and Settings remain available before server setup. Missing, malformed or legacy local-mode settings refuse document work with setup guidance. Existing server URLs, limits, storage choices and documents remain intact. Legacy credential references are discarded without accessing Keychain. No parser or OCR executable is bundled or used as fallback. Native and clean-machine acceptance are independently verified.
+- id: AC-43
+  criterion: Each of the four client installation guides uses GitHub as its package source and identifies its plugin, immutable distribution commit and supported architecture. Native install, update, restart and removal preserve settings and retained documents. A private preview requires existing repository authorization without embedding credentials in catalogs. Desktop acceptance is recorded independently from code-client and protocol checks. GitHub sync never authorizes merging source PRs, changing repository visibility or replacing historical release tags.
 - id: AC-40
   criterion: Settings presents Processing, Storage and Advanced tabs in that order. Each tab saves independently. Restore defaults stages that tab’s defaults without saving. Advanced holds the response file threshold and a 256 MiB default download limit. Previously saved limits remain effective until changed. Saving Advanced never requests a storage move. The Settings window shows no Managed promotion. Processing presents server URL, test, save and restore controls without a bundled-parser choice. Connection tests use green success and red failure feedback with descriptive text. Storage offers application storage, recommended .openreading and a chosen folder. Reopening preserves the saved choice and reports active, pending or blocked status with the reason. Abandoned launch profiles do not block moves; live connections and unfinished imports do.
 - id: AC-42

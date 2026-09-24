@@ -1,63 +1,49 @@
 # OpenReading for ChatGPT Work
 
-Select local documents and process them through your separately running OpenReading Core server.
-This Apple Silicon alpha.21 preview includes the same connector worker as the other three current packages.
-It includes no parser, model download, Core server, adapter catalog or server manager.
+Install the Apple Silicon connector from a GitHub-backed personal marketplace.
+It includes the connector interpreter, two skills, nine document tools and one Settings opener.
+It includes no parser, model, Core server or runtime downloader. Other platforms remain pending.
+Start [OpenReading Core separately](https://github.com/openreading-ai/openreading-agent-tools/blob/main/clients/full-core/README.md#run-core-for-the-connector).
 
-Core setup is documented in the [separate server guide](../full-core/README.md#run-core-for-the-connector).
-Only macOS Apple Silicon binaries are available for this preview. Other platforms remain pending.
+## Personal-account installation
 
-## Install as a plugin
+Register the GitHub marketplace once using Codex CLI. During PR review, select the preview branch:
 
-Open ChatGPT's **Plugins** view and its **New Plugin** upload dialog.
-Choose `OpenReading-ChatGPT-Plugin.zip`, then select **Add plugin**.
-Upload the ZIP directly. No extraction, Terminal command or marketplace registration is required by this workflow.
-The archive places `.codex-plugin/plugin.json`, `.mcp.json`, skills and runtime at the plugin root.
-The uploader accepts archives up to 100 MB. The build receipt records its exact size.
+~~~sh
+codex plugin marketplace add openreading-ai/openreading-agent-tools --ref fix/github-marketplaces
+~~~
 
-The earlier marketplace-wrapped ZIP was rejected by the uploader.
-This corrected archive's structure and extracted connectors are checked locally.
-Acceptance by the upload service and tool availability remain exact-build manual checks.
+After the owner merges that PR, new installations omit `--ref fix/github-marketplaces`.
+Your Git credentials must permit access while the repository remains private.
+Quit and reopen ChatGPT Desktop, open Plugins, select the OpenReading marketplace and install **OpenReading for ChatGPT**.
+Its plugin identifier is `openreading-chatgpt@openreading`. Do not choose the Codex entry named OpenReading.
+No workspace-admin import, manual clone, ZIP upload or extracted folder is part of this route.
 
-Start a new **Work** conversation on this Mac. Enable this plugin and ask to open its OpenReading settings.
-Enter your Core URL, test the connection and save. Start Core separately.
-Localhost permits HTTP; remote destinations require HTTPS.
-After changing saved settings, quit and reopen ChatGPT, then start a new Work conversation.
-Ask OpenReading to select a document, choose Process, and ask a question about the extracted content.
+OpenAI documents personal marketplaces in Work and GitHub registration through the CLI.
+Exact-build visibility and installation in the personal-account desktop UI remain owner-operated acceptance checks.
+CLI installation and tool discovery do not establish a successful Work conversation.
+See [OpenAI's marketplace instructions](https://developers.openai.com/plugins/build/plugins).
 
-The two skills are `openreading` and `openreading-settings`, qualified by the `openreading-chatgpt` plugin name.
-Its connectors are `openreading-chatgpt` and `openreading-chatgpt-settings`.
-Use the installed plugin's settings tool directly. Opening a guessed standalone OpenReading application is unnecessary.
+Start a new local Work conversation and enable only the ChatGPT variant.
+Ask to open OpenReading settings. Save and test your Core URL, then quit and reopen ChatGPT.
+Select a synthetic document, choose Process and verify the answer against its evidence.
+Use the plugin's Settings tool, not a guessed standalone application.
 
-## Shared host configuration
+## Updates and removal
 
-ChatGPT and Codex can share installed plugins and enablement settings on this Mac.
-This candidate uses a separate plugin identity so installation does not replace the working Codex package.
-For an unambiguous test, enable only **OpenReading for ChatGPT** in the conversation, not both OpenReading variants.
-If the host only offers a global toggle, disabling the Codex variant also affects future Codex sessions until you enable it again.
-A plugin name does not enforce isolation between applications.
+Run `codex plugin marketplace upgrade openreading`, then update the ChatGPT plugin through Plugins and restart ChatGPT.
+The CLI can also install the selected package with `codex plugin add openreading-chatgpt@openreading`.
+A preview registration follows its selected branch. Register with `--ref main` after the review branch is merged.
+Remove **OpenReading for ChatGPT** through its plugin controls. Cancel unwanted background jobs first.
 
-This launcher's fixed client label is `chatgpt`. Preferences live under `~/Library/Application Support/OpenReading/agent-tools/chatgpt`.
-The default retained-data partition is `~/.openreading/clients/chatgpt/v2`. Storage settings can select another location.
-The launcher does not migrate or overwrite Codex or Claude preferences.
-Existing historical ChatGPT preferences remain readable. An old bundled-parser selection requires saving a Core server URL.
+ChatGPT and Codex can share plugin configuration. A plugin name does not enforce application isolation.
+The launcher keeps the `chatgpt` partition and does not migrate or overwrite another client's data.
+Preferences live under `~/Library/Application Support/OpenReading/agent-tools/chatgpt`.
+Retained data defaults to `~/.openreading/clients/chatgpt/v2`; Storage can select another folder.
+Updates and removal preserve preferences and retained results.
 
-## Build and verification
+## Verification boundaries
 
-Reuse the verified server-only runtime without rebuilding its executable:
-
-```sh
-python -m runtime.build_server --runtime /path/to/verified-runtime --client chatgpt --output /path/to/new-build
-```
-
-The output contains a development marketplace, plugin directory, standalone upload ZIP and `build.json` recording the worker and archive hashes.
-Installation and protocol checks use isolated settings and synthetic documents, without model calls or personal files.
-The native Work conversation, settings window, picker and answer workflow require owner-operated testing.
-Ordinary Chat, web, cloud execution, clean-machine prerequisites, signing and notarization are not established by those checks.
-
-## Removal
-
-Remove **OpenReading for ChatGPT** through ChatGPT's plugin controls.
-
-Removal deletes the installed package, not OpenReading preferences, copied documents, jobs or retained exports.
-Keep the upload ZIP available for another manual installation.
+The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob/main/runtime/server_client/README.md) records the Git distribution and immutable runtime identity.
+Native Work settings, chooser, answers, reconnect and update behavior require their own exact-build checks.
+Ordinary Chat, web/mobile, cloud execution, clean-machine installation, signing and notarization are not established by CLI checks.
