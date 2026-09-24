@@ -7,7 +7,7 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Personal-account installation
 
-The main catalog still pins alpha.22. Wait for the replacement security build before launch acceptance.
+This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
 After that build's catalog PR is merged, register the main marketplace once using Codex CLI:
 
 ~~~sh

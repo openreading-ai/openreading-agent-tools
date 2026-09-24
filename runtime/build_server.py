@@ -26,6 +26,7 @@ import argparse
 import json
 import platform
 import shutil
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -35,14 +36,16 @@ from importlib import metadata
 from pathlib import Path
 
 from runtime.bootstrap_package import catalog
-from runtime.build import materialize_links, notices
+from runtime.build import materialize_links
 from runtime.client_boundary import validate_client_metadata
 from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.22"
+VERSION = "0.2.0-alpha.23"
 EXCLUDES = [
+    "uvicorn",
+    "setuptools",
     "runtime.server_keychain",
     "runtime.bootstrap",
     "runtime.entrypoint",
@@ -81,6 +84,61 @@ EXCLUDES = [
 ]
 
 
+def notices(root):
+    """Include frozen Python packages, the bootloader and upstream native license texts.
+
+    Metadata alone does not mean a Python package's implementation ships. Native extensions
+    can be built into libpython, so their licenses also follow the verified upstream build
+    metadata. This inventory does not replace distribution license review.
+    """
+    internal = root / "_internal"
+    files = {path.relative_to(internal) for path in internal.rglob("*") if path.is_file()}
+    sections = ["OpenReading connector: bundled implementation notices.\n"]
+    for distribution in sorted(
+        metadata.distributions(), key=lambda item: item.metadata["Name"].lower()
+    ):
+        name = distribution.metadata["Name"]
+        paths = [Path(path) for path in distribution.files or []]
+        shipped = any(
+            not any(part.endswith((".dist-info", ".egg-info")) for part in path.parts)
+            and (path in files or (path.suffix == ".py" and path.with_suffix(".pyc") in files))
+            for path in paths
+        )
+        # PyInstaller's bootloader becomes openreading-worker, outside its installed path.
+        if not shipped and name.lower() != "pyinstaller":
+            continue
+        sections.append(f"\n{name} {distribution.version}\n")
+        for path in paths:
+            if any(
+                part.lower().startswith(("license", "copying", "notice")) for part in path.parts
+            ):
+                original = distribution.locate_file(path)
+                if original.is_file():
+                    sections.append(original.read_text(errors="replace"))
+    prefix = Path(sys.base_prefix)
+    native = json.loads((prefix / "PYTHON.json").read_text())
+    if native["python_version"] != platform.python_version():
+        raise ValueError("Native license metadata differs from the build interpreter.")
+    licenses = {native["license_path"]}
+    modules = set(sys.builtin_module_names) | {
+        path.name.split(".")[0] for path in files if path.suffix == ".so"
+    }
+    for name, variants in native["build_info"]["extensions"].items():
+        if name in modules:
+            for variant in variants:
+                declared = variant.get("license_paths", [])
+                existing = {path for path in declared if (prefix / path).is_file()}
+                if declared and not existing:
+                    raise ValueError("Native dependency license text is missing.")
+                licenses.update(existing)
+    sections.append(
+        "\nPython and native dependencies: license texts from the pinned upstream build.\n"
+    )
+    for path in sorted(licenses):
+        sections.append(f"\n{Path(path).name}\n" + (prefix / path).read_text())
+    return "\n".join(sections)
+
+
 def identity():
     packages = tomllib.loads(LOCK.read_text())["package"]
     package = next(row for row in packages if row["name"] == "openreading")
@@ -117,9 +175,10 @@ def build_runtime(output):
     if (
         sys.platform != "darwin"
         or platform.machine() != "arm64"
-        or platform.python_version() != "3.11.15"
+        or platform.python_version() != "3.11.16"
+        or ssl.OPENSSL_VERSION_INFO[:4] != (3, 5, 0, 8)
     ):
-        raise ValueError("Build requires native macOS arm64 and locked Python 3.11.15.")
+        raise ValueError("Build requires native macOS arm64, Python 3.11.16 and OpenSSL 3.5.8.")
     if output.exists():
         raise ValueError("Choose a new build directory; existing runtimes are never overwritten.")
     core = identity()
@@ -145,7 +204,8 @@ def build_runtime(output):
         candidate = scratch / "dist/openreading-worker"
         (candidate / "resources").mkdir()
         shutil.copy2(LOCK, candidate / "resources/server-client.uv.lock")
-        (candidate / "THIRD_PARTY_NOTICES.txt").write_text(notices())
+        shutil.copy2(HERE / "server_client/toolchain.json", candidate / "resources/toolchain.json")
+        (candidate / "THIRD_PARTY_NOTICES.txt").write_text(notices(candidate))
         materialize_links(candidate)
         entries = inventory(candidate)
         release = {

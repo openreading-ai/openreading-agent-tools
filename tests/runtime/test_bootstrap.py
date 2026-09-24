@@ -237,6 +237,8 @@ import sys, platform, runpy
 from pathlib import Path
 sys.path.insert(0, {str(Path(__file__).resolve().parents[2])!r})
 from runtime import storage_settings, verify
+# Resolve host-specific dependencies before simulating the packaged target OS.
+from runtime import destination_settings
 sys.frozen = True
 sys.platform = 'darwin'
 platform.machine = lambda: 'arm64'

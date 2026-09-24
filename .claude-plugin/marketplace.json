@@ -4,24 +4,24 @@
   "plugins": [
     {
       "name": "openreading",
-      "version": "0.2.0-alpha.22",
+      "version": "0.2.0-alpha.23",
       "description": "OpenReading for Claude Code. Apple Silicon only. Connects to your separately running Core server.",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/openreading-ai/openreading-agent-tools.git",
         "path": "plugins/claude-code/openreading",
-        "sha": "572d13dfafdc944eeebe4b8519edda7c43d31697"
+        "sha": "a937bb59b44df3f360a33660b9f24159fe427acb"
       }
     },
     {
       "name": "openreading-cowork",
-      "version": "0.2.0-alpha.22",
+      "version": "0.2.0-alpha.23",
       "description": "OpenReading for Cowork. Apple Silicon only. Connects to your separately running Core server.",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/openreading-ai/openreading-agent-tools.git",
         "path": "plugins/claude-desktop/openreading-cowork",
-        "sha": "572d13dfafdc944eeebe4b8519edda7c43d31697"
+        "sha": "a937bb59b44df3f360a33660b9f24159fe427acb"
       }
     }
   ]

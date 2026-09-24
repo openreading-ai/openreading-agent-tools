@@ -86,7 +86,7 @@ class EmbeddedManager:
             raise ValueError("Installed connector instructions are missing or invalid.")
         self.config, self.home, self.installed_root = config, home, root
         self.client, self.mode = client, mode
-        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.22"}
+        self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.23"}
         self.root = None
         self.status = "OpenReading is ready."
 

@@ -17,6 +17,15 @@ Its distribution commit is `572d13dfafdc944eeebe4b8519edda7c43d31697`.
 Its worker SHA-256 is `6777e48d1cf3bdf96cc0c6cc964fa1f814c96a17767f4f5f0193d0edd71483bc`.
 Source fixes do not change that binary. Consult the [changelog](CHANGELOG.md) for subsequent candidates.
 
+Alpha.23 is the replacement security-review candidate, not an approved public release.
+Its worker SHA-256 is `db268d52f410c663b88616f2109e30f84806e80f5e407d56cff846d2d759615b`.
+It uses Python 3.11.16, OpenSSL 3.5.8, Tcl/Tk 9.0.4 and Expat 2.8.4.
+Synthetic frozen-worker checks do not establish native installation, remote TLS acceptance, licensing approval or publisher authentication.
+The pinned interpreter still embeds Expat 2.8.4. Upstream fixes CVE-2026-93990 in [Expat 2.8.5](https://github.com/libexpat/libexpat/releases/tag/R_2_8_5).
+The connector transfers document bytes and consumes JSON, rather than parsing document XML locally.
+No affected XML path is identified in that flow, but this is not independent reachability clearance.
+Keep launch acceptance blocked until a patched interpreter or an independently reviewed disposition resolves this native dependency finding.
+
 ## Current data path
 
 The native picker copies selected files into private client storage.

@@ -4,11 +4,13 @@ import importlib
 import importlib.util
 import json
 import shlex
+import ssl
 import subprocess
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from runtime.verify import ReleaseIntegrityError, inventory, verify_release
@@ -45,6 +47,74 @@ class ServerBuildTests(unittest.TestCase):
                 )
         self.assertIn(module.LOCK.resolve(), audited)
 
+    def test_notices_follow_frozen_code_and_include_native_and_bootloader_licenses(self):
+        module = self.module()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            frozen = root / "runtime"
+            (frozen / "_internal/actual").mkdir(parents=True)
+            (frozen / "_internal/actual/__init__.pyc").write_bytes(b"compiled")
+            (frozen / "_internal/_ssl.cpython-311-fixture.so").write_bytes(b"native fixture")
+            (frozen / "_internal/unused-1.dist-info").mkdir()
+            (frozen / "_internal/unused-1.dist-info/METADATA").write_text("metadata only")
+            prefix = root / "python"
+            (prefix / "licenses").mkdir(parents=True)
+            (prefix / "licenses/LICENSE.cpython.txt").write_text("native Python license")
+            (prefix / "licenses/LICENSE.ssl.txt").write_text("native SSL license")
+            (prefix / "PYTHON.json").write_text(
+                json.dumps(
+                    {
+                        "python_version": "3.11.16",
+                        "license_path": "licenses/LICENSE.cpython.txt",
+                        "build_info": {
+                            "extensions": {
+                                "_ssl": [{"license_paths": ["licenses/LICENSE.ssl.txt"]}]
+                            }
+                        },
+                    }
+                )
+            )
+            distributions = []
+            for name, code in (
+                ("Actual", "actual/__init__.py"),
+                ("Unused", "unused/__init__.py"),
+                ("PyInstaller", "PyInstaller/bootloader/run"),
+            ):
+                base = root / name
+                license_path = Path(name + "-1.dist-info/licenses/LICENSE")
+                (base / license_path).parent.mkdir(parents=True)
+                (base / license_path).write_text(name + " license text")
+                distributions.append(
+                    SimpleNamespace(
+                        metadata={"Name": name, "License": "MIT"},
+                        version="1",
+                        files=[Path(code), license_path],
+                        locate_file=lambda path, base=base: base / path,
+                    )
+                )
+            with (
+                patch.object(module.metadata, "distributions", return_value=distributions),
+                patch.object(module.sys, "base_prefix", str(prefix)),
+                patch.object(module.platform, "python_version", return_value="3.11.16"),
+            ):
+                text = module.notices(frozen)
+            for included in (
+                "Actual license text",
+                "PyInstaller license text",
+                "native Python license",
+                "native SSL license",
+            ):
+                self.assertIn(included, text)
+            self.assertNotIn("Unused license text", text)
+            (prefix / "licenses/LICENSE.ssl.txt").unlink()
+            with (
+                patch.object(module.metadata, "distributions", return_value=[]),
+                patch.object(module.sys, "base_prefix", str(prefix)),
+                patch.object(module.platform, "python_version", return_value="3.11.16"),
+                self.assertRaises(ValueError),
+            ):
+                module.notices(frozen)
+
     def test_freeze_inventory_and_direct_plugin_preserve_identity_without_download(self):
         module = self.module()
 
@@ -70,7 +140,8 @@ class ServerBuildTests(unittest.TestCase):
                 patch.object(module, "notices", return_value="fixture notice"),
                 patch.object(module.sys, "platform", "darwin"),
                 patch.object(module.platform, "machine", return_value="arm64"),
-                patch.object(module.platform, "python_version", return_value="3.11.15"),
+                patch.object(module.platform, "python_version", return_value="3.11.16"),
+                patch.object(ssl, "OPENSSL_VERSION_INFO", (3, 5, 0, 8, 0)),
                 patch.object(module.platform, "mac_ver", return_value=("15.1", "", "")),
             ):
                 runtime = module.build_runtime(root / "runtime")
@@ -89,6 +160,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
+            self.assertIn("resources/toolchain.json", release["files"])
             metadata = json.loads((root / "package/plugin/runtime/catalogs.json").read_text())
             self.assertEqual(
                 metadata.get("instructions"),
@@ -379,6 +451,24 @@ class ServerBuildTests(unittest.TestCase):
             distribution.return_value.read_text.return_value = '{"vcs_info":{"commit_id":"wrong"}}'
             with self.assertRaises(ValueError):
                 module.identity()
+
+    def test_freezer_refuses_older_python_or_openssl_before_starting_build(self):
+        module = self.module()
+        for python, openssl in (("3.11.15", (3, 5, 0, 8, 0)), ("3.11.16", (3, 5, 0, 7, 0))):
+            with (
+                self.subTest(python=python, openssl=openssl),
+                patch.object(module.sys, "platform", "darwin"),
+                patch.object(module.platform, "machine", return_value="arm64"),
+                patch.object(module.platform, "python_version", return_value=python),
+                patch.object(ssl, "OPENSSL_VERSION_INFO", openssl),
+                patch.object(
+                    module,
+                    "identity",
+                    side_effect=AssertionError("unreviewed toolchain reached build"),
+                ),
+                self.assertRaises(ValueError),
+            ):
+                module.build_runtime(Path("/unused"))
 
     def test_cli_assembles_package_and_refuses_existing_destination(self):
         import contextlib
