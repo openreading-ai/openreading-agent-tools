@@ -2,6 +2,7 @@
 
 ## Unreleased security remediation
 
+- Audit the shipped server-client dependency lock alongside historical development locks.
 - Correct the security policy for the server connector, its upload boundaries and pending release gates.
 - Document retained-data locations and safe removal from every client guide. Plugin removal does not delete retained data.
 - Keep alpha.22 unchanged. Security acceptance requires a newly versioned build, not the existing preview.

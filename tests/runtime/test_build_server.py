@@ -3,6 +3,8 @@
 import importlib
 import importlib.util
 import json
+import shlex
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -16,6 +18,21 @@ class ServerBuildTests(unittest.TestCase):
     def module(self):
         self.assertIsNotNone(importlib.util.find_spec("runtime.build_server"))
         return importlib.import_module("runtime.build_server")
+
+    def test_audit_covers_the_lock_used_to_freeze_the_connector(self):
+        module = self.module()
+        repository = Path(module.__file__).resolve().parent.parent
+        commands = subprocess.run(
+            ["make", "-n", "audit"], cwd=repository, check=True, capture_output=True, text=True
+        ).stdout.splitlines()
+        audited = set()
+        for command in commands:
+            parts = shlex.split(command)
+            if parts[:2] == ["uv", "audit"] and "--project" in parts:
+                audited.add(
+                    (repository / parts[parts.index("--project") + 1] / "uv.lock").resolve()
+                )
+        self.assertIn(module.LOCK.resolve(), audited)
 
     def test_freeze_inventory_and_direct_plugin_preserve_identity_without_download(self):
         module = self.module()
