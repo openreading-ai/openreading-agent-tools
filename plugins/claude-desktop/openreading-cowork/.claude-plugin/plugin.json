@@ -1,0 +1,8 @@
+{
+  "name": "openreading-cowork",
+  "version": "0.2.0-alpha.22",
+  "description": "OpenReading for Cowork. Apple Silicon connector for your separately running Core server.",
+  "author": {
+    "name": "OpenReading"
+  }
+}

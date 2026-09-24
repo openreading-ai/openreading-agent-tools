@@ -1,0 +1,20 @@
+{
+  "name": "openreading",
+  "owner": {
+    "name": "OpenReading"
+  },
+  "plugins": [
+    {
+      "name": "openreading",
+      "source": "./plugins/claude-code/openreading",
+      "version": "0.2.0-alpha.22",
+      "description": "OpenReading for Claude Code. Apple Silicon only. Connects to your separately running Core server."
+    },
+    {
+      "name": "openreading-cowork",
+      "source": "./plugins/claude-desktop/openreading-cowork",
+      "version": "0.2.0-alpha.22",
+      "description": "OpenReading for Cowork. Apple Silicon only. Connects to your separately running Core server."
+    }
+  ]
+}

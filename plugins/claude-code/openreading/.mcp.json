@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "openreading": {
+      "command": "/bin/sh",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/launch.sh",
+        "--chat-documents"
+      ]
+    },
+    "openreading-settings": {
+      "command": "/bin/sh",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/launch.sh",
+        "--settings-tools"
+      ]
+    }
+  }
+}

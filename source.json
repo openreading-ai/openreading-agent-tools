@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/openreading-ai/openreading-agent-tools",
+  "source_commit": "f5a4ae9f8b1ccb5a1fb453e0919c7e2e238722d0",
+  "source_branch": "fix/github-marketplaces",
+  "core_commit": "02a2061eae3486ac1513ac8216cd79422c8e3c66",
+  "status": "private unsigned development preview, not release approval"
+}
