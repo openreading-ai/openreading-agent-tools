@@ -6,6 +6,9 @@ Settings stays available when document configuration fails. The proxy exposes th
 nine-tool catalog before setup and refuses new selections/imports after a destination save.
 Retained data and server URLs use the existing client partitions unchanged.
 The server owns parsing; this entry point has no local parser dispatch.
+Dispatch failures print fixed categories without tracebacks or exception text and exit 2.
+Interrupts exit 130. The internal proxy child flag substitutes statuses 70 through 73,
+so the parent can distinguish runtime, settings, storage and integrity failures without logs.
 """
 
 from __future__ import annotations
@@ -19,9 +22,10 @@ from pathlib import Path
 
 from runtime.app_settings import read_limits
 from runtime.configuration import CLIENTS
+from runtime.connector_proxy import StartupFailure
 from runtime.destination_settings import read_destination
 from runtime.storage_settings import storage_session
-from runtime.verify import verify_release
+from runtime.verify import ReleaseIntegrityError, verify_release
 
 
 def require_server(client, *, home=None):
@@ -39,21 +43,33 @@ def launch(args, metadata):
 
     from runtime.server_profile import launch as server_launch
 
-    settings = require_server(args.client)
-    limits = read_limits(args.client)
+    try:
+        settings = require_server(args.client)
+        limits = read_limits(args.client)
+    except (OSError, ValueError):
+        raise StartupFailure(71) from None
     settings = replace(
         settings,
         destination=replace(settings.destination, response_bytes=limits.server_response_bytes),
     )
-    with storage_session(args.client) as root:
-        args.runtime_data_root = root
-        if args.document_response_bytes is None:
-            args.document_response_bytes = limits.document_response_bytes
-        return server_launch(args, metadata, settings)
+    starting = True
+    try:
+        with storage_session(args.client) as root:
+            starting = False
+            args.runtime_data_root = root
+            if args.document_response_bytes is None:
+                args.document_response_bytes = limits.document_response_bytes
+            return server_launch(args, metadata, settings)
+    except Exception:
+        if starting:
+            raise StartupFailure(72) from None
+        raise
 
 
 class EmbeddedManager:
     """Supply an already installed runtime to the MCP proxy without invoking provisioning."""
+
+    startup_status = True
 
     def __init__(self, config, home, root, client, mode):
         instructions = config.get("instructions") if isinstance(config, dict) else None
@@ -79,9 +95,9 @@ class EmbeddedManager:
             if self.mode == "--chat-documents":
                 require_server(self.client, home=self.home)
             self.root = self.installed_root
-        except (OSError, ValueError) as error:
+        except (OSError, ValueError):
             self.root = None
-            self.status = str(error)
+            self.status = str(StartupFailure(71))
 
 
 def main(argv=None):
@@ -113,6 +129,7 @@ def main(argv=None):
     for mode in ("chat-documents", "settings-tools", "destination-settings"):
         modes.add_argument("--" + mode, action="store_true")
     parser.add_argument("--connector", action="store_true")
+    parser.add_argument("--internal-startup-status", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--document-response-bytes", type=int)
     args = parser.parse_args(argv)
     if args.connector:
@@ -135,9 +152,21 @@ def main(argv=None):
     return launch(args, metadata)
 
 
-if __name__ == "__main__":
+def cli(argv=None):
+    """Keep startup diagnostics fixed; only private proxy children use category exit codes."""
+    argv = list(sys.argv[1:] if argv is None else argv)
     try:
-        raise SystemExit(main())
-    except (OSError, ValueError) as error:
-        print(str(error), file=sys.stderr)
-        raise SystemExit(2) from None
+        return main(argv)
+    except KeyboardInterrupt:
+        return 130
+    except Exception as error:
+        if isinstance(error, StartupFailure):
+            failure = error
+        else:
+            failure = StartupFailure(73 if isinstance(error, ReleaseIntegrityError) else 70)
+        print(str(failure), file=sys.stderr)
+        return failure.code if "--internal-startup-status" in argv else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(cli())

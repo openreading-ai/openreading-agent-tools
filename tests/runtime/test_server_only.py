@@ -2,9 +2,10 @@
 
 import importlib
 import importlib.util
+import io
 import tempfile
 import unittest
-from contextlib import nullcontext
+from contextlib import nullcontext, redirect_stderr
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -23,6 +24,76 @@ class ServerOnlyTests(unittest.TestCase):
         self.assertIsNotNone(importlib.util.find_spec("runtime.server_entrypoint"))
         return importlib.import_module("runtime.server_entrypoint")
 
+    def test_cli_failure_never_prints_exception_text_or_traceback(self):
+        from openreading.artifacts.limits import ArtifactError
+
+        module = self.module()
+        self.assertTrue(
+            callable(getattr(module, "cli", None)), "Missing sanitized dispatch boundary"
+        )
+        for error in (
+            OSError("/private/synthetic-secret"),
+            ValueError("synthetic-secret"),
+            RuntimeError("synthetic-secret"),
+            ArtifactError("access_denied"),
+        ):
+            with self.subTest(error=type(error).__name__), redirect_stderr(io.StringIO()) as stderr:
+                with patch.object(module, "main", side_effect=error):
+                    self.assertEqual(module.cli([]), 2)
+                self.assertTrue(stderr.getvalue())
+                self.assertNotIn("synthetic-secret", stderr.getvalue())
+                self.assertNotIn("Traceback", stderr.getvalue())
+        with (
+            patch.object(module, "main", side_effect=KeyboardInterrupt),
+            redirect_stderr(io.StringIO()) as stderr,
+        ):
+            self.assertEqual(module.cli([]), 130)
+            self.assertEqual(stderr.getvalue(), "")
+
+    def test_storage_failure_has_safe_child_status_without_changing_public_exit(self):
+        module = self.module()
+        self.assertTrue(
+            callable(getattr(module, "cli", None)), "Missing sanitized dispatch boundary"
+        )
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch("pathlib.Path.home", return_value=Path(temporary).resolve()),
+        ):
+            save_destination("codex", "server", base_url="http://localhost:8787")
+            for argv, expected in (([], 2), (["--internal-startup-status"], 72)):
+                with (
+                    self.subTest(argv=argv),
+                    patch.object(
+                        module,
+                        "main",
+                        side_effect=lambda _: module.launch(
+                            SimpleNamespace(client="codex", document_response_bytes=None), {}
+                        ),
+                    ),
+                    patch.object(
+                        module,
+                        "storage_session",
+                        side_effect=PermissionError("/private/synthetic-secret"),
+                    ),
+                    redirect_stderr(io.StringIO()) as stderr,
+                ):
+                    self.assertEqual(module.cli(argv), expected)
+                self.assertIn("storage", stderr.getvalue().lower())
+                self.assertNotIn("synthetic-secret", stderr.getvalue())
+
+    def test_manager_never_exposes_unexpected_destination_error(self):
+        module = self.module()
+        manager = module.EmbeddedManager(
+            self.connector_config(), Path("/unused"), Path("/unused"), "codex", "--chat-documents"
+        )
+        with patch.object(
+            module, "require_server", side_effect=OSError("/private/synthetic-secret")
+        ):
+            manager.start()
+        self.assertIsNone(manager.root)
+        self.assertIn("Settings", manager.status)
+        self.assertNotIn("synthetic-secret", manager.status)
+
     def test_no_settings_or_old_local_choice_requires_server_without_overwriting(self):
         module = self.module()
         with tempfile.TemporaryDirectory() as temporary:
@@ -38,6 +109,30 @@ class ServerOnlyTests(unittest.TestCase):
                 "claude-desktop", "server", base_url="http://localhost:7777", home=home
             )
             self.assertEqual(module.require_server("claude-desktop", home=home), settings)
+
+    def test_integrity_and_settings_failures_have_distinct_private_statuses(self):
+        from runtime.verify import ReleaseIntegrityError
+
+        module = self.module()
+        with (
+            patch.object(module, "main", side_effect=ReleaseIntegrityError("synthetic-secret")),
+            redirect_stderr(io.StringIO()) as stderr,
+        ):
+            self.assertEqual(module.cli(["--internal-startup-status"]), 73)
+        self.assertIn("verify", stderr.getvalue())
+        self.assertNotIn("synthetic-secret", stderr.getvalue())
+        with (
+            patch.object(
+                module,
+                "main",
+                side_effect=lambda _: module.launch(SimpleNamespace(client="codex"), {}),
+            ),
+            patch.object(module, "require_server", side_effect=ValueError("synthetic-secret")),
+            redirect_stderr(io.StringIO()) as stderr,
+        ):
+            self.assertEqual(module.cli(["--internal-startup-status"]), 71)
+        self.assertIn("Settings", stderr.getvalue())
+        self.assertNotIn("synthetic-secret", stderr.getvalue())
 
     def test_launch_retains_advanced_limits_without_rewriting_destination(self):
         module = self.module()

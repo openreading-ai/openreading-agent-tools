@@ -20,6 +20,8 @@ Every package contains the same runtime bytes. Each launcher keeps its existing 
 The builder captures Core's initialization instructions beside its tool catalogs in the hashed runtime inventory.
 The proxy sends those instructions before server setup and refuses a worker whose live instructions differ.
 Document instructions must be nonempty. The Settings connector may omit instructions.
+Startup reports fixed settings, storage, integrity or runtime categories without forwarding child logs or exception text.
+Normal dispatch failures exit 2. Only internal proxy children use category statuses 70 through 73; interrupts exit 130.
 Cowork uses the openreading-cowork plugin identity so its catalog can also list the Claude Code variant.
 
 Publish the generated tree on a new versioned distribution branch in the private Agent Tools GitHub repository.

@@ -4,6 +4,8 @@ The installed package supplies its fixed worker manager and reviewed tool catalo
 Packaged Core instructions reach the host before setup. Live initialization must match
 them exactly, so a changed worker cannot silently weaken the advertised safety guidance.
 Destination changes block new selection and submission while existing job queries remain available.
+Current children report startup failures through fixed exit statuses, never arbitrary stderr.
+Historical workers keep their command line and receive no private startup-status flag.
 """
 
 from __future__ import annotations
@@ -19,6 +21,21 @@ DESTINATION_CHANGED = (
     "Quit and reopen your app, then open the OpenReading file picker before importing documents. "
     "This request did not select or process any documents. Existing jobs keep their original destination."
 )
+
+STARTUP_MESSAGES = {
+    70: "OpenReading could not start. Quit and reopen your app. If this persists, report the plugin version to the maintainer.",
+    71: "OpenReading processing settings are unavailable. Open OpenReading Settings and save your Core server URL before selecting or processing documents.",
+    72: "OpenReading storage is unavailable or a move is blocked. Open OpenReading Settings and review Storage. Keep the current data folder; finish existing imports and close other document connections before retrying.",
+    73: "OpenReading could not verify the installed runtime. Reinstall the reviewed plugin from its GitHub marketplace; do not bypass integrity checks.",
+}
+
+
+class StartupFailure(ValueError):
+    """Carry only a fixed startup category, not paths or child-provided error text."""
+
+    def __init__(self, code=70):
+        self.code = code if type(code) is int and code in STARTUP_MESSAGES else 70
+        super().__init__(STARTUP_MESSAGES[self.code])
 
 
 def destination_stamp(home, client="claude-desktop"):
@@ -38,8 +55,12 @@ def destination_stamp(home, client="claude-desktop"):
 def start_worker(manager, mode, protocol):
     client = getattr(manager, "client", "claude-desktop")
     stamp = destination_stamp(manager.home, client) if mode == "--chat-documents" else None
+    startup_status = getattr(manager, "startup_status", False) is True
+    command = [str(manager.root / "openreading-worker"), "--client", client, mode]
+    if startup_status:
+        command.append("--internal-startup-status")
     child = subprocess.Popen(
-        [str(manager.root / "openreading-worker"), "--client", client, mode],
+        command,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         text=True,
@@ -64,8 +85,15 @@ def start_worker(manager, mode, protocol):
             child.stdin.write(json.dumps(request) + "\n")
             child.stdin.flush()
             if "id" in request:
-                reply = json.loads(child.stdout.readline())
-                if "error" in reply or reply.get("id") != request["id"]:
+                line = child.stdout.readline()
+                if not line and startup_status:
+                    raise StartupFailure(child.wait(timeout=5))
+                reply = json.loads(line)
+                if (
+                    not isinstance(reply, dict)
+                    or "error" in reply
+                    or reply.get("id") != request["id"]
+                ):
                     raise ValueError("Runtime initialization failed.")
                 if request["method"] == "initialize" and "instructions" in manager.config:
                     result = reply.get("result")
@@ -84,12 +112,24 @@ def start_worker(manager, mode, protocol):
         child.destination_stamp = stamp
         child.catalog = reply["result"]
         return child
-    except (OSError, ValueError):
+    except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+        if startup_status and isinstance(error, BrokenPipeError):
+            try:
+                error = StartupFailure(child.wait(timeout=5))
+            except subprocess.TimeoutExpired:
+                error = StartupFailure()
         child.terminate()
-        child.wait()
-        child.stdin.close()
+        try:
+            child.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            child.kill()
+            child.wait()
+        try:
+            child.stdin.close()
+        except BrokenPipeError:
+            pass
         child.stdout.close()
-        raise
+        raise error from None
 
 
 def serve(manager, mode, incoming, outgoing):
@@ -137,8 +177,10 @@ def serve(manager, mode, incoming, outgoing):
                 advertised = child.catalog
                 if changed and catalog_sent:
                     send({"jsonrpc": "2.0", "method": "notifications/tools/list_changed"})
-            except (OSError, ValueError) as error:
-                manager.status = f"OpenReading could not start: {error}. Retry this tool."
+            except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+                manager.status = (
+                    str(error) if isinstance(error, StartupFailure) else STARTUP_MESSAGES[70]
+                )
 
     try:
         for line in incoming:

@@ -2,6 +2,7 @@
 
 ## Unreleased security remediation
 
+- Report fixed startup error categories without private paths or raw exception text, including blocked storage moves and early worker exit.
 - Apply the destination-change guard to future externally acting tools from the verified catalog, not only today's tool names.
 - Include the security policy and working removal links in every generated GitHub plugin package.
 - Release untouched batch siblings after a pre-upload source failure, and report shallow storage records as invalid settings.
