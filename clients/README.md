@@ -7,6 +7,18 @@ Bundled Docling evidence and routes below are historical and preserved by tag bu
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
 
+## Alpha.23 frozen checks, September 24, 2026
+
+The replacement worker SHA-256 is `db268d52f410c663b88616f2109e30f84806e80f5e407d56cff846d2d759615b`.
+The Core pin remains `02a2061eae3486ac1513ac8216cd79422c8e3c66`.
+All four generated launchers pass isolated synthetic stdio checks against a loopback mock server.
+Checks cover Core instructions, tool catalogs, setup refusal, upload, cached reuse, exports, exact reads and retained-result recovery after restart.
+Detached import status, job discovery, destination-change refusal and the separate Settings catalog also pass.
+The chooser and consent are injected. No plugins are installed, native windows opened or personal documents used.
+These checks do not establish real Core HTTPS behavior, host installation, updates, native consent or clean-machine compatibility.
+Independent security review, license review, signing, notarization and exact-build owner acceptance remain pending.
+The interpreter still embeds Expat 2.8.4. Its newer upstream security fix requires a patched build or an independent applicability decision before launch acceptance.
+
 ## Alpha.22 GitHub installation checks, September 23, 2026
 
 The private distribution commit is `572d13dfafdc944eeebe4b8519edda7c43d31697`.

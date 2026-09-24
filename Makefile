@@ -22,11 +22,12 @@ productspec-validate:
 	npm run check:specs
 
 # Advisory lookups require the network and stay outside the offline gate.
-# The Docling candidate lock is audited so a rejected dependency cannot return unnoticed.
+# Audit the shipped connector and historical candidates so rejected dependencies cannot return.
 audit:
 	npm audit --audit-level=high
 	uv audit --frozen --preview-features audit-command --project runtime/feasibility
 	uv audit --frozen --preview-features audit-command --project runtime/p0
+	uv audit --frozen --preview-features audit-command --project runtime/server_client
 
 hooks:
 	git config core.hooksPath .githooks

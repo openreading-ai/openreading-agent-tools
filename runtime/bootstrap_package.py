@@ -3,6 +3,8 @@
 The download URL is explicit build input. Local ngrok testing and later GitHub releases
 use the same HTTPS contract. This builder neither publishes files nor resets user state.
 Catalogs come from the exact frozen runtime under an isolated home before packaging.
+Current packages also capture initialization instructions so the proxy preserves Core's
+consent and untrusted-data guidance before the user configures a destination.
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ from runtime.package import REPOSITORY, _docling_runtime, _server_destination
 from runtime.verify import sha256, verify_release
 
 
-def catalog(worker, mode, *, server=False):
+def catalog(worker, mode, *, server=False, include_instructions=False):
     with tempfile.TemporaryDirectory(prefix="openreading-catalog-") as home:
         home = str(Path(home).resolve())
         if server:
@@ -53,6 +55,7 @@ def catalog(worker, mode, *, server=False):
             cwd=home,
         )
         try:
+            instructions = None
             messages = [
                 {
                     "jsonrpc": "2.0",
@@ -72,8 +75,19 @@ def catalog(worker, mode, *, server=False):
                 child.stdin.flush()
                 if "id" in message:
                     response = json.loads(child.stdout.readline())
-                    if "error" in response:
+                    if (
+                        not isinstance(response, dict)
+                        or "error" in response
+                        or response.get("id") != message["id"]
+                        or not isinstance(response.get("result"), dict)
+                    ):
                         raise ValueError("Frozen runtime catalog failed.")
+                    if message["method"] == "initialize":
+                        instructions = response["result"].get("instructions")
+                        if instructions is not None and not isinstance(instructions, str):
+                            raise ValueError("Frozen runtime catalog has invalid instructions.")
+            if include_instructions:
+                return {"catalog": response["result"], "instructions": instructions}
             return response["result"]
         finally:
             child.stdin.close()

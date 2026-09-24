@@ -190,6 +190,23 @@ class StorageSettingsTests(unittest.TestCase):
                 with self.api.storage_session("chatgpt", home=self.home):
                     pass
 
+    def test_shallow_active_root_reports_corrupt_record_without_traceback_or_rewrite(self):
+        import json
+
+        from runtime.app_settings import write_private
+
+        record = client_root("chatgpt", home=self.home) / "storage.json"
+        for root in ("/", "/tmp", "/tmp/store"):
+            write_private(record, {"schema_version": 1, "active_root": root})
+            before = record.read_bytes()
+            with (
+                self.subTest(root=root),
+                self.assertRaisesRegex(ValueError, "active data location"),
+            ):
+                self.api.storage_view("chatgpt", home=self.home)
+            self.assertEqual(record.read_bytes(), before)
+            self.assertEqual(json.loads(before)["active_root"], root)
+
     def test_nested_target_and_pointer_failure_preserve_previous_store(self):
         with self.api.storage_session("chatgpt", home=self.home) as old:
             (old / "kept").write_text("unchanged")

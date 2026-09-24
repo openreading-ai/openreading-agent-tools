@@ -1,5 +1,20 @@
 # Changelog
 
+## OpenReading alpha.23 security-review candidate
+
+- Build alpha.23 with isolated Python 3.11.16, OpenSSL 3.5.8 and recorded native-library inputs. Historical build pins and alpha.22 stay unchanged.
+- Exclude unused Uvicorn and setuptools implementations and align notices with bundled code, the bootloader and native library licenses.
+- Report fixed startup error categories without private paths or raw exception text, including blocked storage moves and early worker exit.
+- Apply the destination-change guard to future externally acting tools from the verified catalog, not only today's tool names.
+- Include the security policy and working removal links in every generated GitHub plugin package.
+- Release untouched batch siblings after a pre-upload source failure, and report shallow storage records as invalid settings.
+- Preserve Core's consent and untrusted-data instructions through proxy initialization, and refuse changed worker instructions.
+- Audit the shipped server-client dependency lock alongside historical development locks.
+- Correct the security policy for the server connector, its upload boundaries and pending release gates.
+- Document retained-data locations and safe removal from every client guide. Plugin removal does not delete retained data.
+- Keep alpha.22 unchanged. Alpha.23 is an unsigned private review candidate, not public-release approval or native acceptance.
+- Hold launch acceptance for the interpreter's embedded Expat 2.8.4 after the upstream 2.8.5 security release. Python package audits do not cover this native dependency.
+
 ## OpenReading alpha.22 GitHub preview
 
 - Assemble complete parser-free packages for GitHub-backed native marketplaces across all four clients.

@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from test_build_server import captured_catalog
+
 from runtime import build_server
 from runtime.verify import inventory, verify_release
 
@@ -58,7 +60,7 @@ class GitHubMarketplaceTests(unittest.TestCase):
             root = Path(temporary).resolve()
             runtime = self.runtime(root)
             output = root / "distribution"
-            with patch.object(build_server, "catalog", return_value={"tools": []}):
+            with patch.object(build_server, "catalog", side_effect=captured_catalog):
                 module.assemble(runtime, output)
             expected = {
                 "openreading": "claude-code",
@@ -79,7 +81,15 @@ class GitHubMarketplaceTests(unittest.TestCase):
                         source = entry["source"]
                         path = source if isinstance(source, str) else source["path"]
                         plugin = output / path
+                        self.assertIn(
+                            "(./SECURITY.md#remove-retained-data)",
+                            (plugin / "README.md").read_text(),
+                        )
+                        self.assertIn(
+                            "## Remove retained data", (plugin / "SECURITY.md").read_text()
+                        )
                         manifest = next(plugin.glob(".*-plugin/plugin.json"))
+                        self.assertTrue((plugin / "CHANGELOG.md").is_file())
                         self.assertEqual(json.loads(manifest.read_text())["name"], entry["name"])
                         self.assertEqual(len(list((plugin / "skills").glob("*/SKILL.md"))), 2)
                         self.assertEqual(
@@ -133,7 +143,7 @@ class GitHubMarketplaceTests(unittest.TestCase):
             root = Path(temporary).resolve()
             runtime = self.runtime(root)
             with (
-                patch.object(build_server, "catalog", return_value={"tools": []}),
+                patch.object(build_server, "catalog", side_effect=captured_catalog),
                 contextlib.redirect_stdout(io.StringIO()) as stdout,
             ):
                 self.assertEqual(

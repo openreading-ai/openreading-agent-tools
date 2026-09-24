@@ -9,8 +9,10 @@ Connect your assistant to an [OpenReading Core](https://github.com/openreading-a
 Agent Tools handles native file selection, upload, retained results and evidence retrieval. Core handles document processing.
 
 **Apple Silicon macOS preview only. Intel Mac, Windows and Linux binaries are pending.**
-Alpha.22 distributes the server-only connector through GitHub-backed marketplaces. It is unsigned and not a public release.
+Alpha.23 is the replacement security-review candidate for GitHub-backed marketplaces. It is unsigned and not a public release.
+Do not use alpha.22 for launch acceptance. The replacement still requires independent review and exact-build native testing.
 Native acceptance, clean-machine checks, licensing review, signing and notarization remain release gates.
+Alpha.23 also has an unresolved [embedded Expat security finding](SECURITY.md#release-status). Do not begin launch acceptance yet.
 
 ## What you install
 
@@ -23,8 +25,8 @@ Native acceptance, clean-machine checks, licensing review, signing and notarizat
 
 No installation route requires a downloaded ZIP, extracted folder, manual clone or copied binary.
 Each host fetches and caches its complete package. Desktop visibility and native workflows require their own acceptance checks.
-During PR review, code clients select `fix/github-marketplaces`; the client guides show the exact commands.
-Desktop repository import from main becomes current after the owner merges that PR.
+This revision pins the alpha.23 replacement worker. Wait for the owner to merge its catalog PR before testing through main.
+Updated source alone does not update an installed worker. Verify the installed version and worker hash after the host update.
 
 All four forms embed the same small connector worker, its Python interpreter and client dependencies.
 They include two skills, nine document tools and one Settings opener.
@@ -51,13 +53,14 @@ A failed submission never switches to a local parser or silently resubmits uncer
 Settings and retained results survive plugin replacement and removal.
 The default data folder is `~/.openreading`, partitioned by client. Storage settings can select another location.
 Cancel unwanted background jobs before uninstalling.
+Follow [Remove retained data](SECURITY.md#remove-retained-data) for client-specific removal and settings reset.
 
 ## Required compatibility matrix
 
 ProductSpec revision 29 requires independent GitHub installation and functional acceptance for these four server-backed surfaces.
-Earlier alpha.19/20/21 results are historical evidence, not acceptance of alpha.22.
+Earlier candidate results are historical evidence, not acceptance of alpha.23.
 
-| Client | Alpha.22 native acceptance |
+| Client | Alpha.23 native acceptance |
 | --- | --- |
 | Claude Cowork | Pending exact-build owner walkthrough |
 | Claude Code | Pending exact-build owner walkthrough |

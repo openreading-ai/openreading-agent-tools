@@ -160,31 +160,40 @@ class ServerArtifactService(RetainedService):
                         raise SelectionStopped()
                     # A process death from this point stops the batch, including queued siblings.
                     write_private(batch_path, {"reference": path})
-                    with self.store.source(path) as fd:
-                        digest = hashlib.sha256()
-                        while chunk := os.read(fd, 65536):
-                            check()
-                            digest.update(chunk)
-                        if digest.hexdigest() != approval["sha256"]:
-                            raise ArtifactError("access_denied")
-                        os.lseek(fd, 0, os.SEEK_SET)
-                        write_private(attempt_path, approval)
-                        try:
-                            result = asyncio.run(
-                                parse_document(
-                                    self.settings.destination,
-                                    Path(path),
-                                    cancelled=cancelled,
-                                    progress=progress,
-                                    transport=self.transport,
-                                    source_fd=fd,
+                    try:
+                        with self.store.source(path) as fd:
+                            digest = hashlib.sha256()
+                            while chunk := os.read(fd, 65536):
+                                check()
+                                digest.update(chunk)
+                            if digest.hexdigest() != approval["sha256"]:
+                                raise ArtifactError("access_denied")
+                            os.lseek(fd, 0, os.SEEK_SET)
+                            write_private(attempt_path, approval)
+                            try:
+                                result = asyncio.run(
+                                    parse_document(
+                                        self.settings.destination,
+                                        Path(path),
+                                        cancelled=cancelled,
+                                        progress=progress,
+                                        transport=self.transport,
+                                        source_fd=fd,
+                                    )
                                 )
-                            )
-                        except DestinationError as error:
-                            if not error.shared_failure:
-                                with directory(self.transfers) as parent:
-                                    os.unlink(batch_path.name, dir_fd=parent)
-                            raise
+                            except DestinationError as error:
+                                if not error.shared_failure:
+                                    with directory(self.transfers) as parent:
+                                        os.unlink(batch_path.name, dir_fd=parent)
+                                raise
+                    except ArtifactError as error:
+                        # A missing or changed local copy cannot have started server work.
+                        # Cancellation and any recorded attempt keep the conservative batch stop.
+                        if error.code != "cancelled" and not os.path.lexists(attempt_path):
+                            with directory(self.transfers) as parent:
+                                os.unlink(batch_path.name, dir_fd=parent)
+                                os.fsync(parent)
+                        raise
                     from openreading.artifacts.retention import validate_external_response
 
                     try:

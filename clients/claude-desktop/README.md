@@ -1,6 +1,6 @@
 # OpenReading for Claude Desktop / Cowork
 
-This Apple Silicon alpha.22 preview connects Cowork to a Core server you run separately.
+This Apple Silicon alpha.23 review candidate connects Cowork to a Core server you run separately.
 It embeds the connector runtime and no parser, OCR executable, model or runtime downloader.
 Install from GitHub through Claude's personal marketplace controls. Other platform binaries remain pending.
 
@@ -12,10 +12,11 @@ Install from GitHub through Claude's personal marketplace controls. Other platfo
 4. Enable both connectors, start a fresh Cowork task, and run `/openreading-settings`.
 5. Save and test your Core URL. Quit and reopen Claude, select a synthetic document, and choose Process.
 
-The main-branch catalog becomes current only after the owner merges the GitHub marketplace PR.
-Until then, a UI that supports selecting a Git ref can use `fix/github-marketplaces` for the preview.
-If the app does not expose a ref selector, wait for that merge. Do not substitute a ZIP or local folder.
+This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
+Use the main repository after the owner merges that build's catalog PR. Do not substitute a ZIP or local folder.
 The repository remains private. Authorize the app's GitHub access if requested; never put a token in chat or the repository URL.
+Review the requested repositories and permissions before authorizing. Record the exact scope for acceptance review.
+If the prompt requests access you do not intend to grant, stop instead of broadening access for this test.
 See [Claude's personal marketplace instructions](https://support.claude.com/en/articles/13837440-use-plugins-in-claude).
 
 The new desktop identity separates Cowork from Claude Code in the shared catalog.
@@ -29,9 +30,10 @@ The [Core setup guide](https://github.com/openreading-ai/openreading-agent-tools
 Localhost permits HTTP. Remote destinations require HTTPS. This connector sends no credentials.
 
 Verify GitHub sync, installation, updates, exact cited evidence and background-job recovery before accepting this build.
-Native Cowork acceptance and clean-machine installation remain pending for alpha.22.
+Native Cowork acceptance and clean-machine installation remain pending for alpha.23.
 Removing the plugin preserves preferences, selected copies and retained results in the Claude Desktop partition.
 Cancel unwanted jobs before removal. Never remove another client's data to reset this one.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) for Cowork's `claude-desktop` partition and settings.
 
 ## Historical evidence below
 

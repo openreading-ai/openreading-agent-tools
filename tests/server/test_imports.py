@@ -137,6 +137,25 @@ class ServerImportTests(unittest.TestCase):
         self.assertIs(self.service.import_document(self.references[1]), self.receipt)
         self.assertEqual(len(self.requests), 2)
 
+    def test_missing_copy_after_approval_does_not_consume_batch_or_submit(self):
+        from runtime import server_imports
+
+        original = server_imports.read_approval
+
+        def remove_after_check(*args, **kwargs):
+            approval = original(*args, **kwargs)
+            (self.selection.grant / self.references[0]).unlink()
+            return approval
+
+        with patch.object(server_imports, "read_approval", side_effect=remove_after_check):
+            with self.assertRaises(ArtifactError):
+                self.service.import_document(self.references[0])
+        self.assertEqual(self.requests, [])
+        self.assertEqual(list(self.service.transfers.glob("*.active")), [])
+        self.assertEqual(list(self.service.transfers.glob("*.attempt")), [])
+        self.assertIs(self.service.import_document(self.references[1]), self.receipt)
+        self.assertEqual(len(self.requests), 1)
+
     def test_http_auth_failure_keeps_its_diagnostic_without_claiming_processing(self):
         self.service.transport = httpx.MockTransport(lambda request: httpx.Response(401, json={}))
         with self.assertRaises(ArtifactError) as caught:

@@ -7,17 +7,18 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Install from GitHub
 
-During PR review, use the preview branch explicitly:
+This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
+After that build's catalog PR is merged, register the main marketplace:
 
 ~~~sh
-claude plugin marketplace add openreading-ai/openreading-agent-tools@fix/github-marketplaces
+claude plugin marketplace add openreading-ai/openreading-agent-tools
 claude plugin install openreading@openreading
 ~~~
 
-After the owner merges that PR, new installations omit `@fix/github-marketplaces`.
 Your Git credentials must permit access while the repository remains private.
 Both the marketplace and its pinned plugin source need GitHub access. A successful catalog fetch alone does not prove HTTPS credentials work.
 If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
+This changes the credential helper for GitHub, not only this repository. Skip it when your existing Git authentication works.
 The host fetches a complete plugin from an immutable Git commit. It uses no archive credential helper or runtime downloader.
 Do not extract a ZIP, keep a checkout, or copy binaries. Choose OpenReading, not the separate Cowork entry.
 
@@ -46,6 +47,7 @@ Uninstall only this plugin with `claude plugin uninstall openreading@openreading
 The launcher retains the `claude-code` client label. Preferences live under `~/Library/Application Support/OpenReading/agent-tools/claude-code`.
 Retained data defaults to `~/.openreading/clients/claude-code/v2`; Storage can select another folder.
 Updates and removal preserve those settings and results. Cancel unwanted background jobs before removal.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove this client's copies and settings safely.
 
 ## Verification boundaries
 

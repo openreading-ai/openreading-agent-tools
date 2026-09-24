@@ -10,6 +10,8 @@ import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
+from test_build_server import captured_catalog
+
 from runtime import build_server
 
 
@@ -30,7 +32,7 @@ class CodexServerPackageTests(unittest.TestCase):
             }
             with (
                 patch.object(build_server, "verify_release", return_value=release),
-                patch.object(build_server, "catalog", return_value={"tools": []}),
+                patch.object(build_server, "catalog", side_effect=captured_catalog),
             ):
                 try:
                     archive = build_server.package(runtime, root / "built", client="codex")

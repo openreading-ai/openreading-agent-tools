@@ -7,15 +7,16 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Personal-account installation
 
-Register the GitHub marketplace once using Codex CLI. During PR review, select the preview branch:
+This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
+After that build's catalog PR is merged, register the main marketplace once using Codex CLI:
 
 ~~~sh
-codex plugin marketplace add openreading-ai/openreading-agent-tools --ref fix/github-marketplaces
+codex plugin marketplace add openreading-ai/openreading-agent-tools
 ~~~
 
-After the owner merges that PR, new installations omit `--ref fix/github-marketplaces`.
 Your Git credentials must permit access while the repository remains private.
 If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
+This changes the credential helper for GitHub, not only this repository. Skip it when your existing Git authentication works.
 Quit and reopen ChatGPT Desktop, open Plugins, select the OpenReading marketplace and install **OpenReading for ChatGPT**.
 Its plugin identifier is `openreading-chatgpt@openreading`. Do not choose the Codex entry named OpenReading.
 No workspace-admin import, manual clone, ZIP upload or extracted folder is part of this route.
@@ -42,6 +43,7 @@ The launcher keeps the `chatgpt` partition and does not migrate or overwrite ano
 Preferences live under `~/Library/Application Support/OpenReading/agent-tools/chatgpt`.
 Retained data defaults to `~/.openreading/clients/chatgpt/v2`; Storage can select another folder.
 Updates and removal preserve preferences and retained results.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove this client's copies and settings safely.
 
 ## Verification boundaries
 
