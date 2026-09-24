@@ -16,6 +16,8 @@ codex plugin add openreading@openreading
 
 After the owner merges that PR, new installations omit `--ref fix/github-marketplaces`.
 The repository is private until publication approval. Your Git credentials must permit repository access.
+If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
+Public installation will not require repository credentials. The preview tests use isolated SSH authentication instead.
 The host fetches the complete package and preserves its executable permissions. Do not extract a ZIP or copy a plugin folder.
 The catalog pins a distribution commit, so fetching newer source does not silently select an unreviewed runtime.
 Choose **OpenReading** for Codex, not **OpenReading for ChatGPT**. Shared host configuration can expose both entries.

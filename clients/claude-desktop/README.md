@@ -36,7 +36,7 @@ Cancel unwanted jobs before removal. Never remove another client's data to reset
 ## Historical evidence below
 
 These records identify older binaries and different installation routes.
-They do not provide installation instructions or acceptance evidence for alpha.21.
+They do not provide installation instructions or acceptance evidence for the current GitHub connector.
 
 ## Historical Claude Desktop local previews
 

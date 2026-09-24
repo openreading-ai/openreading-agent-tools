@@ -16,6 +16,8 @@ claude plugin install openreading@openreading
 
 After the owner merges that PR, new installations omit `@fix/github-marketplaces`.
 Your Git credentials must permit access while the repository remains private.
+Both the marketplace and its pinned plugin source need GitHub access. A successful catalog fetch alone does not prove HTTPS credentials work.
+If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
 The host fetches a complete plugin from an immutable Git commit. It uses no archive credential helper or runtime downloader.
 Do not extract a ZIP, keep a checkout, or copy binaries. Choose OpenReading, not the separate Cowork entry.
 

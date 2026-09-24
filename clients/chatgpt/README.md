@@ -15,6 +15,7 @@ codex plugin marketplace add openreading-ai/openreading-agent-tools --ref fix/gi
 
 After the owner merges that PR, new installations omit `--ref fix/github-marketplaces`.
 Your Git credentials must permit access while the repository remains private.
+If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
 Quit and reopen ChatGPT Desktop, open Plugins, select the OpenReading marketplace and install **OpenReading for ChatGPT**.
 Its plugin identifier is `openreading-chatgpt@openreading`. Do not choose the Codex entry named OpenReading.
 No workspace-admin import, manual clone, ZIP upload or extracted folder is part of this route.
