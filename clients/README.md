@@ -2,10 +2,33 @@
 
 Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the server connector. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
-Revision 28 requires a server connector with separately tested client connections.
+Revision 29 requires a server connector with separately tested GitHub installation and client connections.
 Bundled Docling evidence and routes below are historical and preserved by tag bundled-docling-2.126.0-checkpoint.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
+
+## Alpha.22 GitHub installation checks, September 23, 2026
+
+The private distribution commit is `572d13dfafdc944eeebe4b8519edda7c43d31697`.
+Its worker SHA-256 is `6777e48d1cf3bdf96cc0c6cc964fa1f814c96a17767f4f5f0193d0edd71483bc`.
+The Core pin is merged main `02a2061eae3486ac1513ac8216cd79422c8e3c66`.
+GitHub supplies complete packages through immutable git-subdir entries, without ZIP or folder installation.
+
+Codex CLI 0.156.0 installs both OpenAI variants independently from the private review catalog.
+Its app server discovers each package's two skills, nine document tools and one Settings opener.
+Claude Code 2.1.280 installs both Claude variants independently and connects both cached MCP servers.
+All four checks verify the exact installed worker hash and refresh the GitHub catalog.
+Same-version update commands pass. This is not evidence of a cross-version desktop upgrade.
+Isolated update and uninstall checks preserve sentinel files in separate settings and document directories for all four packages.
+Tests use isolated host settings with existing SSH authorization for private GitHub access.
+They do not alter the owner's installed plugins, saved destinations or retained documents.
+
+All four installed packages pass synthetic localhost Core processing, background jobs, export hashes, search and exact reads.
+They recover retained documents after reconnect. Stopped-server imports fail without silently retrying the old selection.
+Chooser and consent are injected. No model calls or personal documents are used.
+Desktop package checks through the CLI do not establish personal ChatGPT Work or Cowork UI acceptance.
+Native desktop sync, Settings, selection, answers and cross-version updates remain owner-operated checks.
+Clean-machine prerequisites, remote HTTPS, signing and notarization remain pending.
 
 ## Alpha.20 URL-only connector, September 22, 2026
 

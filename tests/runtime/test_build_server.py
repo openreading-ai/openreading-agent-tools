@@ -57,7 +57,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn("runtime/openreading-worker", names)
                 manifest = json.loads(zipped.read(".claude-plugin/plugin.json"))
                 self.assertEqual(manifest["name"], "openreading")
-                self.assertEqual(manifest["version"], "0.2.0-alpha.21")
+                self.assertEqual(manifest["version"], module.VERSION)
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
@@ -202,9 +202,10 @@ class ServerBuildTests(unittest.TestCase):
                     / ".claude-plugin/marketplace.json"
                 ).read_text()
             )["plugins"][0]
-            self.assertEqual(published["mcpServers"], configs)
-            self.assertEqual(published["skills"], "./skills")
-            self.assertFalse(published["strict"])
+            self.assertEqual(published["source"]["source"], "git-subdir")
+            self.assertEqual(published["source"]["path"], "plugins/claude-code/openreading")
+            self.assertNotIn("headersHelper", published)
+            self.assertNotIn("strict", published)
 
             self.assertEqual(set(configs), {"openreading", "openreading-settings"})
             for name, flag in (

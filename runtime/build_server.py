@@ -41,7 +41,7 @@ from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.21"
+VERSION = "0.2.0-alpha.22"
 EXCLUDES = [
     "runtime.server_keychain",
     "runtime.bootstrap",

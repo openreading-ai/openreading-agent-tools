@@ -9,17 +9,22 @@ Connect your assistant to an [OpenReading Core](https://github.com/openreading-a
 Agent Tools handles native file selection, upload, retained results and evidence retrieval. Core handles document processing.
 
 **Apple Silicon macOS preview only. Intel Mac, Windows and Linux binaries are pending.**
-Alpha.21 reconciles the server-only connector with reviewed reliability fixes. It is unsigned and not a public release.
+Alpha.22 distributes the server-only connector through GitHub-backed marketplaces. It is unsigned and not a public release.
 Native acceptance, clean-machine checks, licensing review, signing and notarization remain release gates.
 
 ## What you install
 
 | Form | Installation | Guide |
 | --- | --- | --- |
-| Claude Desktop / Cowork | Upload the standalone plugin ZIP | [Claude Desktop](clients/claude-desktop/README.md) |
-| Claude Code | Install the local preview marketplace with the CLI | [Claude Code](clients/claude-code/README.md) |
-| ChatGPT Work | Upload the standalone plugin ZIP, not a marketplace ZIP | [ChatGPT Work](clients/chatgpt/README.md) |
-| Local Codex | Extract and install the marketplace with the CLI | [Codex](clients/codex/README.md) |
+| Claude Desktop / Cowork | Add the GitHub marketplace in the app; install openreading-cowork | [Claude Desktop](clients/claude-desktop/README.md) |
+| Claude Code | Add the GitHub marketplace with the CLI; install openreading | [Claude Code](clients/claude-code/README.md) |
+| ChatGPT Work, personal account | Register GitHub through Codex CLI; install OpenReading for ChatGPT in the app | [ChatGPT Work](clients/chatgpt/README.md) |
+| Local Codex | Add the GitHub marketplace with the CLI; install openreading | [Codex](clients/codex/README.md) |
+
+No installation route requires a downloaded ZIP, extracted folder, manual clone or copied binary.
+Each host fetches and caches its complete package. Desktop visibility and native workflows require their own acceptance checks.
+During PR review, code clients select `fix/github-marketplaces`; the client guides show the exact commands.
+Desktop repository import from main becomes current after the owner merges that PR.
 
 All four forms embed the same small connector worker, its Python interpreter and client dependencies.
 They include two skills, nine document tools and one Settings opener.
@@ -49,10 +54,10 @@ Cancel unwanted background jobs before uninstalling.
 
 ## Required compatibility matrix
 
-ProductSpec revision 28 requires independent acceptance for these four server-backed surfaces.
-Earlier alpha.19/20 results are historical evidence, not acceptance of alpha.21.
+ProductSpec revision 29 requires independent GitHub installation and functional acceptance for these four server-backed surfaces.
+Earlier alpha.19/20/21 results are historical evidence, not acceptance of alpha.22.
 
-| Client | Alpha.21 native acceptance |
+| Client | Alpha.22 native acceptance |
 | --- | --- |
 | Claude Cowork | Pending exact-build owner walkthrough |
 | Claude Code | Pending exact-build owner walkthrough |
@@ -74,8 +79,10 @@ Preview branches are review inputs, not a rolling release channel.
 Maintainers merge Core first, repin Agent Tools to that merged commit, then merge Agent Tools.
 A release tags the reviewed main commits and builds those exact versions. Moving main never silently replaces tagged binaries.
 The repository remains private until the owner approves publication and the applicable distribution gates pass.
-The private Claude Code repository marketplace remains pinned to its historical alpha.19 archive until a new asset is explicitly published.
-Use the local alpha.21 marketplace for this preview.
+The source catalogs pin the complete packages on an immutable Git distribution commit.
+Versioned distribution branches contain generated packages, not parser libraries or source-checkout prerequisites.
+Git deduplicates the common runtime across client folders. Never merge a distribution branch into source main.
+Historical archives and tags remain unchanged. ZIP packaging remains a maintainer diagnostic, not the installation guide.
 
 > OpenReading Managed: Coming soon.
 >
