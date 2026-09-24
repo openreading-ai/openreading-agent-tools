@@ -79,10 +79,6 @@ def assemble(runtime: Path, output: Path):
                     "OpenReading for Cowork. Apple Silicon connector for your separately running Core server."
                 )
                 manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
-                shutil.copy2(
-                    build_server.HERE.parent / "clients/claude-desktop/README.md",
-                    plugin / "README.md",
-                )
             clients[client] = {
                 "path": plugin.relative_to(output).as_posix(),
                 "worker_sha256": sha256(plugin / "runtime/openreading-worker"),

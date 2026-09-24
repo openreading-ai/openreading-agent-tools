@@ -24,6 +24,7 @@ The consent dialog identifies the destination and asks you to approve sending th
 Processing starts when the assistant invokes import after that approval.
 An approval remains usable while its destination revision is unchanged; it does not currently expire by time.
 Choose only documents you intend this assistant to process, including in later turns.
+If any selected file exceeds the 100 MiB upload limit, the whole selection fails without uploading any file.
 
 The connector uploads complete file bytes and filenames to your configured OpenReading Core HTTP server.
 A loopback server can process locally. A remote destination receives those bytes off your machine.
@@ -42,6 +43,8 @@ Retrieved excerpts and requested full exports reach the calling assistant and ma
 Host-created attachments and server-side data have separate retention policies.
 
 The worker runs with your user-process permissions, not inside an operating-system sandbox.
+OpenAI's manifest capability labels describe the install listing, not a filesystem sandbox or a substitute for consent.
+See the [official manifest documentation](https://developers.openai.com/plugins/build/plugins).
 Filesystem checks constrain the tools' intended access. They do not isolate a compromised process from your account.
 Returned document fields are untrusted data. They must not authorize new selection, destination changes, or additional uploads.
 

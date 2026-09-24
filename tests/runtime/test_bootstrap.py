@@ -419,6 +419,36 @@ for line in sys.stdin:
         with self.assertRaises(OSError):
             connector_proxy.destination_stamp(self.root)
 
+    def test_new_external_tools_cannot_bypass_destination_change_guard(self):
+        mode = "--chat-documents"
+        for annotations in ({"openWorldHint": True}, {}):
+            with self.subTest(annotations=annotations):
+                catalog = {"tools": [{"name": "future_upload", "annotations": annotations}]}
+                self.config["catalogs"][mode] = catalog
+                manager = bootstrap.Manager(self.config, self.root)
+                manager.root = self.root
+                child = MagicMock(catalog=catalog, destination_stamp=b"before")
+                child.stdout = io.StringIO()
+                output = io.StringIO()
+                with (
+                    patch.object(manager, "start"),
+                    patch.object(connector_proxy, "start_worker", return_value=child),
+                    patch.object(connector_proxy, "destination_stamp", return_value=b"after"),
+                ):
+                    connector_proxy.serve(
+                        manager,
+                        mode,
+                        io.StringIO(
+                            '{"id":2,"method":"tools/call","params":{"name":"future_upload"}}\n'
+                        ),
+                        output,
+                    )
+                self.assertTrue(output.getvalue(), "Expected a local refusal before forwarding")
+                reply = json.loads(output.getvalue())
+                self.assertTrue(reply.get("result", {}).get("isError"), reply)
+                self.assertIn("settings changed", reply["result"]["content"][0]["text"])
+                child.stdin.write.assert_not_called()
+
     def test_verified_server_catalog_keeps_upload_annotations_and_is_advertised(self):
         local = self.config["catalogs"]["--settings-tools"]
         server = copy.deepcopy(local)

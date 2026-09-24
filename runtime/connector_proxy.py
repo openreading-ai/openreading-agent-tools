@@ -204,6 +204,13 @@ def serve(manager, mode, incoming, outgoing):
                         "openreading_import",
                         "openreading_start_import",
                     }
+                    | {
+                        tool["name"]
+                        for tool in advertised["tools"]
+                        # Only the verified catalog supplies hints, never a tool result.
+                        # Missing hints are conservative for future upload-capable tools.
+                        if tool.get("annotations", {}).get("openWorldHint", True) is not False
+                    }
                 ):
                     try:
                         current = (

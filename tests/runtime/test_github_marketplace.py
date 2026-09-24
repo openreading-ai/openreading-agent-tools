@@ -81,7 +81,15 @@ class GitHubMarketplaceTests(unittest.TestCase):
                         source = entry["source"]
                         path = source if isinstance(source, str) else source["path"]
                         plugin = output / path
+                        self.assertIn(
+                            "(./SECURITY.md#remove-retained-data)",
+                            (plugin / "README.md").read_text(),
+                        )
+                        self.assertIn(
+                            "## Remove retained data", (plugin / "SECURITY.md").read_text()
+                        )
                         manifest = next(plugin.glob(".*-plugin/plugin.json"))
+                        self.assertTrue((plugin / "CHANGELOG.md").is_file())
                         self.assertEqual(json.loads(manifest.read_text())["name"], entry["name"])
                         self.assertEqual(len(list((plugin / "skills").glob("*/SKILL.md"))), 2)
                         self.assertEqual(

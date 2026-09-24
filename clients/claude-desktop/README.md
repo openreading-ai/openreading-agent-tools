@@ -12,10 +12,11 @@ Install from GitHub through Claude's personal marketplace controls. Other platfo
 4. Enable both connectors, start a fresh Cowork task, and run `/openreading-settings`.
 5. Save and test your Core URL. Quit and reopen Claude, select a synthetic document, and choose Process.
 
-The main-branch catalog becomes current only after the owner merges the GitHub marketplace PR.
-Until then, a UI that supports selecting a Git ref can use `fix/github-marketplaces` for the preview.
-If the app does not expose a ref selector, wait for that merge. Do not substitute a ZIP or local folder.
+The main catalog still pins alpha.22. Wait for the replacement security build before launch acceptance.
+Use the main repository after the owner merges that build's catalog PR. Do not substitute a ZIP or local folder.
 The repository remains private. Authorize the app's GitHub access if requested; never put a token in chat or the repository URL.
+Review the requested repositories and permissions before authorizing. Record the exact scope for acceptance review.
+If the prompt requests access you do not intend to grant, stop instead of broadening access for this test.
 See [Claude's personal marketplace instructions](https://support.claude.com/en/articles/13837440-use-plugins-in-claude).
 
 The new desktop identity separates Cowork from Claude Code in the shared catalog.

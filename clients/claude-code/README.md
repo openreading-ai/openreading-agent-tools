@@ -7,17 +7,18 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Install from GitHub
 
-During PR review, use the preview branch explicitly:
+The main catalog still pins alpha.22. Wait for the replacement security build before launch acceptance.
+After that build's catalog PR is merged, register the main marketplace:
 
 ~~~sh
-claude plugin marketplace add openreading-ai/openreading-agent-tools@fix/github-marketplaces
+claude plugin marketplace add openreading-ai/openreading-agent-tools
 claude plugin install openreading@openreading
 ~~~
 
-After the owner merges that PR, new installations omit `@fix/github-marketplaces`.
 Your Git credentials must permit access while the repository remains private.
 Both the marketplace and its pinned plugin source need GitHub access. A successful catalog fetch alone does not prove HTTPS credentials work.
 If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
+This changes the credential helper for GitHub, not only this repository. Skip it when your existing Git authentication works.
 The host fetches a complete plugin from an immutable Git commit. It uses no archive credential helper or runtime downloader.
 Do not extract a ZIP, keep a checkout, or copy binaries. Choose OpenReading, not the separate Cowork entry.
 

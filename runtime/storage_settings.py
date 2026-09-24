@@ -60,7 +60,12 @@ def data_root(client, *, home=None):
             ):
                 raise ValueError
             root = Path(value["active_root"])
-            if not root.is_absolute() or ".." in root.parts or "\x00" in str(root):
+            if (
+                not root.is_absolute()
+                or ".." in root.parts
+                or "\x00" in str(root)
+                or len(root.parents) < 3
+            ):
                 raise ValueError
             return root
         except (ValueError, OSError, ArtifactError):

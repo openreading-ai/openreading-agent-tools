@@ -325,6 +325,15 @@ def package(runtime, output, *, client="claude-desktop"):
             )
             + "\n"
         )
+    # Repository-relative removal links must also work inside the installed package.
+    guide = (HERE.parent / "clients" / client / "README.md").read_text()
+    (plugin / "README.md").write_text(
+        guide.replace(
+            "../../SECURITY.md#remove-retained-data", "./SECURITY.md#remove-retained-data"
+        )
+    )
+    shutil.copy2(HERE.parent / "SECURITY.md", plugin / "SECURITY.md")
+    shutil.copy2(HERE.parent / "CHANGELOG.md", plugin / "CHANGELOG.md")
     # Check content as well as suffixes so renamed dependency archives cannot slip through.
     for path in sorted(plugin.rglob("*")):
         if path.is_file():

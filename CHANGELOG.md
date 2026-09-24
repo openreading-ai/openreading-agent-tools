@@ -2,6 +2,9 @@
 
 ## Unreleased security remediation
 
+- Apply the destination-change guard to future externally acting tools from the verified catalog, not only today's tool names.
+- Include the security policy and working removal links in every generated GitHub plugin package.
+- Release untouched batch siblings after a pre-upload source failure, and report shallow storage records as invalid settings.
 - Preserve Core's consent and untrusted-data instructions through proxy initialization, and refuse changed worker instructions.
 - Audit the shipped server-client dependency lock alongside historical development locks.
 - Correct the security policy for the server connector, its upload boundaries and pending release gates.

@@ -10,6 +10,7 @@ Agent Tools handles native file selection, upload, retained results and evidence
 
 **Apple Silicon macOS preview only. Intel Mac, Windows and Linux binaries are pending.**
 Alpha.22 distributes the server-only connector through GitHub-backed marketplaces. It is unsigned and not a public release.
+Pre-launch security remediation requires a new versioned build. Do not use alpha.22 for launch acceptance.
 Native acceptance, clean-machine checks, licensing review, signing and notarization remain release gates.
 
 ## What you install
@@ -23,8 +24,8 @@ Native acceptance, clean-machine checks, licensing review, signing and notarizat
 
 No installation route requires a downloaded ZIP, extracted folder, manual clone or copied binary.
 Each host fetches and caches its complete package. Desktop visibility and native workflows require their own acceptance checks.
-During PR review, code clients select `fix/github-marketplaces`; the client guides show the exact commands.
-Desktop repository import from main becomes current after the owner merges that PR.
+The merged main catalog still pins alpha.22. Updated source alone does not update the distributed worker.
+Wait for the replacement build and its immutable catalog pin before starting the next acceptance round.
 
 All four forms embed the same small connector worker, its Python interpreter and client dependencies.
 They include two skills, nine document tools and one Settings opener.
@@ -51,6 +52,7 @@ A failed submission never switches to a local parser or silently resubmits uncer
 Settings and retained results survive plugin replacement and removal.
 The default data folder is `~/.openreading`, partitioned by client. Storage settings can select another location.
 Cancel unwanted background jobs before uninstalling.
+Follow [Remove retained data](SECURITY.md#remove-retained-data) for client-specific removal and settings reset.
 
 ## Required compatibility matrix
 
