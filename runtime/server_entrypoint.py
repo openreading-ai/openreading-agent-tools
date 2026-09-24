@@ -56,6 +56,18 @@ class EmbeddedManager:
     """Supply an already installed runtime to the MCP proxy without invoking provisioning."""
 
     def __init__(self, config, home, root, client, mode):
+        instructions = config.get("instructions") if isinstance(config, dict) else None
+        if (
+            not isinstance(instructions, dict)
+            or set(instructions) != {"--chat-documents", "--settings-tools"}
+            or not isinstance(instructions["--chat-documents"], str)
+            or not instructions["--chat-documents"].strip()
+            or (
+                instructions["--settings-tools"] is not None
+                and not isinstance(instructions["--settings-tools"], str)
+            )
+        ):
+            raise ValueError("Installed connector instructions are missing or invalid.")
         self.config, self.home, self.installed_root = config, home, root
         self.client, self.mode = client, mode
         self.server_info = {"name": "openreading-connector", "version": "0.2.0-alpha.22"}

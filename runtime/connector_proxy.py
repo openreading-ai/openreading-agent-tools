@@ -1,6 +1,8 @@
 """Proxy verified local MCP workers without downloading or installing a runtime.
 
 The installed package supplies its fixed worker manager and reviewed tool catalogs.
+Packaged Core instructions reach the host before setup. Live initialization must match
+them exactly, so a changed worker cannot silently weaken the advertised safety guidance.
 Destination changes block new selection and submission while existing job queries remain available.
 """
 
@@ -65,6 +67,13 @@ def start_worker(manager, mode, protocol):
                 reply = json.loads(child.stdout.readline())
                 if "error" in reply or reply.get("id") != request["id"]:
                     raise ValueError("Runtime initialization failed.")
+                if request["method"] == "initialize" and "instructions" in manager.config:
+                    result = reply.get("result")
+                    if (
+                        not isinstance(result, dict)
+                        or result.get("instructions") != manager.config["instructions"][mode]
+                    ):
+                        raise ValueError("Runtime instructions differ from the installed plugin.")
         allowed = manager.config.get("catalog_variants", {}).get(
             mode, [manager.config["catalogs"][mode]]
         )
@@ -157,6 +166,9 @@ def serve(manager, mode, incoming, outgoing):
                         {"name": "openreading-bootstrap", "version": "0.2.0-alpha.12"},
                     ),
                 }
+                instructions = manager.config.get("instructions", {}).get(mode)
+                if instructions is not None:
+                    result["instructions"] = instructions
             elif method == "tools/list":
                 connect()
                 result = advertised

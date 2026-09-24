@@ -180,8 +180,14 @@ def package(runtime, output, *, client="claude-desktop"):
         raise ValueError(
             "Runtime version differs from the plugin version. Build the matching release first."
         )
-    documents = catalog(runtime / "openreading-worker", "--chat-documents", server=True)
-    settings = catalog(runtime / "openreading-worker", "--settings-tools")
+    documents = catalog(
+        runtime / "openreading-worker", "--chat-documents", server=True, include_instructions=True
+    )
+    settings = catalog(
+        runtime / "openreading-worker", "--settings-tools", include_instructions=True
+    )
+    if not isinstance(documents["instructions"], str) or not documents["instructions"].strip():
+        raise ValueError("Document runtime instructions are missing or invalid.")
     output.mkdir(parents=True, exist_ok=False)
     openai = client in {"codex", "chatgpt"}
     name = "openreading-chatgpt" if client == "chatgpt" else "openreading"
@@ -192,7 +198,17 @@ def package(runtime, output, *, client="claude-desktop"):
     shutil.copytree(runtime, plugin / "runtime")
     (plugin / "runtime/catalogs.json").write_text(
         json.dumps(
-            {"catalogs": {"--chat-documents": documents, "--settings-tools": settings}}, indent=2
+            {
+                "catalogs": {
+                    "--chat-documents": documents["catalog"],
+                    "--settings-tools": settings["catalog"],
+                },
+                "instructions": {
+                    "--chat-documents": documents["instructions"],
+                    "--settings-tools": settings["instructions"],
+                },
+            },
+            indent=2,
         )
         + "\n"
     )
@@ -367,7 +383,7 @@ def package(runtime, output, *, client="claude-desktop"):
                 "plugin_sha256": sha256(target),
                 "plugin_bytes": target.stat().st_size,
                 "runtime_download": False,
-                "document_tools": len(documents["tools"]),
+                "document_tools": len(documents["catalog"]["tools"]),
                 **marketplace_metadata,
             },
             indent=2,

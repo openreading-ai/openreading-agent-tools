@@ -13,6 +13,12 @@ from runtime.destination_settings import read_destination, save_destination
 
 
 class ServerOnlyTests(unittest.TestCase):
+    def connector_config(self):
+        return {
+            "catalogs": {"--chat-documents": {"tools": []}, "--settings-tools": {"tools": []}},
+            "instructions": {"--chat-documents": "Require consent.", "--settings-tools": None},
+        }
+
     def module(self):
         self.assertIsNotNone(importlib.util.find_spec("runtime.server_entrypoint"))
         return importlib.import_module("runtime.server_entrypoint")
@@ -60,7 +66,9 @@ class ServerOnlyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             home = Path(temporary).resolve()
             for mode in ("--chat-documents", "--settings-tools"):
-                manager = module.EmbeddedManager({}, home, home / "runtime", "codex", mode)
+                manager = module.EmbeddedManager(
+                    self.connector_config(), home, home / "runtime", "codex", mode
+                )
                 from runtime.build_server import VERSION
 
                 self.assertEqual(manager.server_info["version"], VERSION)
@@ -73,6 +81,28 @@ class ServerOnlyTests(unittest.TestCase):
                     )
                     manager.start()
                 self.assertEqual(manager.root, home / "runtime")
+
+    def test_current_connector_refuses_missing_or_invalid_packaged_instructions(self):
+        module = self.module()
+        invalid = [None, [], {}, {"--chat-documents": "Require consent."}]
+        invalid += [
+            {"--chat-documents": text, "--settings-tools": None}
+            for text in (None, "", " \n", [], 1)
+        ]
+        invalid += [{"--chat-documents": "Require consent.", "--settings-tools": []}]
+        for instructions in invalid:
+            config = self.connector_config()
+            if instructions is None:
+                config.pop("instructions")
+            else:
+                config["instructions"] = instructions
+            with (
+                self.subTest(instructions=instructions),
+                self.assertRaisesRegex(ValueError, "instructions"),
+            ):
+                module.EmbeddedManager(
+                    config, Path("/unused"), Path("/unused"), "codex", "--settings-tools"
+                )
 
     def test_advanced_download_limit_does_not_invalidate_selection_approval(self):
         from dataclasses import replace
@@ -102,7 +132,7 @@ class ServerOnlyTests(unittest.TestCase):
         module = self.module()
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            (root / "catalogs.json").write_text(json.dumps({"catalogs": {}}))
+            (root / "catalogs.json").write_text(json.dumps(self.connector_config()))
             with (
                 patch.object(module.sys, "frozen", True, create=True),
                 patch.object(module.sys, "platform", "darwin"),

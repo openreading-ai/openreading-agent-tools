@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from test_build_server import captured_catalog
+
 from runtime import build_server
 from runtime.verify import inventory, verify_release
 
@@ -58,7 +60,7 @@ class GitHubMarketplaceTests(unittest.TestCase):
             root = Path(temporary).resolve()
             runtime = self.runtime(root)
             output = root / "distribution"
-            with patch.object(build_server, "catalog", return_value={"tools": []}):
+            with patch.object(build_server, "catalog", side_effect=captured_catalog):
                 module.assemble(runtime, output)
             expected = {
                 "openreading": "claude-code",
@@ -133,7 +135,7 @@ class GitHubMarketplaceTests(unittest.TestCase):
             root = Path(temporary).resolve()
             runtime = self.runtime(root)
             with (
-                patch.object(build_server, "catalog", return_value={"tools": []}),
+                patch.object(build_server, "catalog", side_effect=captured_catalog),
                 contextlib.redirect_stdout(io.StringIO()) as stdout,
             ):
                 self.assertEqual(

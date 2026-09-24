@@ -14,6 +14,17 @@ from unittest.mock import patch
 from runtime.verify import ReleaseIntegrityError, inventory, verify_release
 
 
+def captured_catalog(worker, mode, *, server=False, include_instructions=False):
+    """Represent metadata from the two frozen MCP servers without executing a binary."""
+    tools = {"tools": []}
+    if not include_instructions:
+        return tools
+    return {
+        "catalog": tools,
+        "instructions": "Require destination consent." if mode == "--chat-documents" else None,
+    }
+
+
 class ServerBuildTests(unittest.TestCase):
     def module(self):
         self.assertIsNotNone(importlib.util.find_spec("runtime.build_server"))
@@ -66,7 +77,7 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertEqual(verify_release(runtime)["profile"], "core-server-client-v1")
                 with self.assertRaises(ValueError):
                     module.build_runtime(runtime)
-            with patch.object(module, "catalog", return_value={"tools": []}):
+            with patch.object(module, "catalog", side_effect=captured_catalog):
                 archive = module.package(runtime, root / "package")
             with zipfile.ZipFile(archive) as zipped:
                 names = zipped.namelist()
@@ -78,6 +89,15 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertIn(b"--connector", zipped.read("launch.sh"))
             release = verify_release(root / "package/plugin/runtime")
             self.assertIn("catalogs.json", release["files"])
+            metadata = json.loads((root / "package/plugin/runtime/catalogs.json").read_text())
+            self.assertEqual(
+                metadata.get("instructions"),
+                {
+                    "--chat-documents": "Require destination consent.",
+                    "--settings-tools": None,
+                },
+            )
+            self.assertEqual(metadata["catalogs"]["--chat-documents"], {"tools": []})
             forbidden = runtime / "resources/model.onnx"
             forbidden.write_bytes(b"unexpected model")
             data = json.loads((runtime / "release.json").read_bytes())
@@ -158,7 +178,7 @@ class ServerBuildTests(unittest.TestCase):
                             "worker_sha256": "b" * 64,
                         },
                     ),
-                    patch.object(module, "catalog", return_value={"tools": []}),
+                    patch.object(module, "catalog", side_effect=captured_catalog),
                     self.assertRaisesRegex(ValueError, "nested ZIP"),
                 ):
                     module.package(runtime, root / "package")
@@ -184,7 +204,7 @@ class ServerBuildTests(unittest.TestCase):
             }
             with (
                 patch.object(module, "verify_release", return_value=release),
-                patch.object(module, "catalog", return_value={"tools": []}),
+                patch.object(module, "catalog", side_effect=captured_catalog),
             ):
                 module.package(runtime, root / "package", client="claude-code")
             plugin = root / "package/plugin"
@@ -318,6 +338,38 @@ class ServerBuildTests(unittest.TestCase):
                 module.package(root, root / "package", client="claude-code")
             catalog.assert_not_called()
             self.assertFalse((root / "package").exists())
+
+    def test_package_refuses_missing_or_blank_document_instructions(self):
+        module = self.module()
+        for instructions in (None, "", " \n", []):
+            with (
+                self.subTest(instructions=instructions),
+                tempfile.TemporaryDirectory() as temporary,
+            ):
+                root = Path(temporary)
+                runtime = root / "runtime"
+                runtime.mkdir()
+                with (
+                    patch.object(
+                        module,
+                        "verify_release",
+                        return_value={
+                            "profile": "core-server-client-v1",
+                            "release_version": module.VERSION,
+                        },
+                    ),
+                    patch.object(
+                        module,
+                        "catalog",
+                        return_value={
+                            "catalog": {"tools": []},
+                            "instructions": instructions,
+                        },
+                    ),
+                    self.assertRaisesRegex(ValueError, "instructions"),
+                ):
+                    module.package(runtime, root / "package")
+                self.assertFalse((root / "package").exists())
 
     def test_platform_and_lock_refuse_unreviewed_environment(self):
         module = self.module()

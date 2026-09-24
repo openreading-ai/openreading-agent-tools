@@ -17,6 +17,9 @@ uv run --frozen --project runtime/server_client --all-groups python -m runtime.g
 The first command freezes one verified worker. Its diagnostic ZIP is not an end-user installation route.
 The second command assembles complete plugin folders and both host catalogs without ZIPs in the distribution.
 Every package contains the same runtime bytes. Each launcher keeps its existing client-specific settings and data partition.
+The builder captures Core's initialization instructions beside its tool catalogs in the hashed runtime inventory.
+The proxy sends those instructions before server setup and refuses a worker whose live instructions differ.
+Document instructions must be nonempty. The Settings connector may omit instructions.
 Cowork uses the openreading-cowork plugin identity so its catalog can also list the Claude Code variant.
 
 Publish the generated tree on a new versioned distribution branch in the private Agent Tools GitHub repository.
