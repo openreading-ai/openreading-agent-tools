@@ -202,9 +202,10 @@ class ServerBuildTests(unittest.TestCase):
                     / ".claude-plugin/marketplace.json"
                 ).read_text()
             )["plugins"][0]
-            self.assertEqual(published["mcpServers"], configs)
-            self.assertEqual(published["skills"], "./skills")
-            self.assertFalse(published["strict"])
+            self.assertEqual(published["source"]["source"], "git-subdir")
+            self.assertEqual(published["source"]["path"], "plugins/claude-code/openreading")
+            self.assertNotIn("headersHelper", published)
+            self.assertNotIn("strict", published)
 
             self.assertEqual(set(configs), {"openreading", "openreading-settings"})
             for name, flag in (

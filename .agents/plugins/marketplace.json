@@ -1,0 +1,28 @@
+{
+  "name": "openreading",
+  "interface": {"displayName": "OpenReading"},
+  "plugins": [
+    {
+      "name": "openreading",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/openreading-ai/openreading-agent-tools.git",
+        "path": "plugins/codex/openreading",
+        "sha": "572d13dfafdc944eeebe4b8519edda7c43d31697"
+      },
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Productivity"
+    },
+    {
+      "name": "openreading-chatgpt",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/openreading-ai/openreading-agent-tools.git",
+        "path": "plugins/chatgpt/openreading-chatgpt",
+        "sha": "572d13dfafdc944eeebe4b8519edda7c43d31697"
+      },
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Productivity"
+    }
+  ]
+}

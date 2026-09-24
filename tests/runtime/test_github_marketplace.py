@@ -140,3 +140,11 @@ class GitHubMarketplaceTests(unittest.TestCase):
                     module.main(["--runtime", str(runtime), "--output", str(root / "dist")]), 0
                 )
             self.assertIn(str(root / "dist"), stdout.getvalue())
+
+    def test_source_catalogs_match_the_packaged_clients_and_one_immutable_commit(self):
+        module = self.module()
+        root = Path(module.__file__).resolve().parent.parent
+        claude = json.loads((root / ".claude-plugin/marketplace.json").read_text())
+        commit = claude["plugins"][0]["source"]["sha"]
+        for name, expected in module.catalogs(commit).items():
+            self.assertEqual(json.loads((root / name).read_text()), expected)
