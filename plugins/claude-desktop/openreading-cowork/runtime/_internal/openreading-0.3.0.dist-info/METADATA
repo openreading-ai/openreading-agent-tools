@@ -1,0 +1,10 @@
+Metadata-Version: 2.5
+Name: openreading
+Version: 0.3.0
+Summary: Client-only retained documents and MCP contracts for OpenReading agent connectors.
+License-Expression: Apache-2.0
+Requires-Python: >=3.11
+Requires-Dist: jsonschema>=4.21
+Requires-Dist: mcp<2,>=1.30
+Requires-Dist: psutil<8,>=7.2
+Requires-Dist: pydantic>=2.7

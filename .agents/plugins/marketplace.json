@@ -1,0 +1,32 @@
+{
+  "name": "openreading",
+  "interface": {
+    "displayName": "OpenReading"
+  },
+  "plugins": [
+    {
+      "name": "openreading",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex/openreading"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "openreading-chatgpt",
+      "source": {
+        "source": "local",
+        "path": "./plugins/chatgpt/openreading-chatgpt"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

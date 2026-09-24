@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "openreading-chatgpt": {
+      "command": "/bin/sh",
+      "args": [
+        "./launch.sh",
+        "--chat-documents"
+      ],
+      "cwd": "."
+    },
+    "openreading-chatgpt-settings": {
+      "command": "/bin/sh",
+      "args": [
+        "./launch.sh",
+        "--settings-tools"
+      ],
+      "cwd": "."
+    }
+  }
+}

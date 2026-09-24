@@ -1,0 +1,17 @@
+{
+  "source_repository": "https://github.com/openreading-ai/openreading-agent-tools.git",
+  "source_pr": 12,
+  "source_object_format": "sha1",
+  "source_objects": {
+    "runtime": "26f56ba0f2bb8bb2a0a509e9c7ddce9fe171bc0c",
+    "skills": "7aafda8a3ecfb3fb8331d6b4e21ed602adf82d15",
+    "clients": "a451ea887533f90a831416123231475f7489509f",
+    "assets": "0aa03a1a48ffeb59fb0f8be3ba02cbc43a3a9759",
+    "LICENSE": "581cf5ee9346df3f54aad81657f6f723cbaaac41",
+    "SECURITY.md": "77b207605d1e1650e2edbe400680bbaf2cb2725d",
+    "CHANGELOG.md": "07c349da0abd933d44e9e36a49fce98427cd5d66"
+  },
+  "provenance": "Maintainer-recorded build input Git objects, not independent build attestation. Subtree IDs avoid a circular reference between the source marketplace pin and this distribution. The annotated distribution tag records the final source commit containing these exact objects.",
+  "toolchain": "plugins/codex/openreading/runtime/resources/toolchain.json",
+  "acceptance": "Private security review only. Launch acceptance blocked by unresolved embedded Expat 2.8.4 advisory disposition. No native host installation, remote HTTPS, signing, notarization or public-release approval."
+}
