@@ -79,6 +79,13 @@ export function checkRepository(root) {
       continue;
     }
     if (!allowedMarkdown(path)) errors.push(`${path}: Markdown location is not allowed`);
+    if (path === 'SECURITY.md' && !content.includes('core-server-client-v1')) {
+      errors.push('SECURITY.md: describe core-server-client-v1');
+    }
+    if (/^clients\/(chatgpt|claude-code|claude-desktop|codex)\/README\.md$/.test(path)
+        && !content.includes('../../SECURITY.md#remove-retained-data')) {
+      errors.push(`${path}: link Remove retained data in SECURITY.md`);
+    }
     if (content.includes('\u2014') && path !== 'CODE_OF_CONDUCT.md') errors.push(`${path}: replace em dashes with plain punctuation`);
     if (path === 'CLAUDE.md' && (content.trim() !== '@AGENTS.md' || !existsSync(resolve(root, 'AGENTS.md')))) {
       errors.push('CLAUDE.md: import AGENTS.md as the single instruction source');

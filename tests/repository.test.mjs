@@ -108,6 +108,35 @@ test("MCPB resolves the binary command and preserves a configured directory argu
   ]);
 });
 
+test("security policy names the current connector profile", () => {
+  assert.match(
+    check({ "SECURITY.md": "# Security\n\nProposed local runtime.\n" }).join("\n"),
+    /core-server-client-v1/,
+  );
+  assert.deepEqual(
+    check({ "SECURITY.md": "# Security\n\ncore-server-client-v1\n" }),
+    [],
+  );
+});
+
+test("current client guides link retained-data removal", () => {
+  const policy = "# Security\n\ncore-server-client-v1\n\n## Remove retained data\n";
+  for (const client of ["chatgpt", "claude-code", "claude-desktop", "codex"]) {
+    const path = `clients/${client}/README.md`;
+    assert.match(
+      check({ "SECURITY.md": policy, [path]: "# Client\n" }).join("\n"),
+      /Remove retained data/,
+    );
+    assert.deepEqual(
+      check({
+        "SECURITY.md": policy,
+        [path]: "# Client\n\n[Remove retained data](../../SECURITY.md#remove-retained-data)\n",
+      }),
+      [],
+    );
+  }
+});
+
 test("coverage thresholds cannot fall below 95 percent", () => {
   const config = JSON.parse(
     readFileSync(new URL("../package.json", import.meta.url)),

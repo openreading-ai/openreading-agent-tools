@@ -32,6 +32,7 @@ Verify GitHub sync, installation, updates, exact cited evidence and background-j
 Native Cowork acceptance and clean-machine installation remain pending for alpha.22.
 Removing the plugin preserves preferences, selected copies and retained results in the Claude Desktop partition.
 Cancel unwanted jobs before removal. Never remove another client's data to reset this one.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) for Cowork's `claude-desktop` partition and settings.
 
 ## Historical evidence below
 

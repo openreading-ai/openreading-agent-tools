@@ -41,6 +41,7 @@ Remove only this plugin with `codex plugin remove openreading@openreading`.
 The fixed client label remains `codex`. Preferences live under `~/Library/Application Support/OpenReading/agent-tools/codex`.
 Retained data defaults to `~/.openreading/clients/codex/v2`; Storage settings can select another folder.
 Installation, updates and removal preserve those settings and retained documents. Cancel unwanted jobs before removal.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove this client's copies and settings safely.
 Server failure never invokes a local parser or automatically resubmits uncertain work.
 
 ## Verification boundaries

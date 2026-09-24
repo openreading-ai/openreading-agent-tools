@@ -42,6 +42,7 @@ The launcher keeps the `chatgpt` partition and does not migrate or overwrite ano
 Preferences live under `~/Library/Application Support/OpenReading/agent-tools/chatgpt`.
 Retained data defaults to `~/.openreading/clients/chatgpt/v2`; Storage can select another folder.
 Updates and removal preserve preferences and retained results.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove this client's copies and settings safely.
 
 ## Verification boundaries
 

@@ -46,6 +46,7 @@ Uninstall only this plugin with `claude plugin uninstall openreading@openreading
 The launcher retains the `claude-code` client label. Preferences live under `~/Library/Application Support/OpenReading/agent-tools/claude-code`.
 Retained data defaults to `~/.openreading/clients/claude-code/v2`; Storage can select another folder.
 Updates and removal preserve those settings and results. Cancel unwanted background jobs before removal.
+Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove this client's copies and settings safely.
 
 ## Verification boundaries
 

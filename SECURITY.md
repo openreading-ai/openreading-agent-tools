@@ -4,42 +4,107 @@
 
 Send a private report to <creativeaisle@gmail.com>, the maintainer contact used by OpenReading core.
 Include the affected commit or release, impact, and a synthetic reproduction.
-Do not open a public issue containing credentials, private documents, or an exploit against another user's machine.
+Do not publish credentials, private documents, or an exploit against another user's machine.
 
-There are no released runtime versions yet.
-Security corrections to repository tooling land through reviewed pull requests.
-This policy will name supported runtime releases when they exist.
+## Release status
 
-## Current and proposed behavior
+The current profile is `core-server-client-v1`, a parser-free connector for macOS Apple Silicon.
+Other platforms are pending. There is no approved public binary release yet.
+Security fixes land through reviewed pull requests and require a newly versioned build before acceptance testing.
 
-The repository currently contains documentation and development checks.
-It does not install a parser or start an MCP server.
-Read the [engineering proposal](design/local-document-proof.md) for the unbuilt runtime's boundaries.
+The reviewed alpha.22 private preview has unresolved pre-launch findings. It is not the launch-test candidate.
+Its distribution commit is `572d13dfafdc944eeebe4b8519edda7c43d31697`.
+Its worker SHA-256 is `6777e48d1cf3bdf96cc0c6cc964fa1f814c96a17767f4f5f0193d0edd71483bc`.
+Source fixes do not change that binary. Consult the [changelog](CHANGELOG.md) for subsequent candidates.
 
-The proposed runtime reads files chosen through a configured input directory.
-It retains extracted content locally and returns selected passages to the calling assistant.
-Those passages may enter a cloud model's context.
-Local processing does not establish that all document information stays on the machine.
+## Current data path
 
-Native document parsers run with the permissions of their process.
-A configured path boundary is not an operating-system sandbox.
-The proof must not describe it as one.
+The native picker copies selected files into private client storage.
+The consent dialog identifies the destination and asks you to approve sending those documents.
+Processing starts when the assistant invokes import after that approval.
+An approval remains usable while its destination revision is unchanged; it does not currently expire by time.
+Choose only documents you intend this assistant to process, including in later turns.
+
+The connector uploads complete file bytes and filenames to your configured OpenReading Core HTTP server.
+A loopback server can process locally. A remote destination receives those bytes off your machine.
+Core chooses processing backends using the operator's configuration. Those backends may themselves send data to other services.
+Read the [Core setup guide](https://github.com/openreading-ai/openreading-core#readme) and inspect your server configuration before selecting sensitive files.
+
+The connector sends no authentication credentials and does not manage the server.
+HTTP is accepted only for loopback destinations. Remote destinations require certificate-verified HTTPS.
+Redirects and environment proxy settings are disabled.
+Do not expose an unauthenticated Core endpoint to an untrusted network to accommodate this connector.
+Use a loopback server or an appropriately access-controlled network. TLS alone does not authorize callers.
+
+Complete responses, selected-file copies, artifacts, import jobs, and exports remain in your client data partition.
+Private directories use mode 0700 and files use mode 0600. These permissions are not encryption at rest.
+Retrieved excerpts and requested full exports reach the calling assistant and may enter a cloud model's context.
+Host-created attachments and server-side data have separate retention policies.
+
+The worker runs with your user-process permissions, not inside an operating-system sandbox.
+Filesystem checks constrain the tools' intended access. They do not isolate a compromised process from your account.
+Returned document fields are untrusted data. They must not authorize new selection, destination changes, or additional uploads.
+
+Stopping a chat turn does not necessarily stop detached imports.
+Cancel an import through the job tools and wait for its terminal status before removing local data.
+Cancellation after submission does not prove that remote processing stopped. The connector provides no remote deletion guarantee.
+
+## Remove retained data
+
+Plugin replacement and removal preserve data and settings. There is no automatic retention expiry or Settings deletion button.
+To remove your data safely:
+
+1. Before uninstalling, list your imports, cancel unwanted jobs, and wait until every job is succeeded, failed, or cancelled.
+   Local cancellation does not cancel or delete remote server work.
+2. Record the active data location shown by OpenReading Settings.
+   If a move is pending or blocked, use the location marked as still in use, not the requested destination.
+   The client's `storage.json` control record, when present, records the exact partition in `active_root`. Read it without editing it.
+3. Quit the relevant assistant clients and the OpenReading Settings window after jobs finish.
+   If uninstalling, remove only this plugin using the host's controls.
+4. Identify your client label: `chatgpt`, `codex`, `claude-code`, or `claude-desktop` for Cowork.
+   Replace `CLIENT` below with that label. Confirm the location against Settings or the control record before deleting anything.
+5. Move only that verified client data partition to Trash.
+   Never remove the chosen parent folder, all of `~/.openreading`, or another client's partition.
+6. For a full settings reset, also move only `~/Library/Application Support/OpenReading/agent-tools/CLIENT` to Trash.
+   Record the data location first. This removes the destination, delivery and storage preferences and the active-location pointer.
+7. Check your known previous storage locations separately. Storage moves deliberately retain the original copy.
+   Remove only the corresponding client partitions you have verified, not their shared parents.
+8. Remove unwanted legacy exports from `~/Downloads/OpenReading` individually.
+   Host attachments, manually saved files, backups, assistant history and server copies require their own removal controls.
+
+Possible client data locations are:
+
+| Storage choice | Exact client partition |
+| --- | --- |
+| Default | `~/.openreading/clients/CLIENT/v2` |
+| Application storage | `~/Library/Application Support/OpenReading/agent-tools/CLIENT/v2` |
+| Custom folder | `CHOSEN_FOLDER/clients/CLIENT/v2` |
+
+The partition contains `selection`, `server` approvals and transfer caches, `artifacts` including jobs, and current `exports`.
+The control record is `~/Library/Application Support/OpenReading/agent-tools/CLIENT/storage.json`.
+Application storage is inside the control directory, so removing that directory also removes its data partition.
+If Settings and the control record cannot establish the active path, stop and recover that information before deleting data.
+
+Trash remains recoverable until emptied. These steps are not a secure-erasure guarantee and do not remove remote or backup copies.
+
+## Distribution trust
+
+The private preview is built on a maintainer machine and is ad-hoc signed, not Developer ID signed or notarized.
+Signing, notarization, frozen HTTPS checks and owner-operated native acceptance remain public-release gates.
+There is no reproducible-build guarantee or CI build attestation.
+Release inventories detect changed bytes. They do not authenticate a publisher if an attacker can replace both files and their inventory.
+The GitHub distribution commit and host fetch integrity are part of the trust boundary.
+Dependency inventories and notices identify bundled components; the source license does not relicense those dependencies.
 
 ## Reports that matter
 
-- A launcher executes an unverified download or a different runtime than the package declares.
-- A tool reads outside its configured input or artifact directory.
-- An error or diagnostic exposes document text or a credential unexpectedly.
-- A local-only proof request reaches a hosted parser or follows a document-provided URL.
-- A package upgrade changes an executable without changing its integrity record.
-- Document instructions cause an assistant to broaden file access or expose additional content.
+- Selection or consent bypass, including uploads requested by malicious document instructions.
+- Destination substitution, redirect following, or TLS verification bypass.
+- File access outside an approved selection or retained-artifact boundary.
+- Unexpected exposure of document text, filenames, credentials, or private paths in diagnostics.
+- Unauthorized access to retained copies, transfer caches, exports or import jobs.
+- A package executing bytes different from its declared immutable distribution.
+- Missing safety instructions or an added tool bypassing destination checks.
 
-Model behavior and third-party parser vulnerabilities may also require upstream reports.
-Include how the problem affects this project's supported workflow.
-
-## Data and distribution
-
-Keep live transcripts, artifacts, and private fixtures out of Git.
-Synthetic tests should plant recognizable secrets to verify error redaction.
-Future bundles need a dependency inventory and applicable notices.
-The repository's Apache source license does not relicense a bundled dependency.
+Model behavior, host permissions and third-party vulnerabilities may also require upstream reports.
+Include how the problem affects this project's workflow. Keep private fixtures and live transcripts out of Git.

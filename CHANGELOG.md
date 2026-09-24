@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased security remediation
+
+- Correct the security policy for the server connector, its upload boundaries and pending release gates.
+- Document retained-data locations and safe removal from every client guide. Plugin removal does not delete retained data.
+- Keep alpha.22 unchanged. Security acceptance requires a newly versioned build, not the existing preview.
+
 ## OpenReading alpha.22 GitHub preview
 
 - Assemble complete parser-free packages for GitHub-backed native marketplaces across all four clients.
