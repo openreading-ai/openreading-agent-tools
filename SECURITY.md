@@ -9,7 +9,7 @@ Do not publish credentials, private documents, or an exploit against another use
 ## Release status
 
 The current profile is `core-server-client-v1`, a parser-free connector for macOS Apple Silicon.
-Other platforms are pending. There is no approved public binary release yet.
+Other platforms are pending. Public alpha previews are not supported releases.
 Security fixes land through reviewed pull requests and require a newly versioned build before acceptance testing.
 
 The reviewed alpha.22 private preview has unresolved pre-launch findings. It is not the launch-test candidate.
@@ -32,8 +32,10 @@ Its isolated interpreter comes from the checksum-pinned [September 24 Astral bui
 The freezer refuses Expat versions other than that reviewed input before creating a runtime.
 Python remains 3.11.16, OpenSSL remains 3.5.8, and Tcl/Tk remain 9.0.4.
 The worker is rebuilt from merged Agent Tools `4110af50edb34363f21a2270e49107712cdfd30b`.
+Its public distribution is `5aed913f7a8ad019b1958d22fc13f8127c8f0a49`, preserved by tag `dist-macos-arm64-alpha24`.
+The [verification record](https://github.com/openreading-ai/openreading-agent-tools/blob/dist-macos-arm64-alpha24/verification.json) separates completed checks from native acceptance.
 Building the replacement does not update installed plugins. The owner merges its separate catalog PR before GitHub installation tests.
-Licensing and distribution review remain prerequisites for publishing this preview under the policy below.
+Bundled component inventory, notice preservation, frozen checks and dependency audit passed before preview publication under the policy below.
 Exact-build native, remote HTTPS and clean-machine acceptance still gate supported-release claims.
 
 ## Unsigned preview policy

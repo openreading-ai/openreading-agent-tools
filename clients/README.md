@@ -8,6 +8,18 @@ Bundled Docling evidence and routes below are historical and preserved by tag bu
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
 
+## Alpha.24 GitHub preview
+
+Distribution `5aed913f7a8ad019b1958d22fc13f8127c8f0a49` is preserved by tag `dist-macos-arm64-alpha24`.
+The worker is rebuilt from merged source `4110af50edb34363f21a2270e49107712cdfd30b`, tagged `v0.2.0-alpha.24`.
+Its hash matches the isolated alpha.24 worker below. This repeat build does not establish general reproducibility.
+All four final packages repeat the synthetic functional and admission checks below without installing any host plugin.
+The packaged runtime has 1,329 inventory entries, including catalogs. It excludes parsers, models, OCR executables and downloaders.
+Bundled notices, native license inputs, executable permissions and the CA bundle were checked before publication.
+Source and dependency gates pass. The [distribution record](https://github.com/openreading-ai/openreading-agent-tools/blob/dist-macos-arm64-alpha24/verification.json) preserves the verification scope.
+Install only after the owner merges the alpha.24 catalog PR. All four native workflows, remote HTTPS and clean-machine acceptance remain pending.
+Older installation records do not pass these new checks. The owner installs and tests; agents do not.
+
 ## Alpha.24 isolated frozen checks, September 24, 2026
 
 The unpublished replacement worker SHA-256 is `24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794`.

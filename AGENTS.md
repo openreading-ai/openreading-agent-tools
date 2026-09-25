@@ -19,7 +19,7 @@ The separate file-selection candidate bundles a Tk picker and a private intake l
 Native installation acceptance remains pending. The current preview does not require Developer ID signing or notarization.
 Follow the [unsigned preview policy](SECURITY.md#unsigned-preview-policy); earlier signed-distribution proposals do not gate this connector candidate.
 Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
-No public binary or measured token savings are released.
+The public alpha.24 binary preview awaits owner-run native acceptance. No supported-release or measured token-savings claim is made.
 The remaining native and release gates stay in `design/`.
 
 ## OSS launch scope
