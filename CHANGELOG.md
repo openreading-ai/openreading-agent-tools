@@ -7,7 +7,9 @@
 - Select the September 24 Astral interpreter with Expat 2.8.5 and reject the older native library before freezing.
 - Preserve historical runtime pins and existing alpha.23 distribution identities. No parser, model or server is added.
 - Distinguish public source access from binary approval. Keep existing catalogs unchanged until replacement distribution review completes.
-- Remove private-repository credential setup from the current installation guides. Signing and exact-build host acceptance remain pending.
+- Remove private-repository credential setup from the current installation guides. Exact-build host acceptance remains pending.
+- Advance ProductSpec to revision 30 for an owner-approved Apple Silicon preview without Developer ID signing or notarization.
+- Preserve license review, immutable distribution identities, security checks and exact-build native acceptance. Never bypass operating-system protections.
 
 ## OpenReading alpha.23 security-review candidate
 

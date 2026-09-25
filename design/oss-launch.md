@@ -1,8 +1,22 @@
 # OSS launch v1 and the Coming soon boundary
 
-Revision 29 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+Revision 30 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
 AC-43 adds GitHub-native install and update acceptance for all four clients. Public directory submission remains outside this preview.
 The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
+
+## Current preview distribution contract
+
+The owner permits the Apple Silicon connector preview without Developer ID signing or notarization.
+The [unsigned preview policy](../SECURITY.md#unsigned-preview-policy) replaces the signing gates in earlier proposals for this candidate.
+Ad-hoc signing remains disclosed. It does not authenticate the publisher, and checksums alone cannot establish provenance.
+Review source, security findings, dependency licenses, inventory and frozen checks before owner-approved publication.
+Build the approved merged source, publish a new versioned distribution, and tag its immutable commit.
+Submit a separate catalog PR containing that commit and version. The owner merges both source and catalog PRs.
+The owner installs all four forms from GitHub and records native, HTTPS, update and clean-machine results against those exact bytes.
+Publication enables preview testing; it does not establish a supported release. Do not bypass macOS or host protections after a refusal.
+No parser, model, runtime downloader, separate binary installer or Apple signing setup is introduced.
+
+## Historical proposal
 
 Status: ProductSpec revision 16 proposal. The README includes static preview copy; release catalog parity, host presentation and distribution acceptance remain pending.
 Contract: [ProductSpec](../product/specs/local-document-proof.product-spec.md), AC-27 through AC-30.
@@ -123,7 +137,8 @@ The existing ban on provider model API trials remains unchanged.
 
 ## Launch acceptance and later work
 
-C0 and N3 join the existing installation, license, signing, provenance, retrieval, resource and native-host gates.
+C0 and N3 join the existing installation, license, provenance, retrieval, resource and native-host gates.
+For the current connector preview, signature disclosure replaces the historical mandatory Apple signing gate as described above.
 They do not replace those gates or make a working development-machine demonstration a distribution pass.
 Only explicitly verified application versions and modes receive support claims.
 Token savings remain unmeasured unless complete actual-Desktop usage and quality evidence establishes them.

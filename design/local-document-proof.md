@@ -1,5 +1,9 @@
 # Docling local proof migration design
 
+This historical bundled-parser proposal does not govern the current server-only connector.
+Revision 30's [unsigned preview policy](../SECURITY.md#unsigned-preview-policy) supersedes its mandatory signing requirements for the connector candidate.
+The earlier requirements and evidence below keep their historical scope.
+
 **Status:** remaining revision 2 migration and release contract. Core mechanisms and the isolated feasibility harness are implemented; distributed clients remain revision 1.
 **Intent:** [ProductSpec revision 16](../product/specs/local-document-proof.product-spec.md).
 **Review:** [finding dispositions](review-disposition.md) record accepted changes and reasoned exceptions.

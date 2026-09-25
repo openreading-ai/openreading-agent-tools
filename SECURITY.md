@@ -32,7 +32,26 @@ Its isolated interpreter comes from the checksum-pinned [September 24 Astral bui
 The freezer refuses Expat versions other than that reviewed input before creating a runtime.
 Python remains 3.11.16, OpenSSL remains 3.5.8, and Tcl/Tk remain 9.0.4.
 Building this replacement does not update installed plugins or the existing GitHub catalogs.
-Signing, notarization, licensing review and exact-build acceptance still gate public binary distribution.
+Licensing and distribution review remain prerequisites for publishing this preview under the policy below.
+Exact-build native, remote HTTPS and clean-machine acceptance still gate supported-release claims.
+
+## Unsigned preview policy
+
+The owner permits an Apple Silicon preview without Developer ID signing or Apple notarization.
+The worker remains ad-hoc signed. This does not identify or authenticate its publisher through Apple.
+This decision replaces earlier mandatory signing gates for the current server connector, not historical build records.
+
+Before publication, review the source, bundled dependency licenses, security findings, package inventory and frozen checks.
+Record the exact source and Core commits, toolchain, worker hash, notices and immutable GitHub distribution commit.
+Use a new distribution version and preserve its commit with a tag. Never replace historical binaries or tags.
+The owner approves publication and merges source and catalog PRs. Agents never merge or install test plugins.
+
+Published preview packages enable owner-run GitHub installation tests; publication alone does not establish supported-client acceptance.
+Record native workflows, remote HTTPS success and refusal, update behavior and clean-machine launch against those exact packages.
+Keep Intel Mac, Windows and Linux pending. Do not infer support from a development-machine or another client's result.
+If macOS or a host blocks launch, record the failure and stop acceptance for that route.
+Never disable Gatekeeper, strip quarantine or weaken TLS checks to obtain a passing result.
+Future Developer ID signing or notarization requires a separate release decision, not an undisclosed preview prerequisite.
 
 ## Current data path
 
@@ -111,7 +130,8 @@ Trash remains recoverable until emptied. These steps are not a secure-erasure gu
 
 Existing preview binaries were built on a maintainer machine and are ad-hoc signed, not Developer ID signed or notarized.
 The source repository is public. Historical preview availability does not establish distribution approval or current security clearance.
-Signing, notarization, frozen HTTPS checks and owner-operated native acceptance remain public-release gates.
+The [unsigned preview policy](#unsigned-preview-policy) permits owner-approved testing without Developer ID signing or notarization.
+Frozen HTTPS checks and owner-operated native acceptance remain required before supported-release claims.
 There is no reproducible-build guarantee or CI build attestation.
 Release inventories detect changed bytes. They do not authenticate a publisher if an attacker can replace both files and their inventory.
 The GitHub distribution commit and host fetch integrity are part of the trust boundary.

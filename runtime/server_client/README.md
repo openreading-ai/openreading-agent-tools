@@ -25,9 +25,11 @@ Startup reports fixed settings, storage, integrity or runtime categories without
 Normal dispatch failures exit 2. Only internal proxy children use category statuses 70 through 73; interrupts exit 130.
 Cowork uses the openreading-cowork plugin identity so its catalog can also list the Claude Code variant.
 
-Keep the generated tree local until signing, notarization and distribution review permit publication.
-The Agent Tools repository is public. An unsigned branch would expose its binary to other users.
-After owner approval, publish the reviewed tree on a new versioned distribution branch.
+Keep the generated tree local until source, license and distribution review permit publication with owner approval.
+Follow the [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy). No Developer ID signing or notarization is required for this candidate.
+The Agent Tools repository is public. Publishing a distribution branch exposes its binaries to other users.
+After owner approval and source merge, build that exact revision and publish a clearly labeled preview on a new versioned distribution branch.
+Tag the distribution commit so deleting its branch cannot orphan the pinned package. Preserve existing tags and binaries.
 Record that commit in both source catalogs using runtime.github_marketplace.catalogs(commit).
 Git-subdir entries pin complete plugin directories by SHA. No credential helper, download hook or bootstrap executable is needed.
 Git preserves executable permissions and deduplicates identical runtime blobs across the four package trees.
@@ -57,6 +59,8 @@ The generated distribution.json records the Core commit, worker hash, platform a
 Each runtime retains its complete inventory, dependency lock and license notices.
 
 Verify fresh GitHub install, catalog refresh, plugin update, tool discovery, settings preservation and removal through native hosts.
-Use isolated host configurations for CLI checks and synthetic documents for protocol checks.
+The owner installs and tests plugins. Agents do not install them, including into isolated host configurations.
+Use synthetic documents for protocol checks without altering any installed client or plugin.
 Desktop marketplace visibility and owner-operated Work/Cowork workflows require independent checks.
-Only macOS Apple Silicon is built. Other platforms, remote HTTPS, clean-machine prerequisites, signing and notarization remain pending.
+Only macOS Apple Silicon is built. Other platforms, remote HTTPS and clean-machine prerequisites remain pending.
+Record any macOS or host refusal without bypassing protection. The ad-hoc signature does not establish publisher authentication.

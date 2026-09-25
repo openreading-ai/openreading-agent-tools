@@ -11,7 +11,8 @@ Agent Tools handles native file selection, upload, retained results and evidence
 **Apple Silicon macOS preview only. Intel Mac, Windows and Linux binaries are pending.**
 The source is public. Alpha.24 is the replacement build candidate, not an approved binary release.
 The GitHub catalogs still select alpha.23. Neither alpha.22 nor alpha.23 is suitable for launch acceptance.
-Native acceptance, clean-machine checks, licensing review, signing and notarization remain release gates.
+The planned preview is ad-hoc signed, not Developer ID signed or notarized. No Apple signing setup is required for this candidate.
+Licensing review precedes preview publication. Native, remote HTTPS and clean-machine checks still gate supported-release claims.
 Alpha.24 selects the merged Core security fixes and a patched interpreter. See [release status](SECURITY.md#release-status) before testing.
 
 ## What you install
@@ -57,7 +58,7 @@ Follow [Remove retained data](SECURITY.md#remove-retained-data) for client-speci
 
 ## Required compatibility matrix
 
-ProductSpec revision 29 requires independent GitHub installation and functional acceptance for these four server-backed surfaces.
+ProductSpec revision 30 requires independent GitHub installation and functional acceptance for these four server-backed surfaces.
 Earlier candidate results are historical evidence, not acceptance of alpha.24.
 
 | Client | Alpha.24 native acceptance |
@@ -81,7 +82,7 @@ Do not install that draft's binaries to test the thin connector.
 Preview branches are review inputs, not a rolling release channel.
 Maintainers merge Core first, repin Agent Tools to that merged commit, then merge Agent Tools.
 A release tags the reviewed main commits and builds those exact versions. Moving main never silently replaces tagged binaries.
-Public source access is not binary-release approval. Generated packages still require the applicable distribution gates.
+Public source access is not binary-release approval. The [unsigned preview policy](SECURITY.md#unsigned-preview-policy) defines publication and acceptance gates.
 The source catalogs pin the complete packages on an immutable Git distribution commit.
 Versioned distribution branches contain generated packages, not parser libraries or source-checkout prerequisites.
 Git deduplicates the common runtime across client folders. Never merge a distribution branch into source main.

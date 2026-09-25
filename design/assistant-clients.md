@@ -1,6 +1,8 @@
 # Assistant integration and compatibility design
 
-Revision 29 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+Revision 30 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+The [unsigned preview policy](../SECURITY.md#unsigned-preview-policy) replaces historical signing requirements for this candidate.
+Native and clean-machine acceptance still require exact-package evidence. Do not bypass macOS or host protections.
 GitHub marketplaces replace manual archive and folder installation. The host fetches complete, immutable client packages.
 Current packaging lives in runtime.github_marketplace. Native Desktop sync and conversation acceptance remain separate gates.
 The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.

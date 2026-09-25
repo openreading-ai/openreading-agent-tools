@@ -48,4 +48,5 @@ Server failure never invokes a local parser or automatically resubmits uncertain
 The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob/main/runtime/server_client/README.md) records the verified runtime and Git distribution workflow.
 Native GitHub installation, cached tool discovery and synthetic processing require exact-build checks.
 Owner-operated Settings, picker, answers and lifecycle checks remain independent of CLI installation.
-Clean-machine prerequisites, remote HTTPS, signing and notarization remain release gates.
+Clean-machine prerequisites and remote HTTPS remain acceptance gates.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.

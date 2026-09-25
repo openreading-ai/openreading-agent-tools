@@ -7,6 +7,7 @@ Do not use `runtime.build`, `runtime.build_docling` or `runtime.package` for the
 
 The sections below preserve historical developer mechanisms and their evidence.
 Their dependency pins and artifacts do not define the current release.
+Earlier signing requirements are historical. The current connector follows the [unsigned preview policy](../SECURITY.md#unsigned-preview-policy).
 
 ## Historical native runtime
 

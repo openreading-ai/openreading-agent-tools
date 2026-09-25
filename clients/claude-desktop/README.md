@@ -33,7 +33,8 @@ The [Core setup guide](https://github.com/openreading-ai/openreading-agent-tools
 Localhost permits HTTP. Remote destinations require HTTPS. This connector sends no credentials.
 
 Verify GitHub sync, installation, updates, exact cited evidence and background-job recovery before accepting this build.
-Native Cowork acceptance and clean-machine installation remain pending for alpha.23.
+Native Cowork, remote HTTPS and clean-machine acceptance remain pending for the alpha.24 replacement.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
 Removing the plugin preserves preferences, selected copies and retained results in the Claude Desktop partition.
 Cancel unwanted jobs before removal. Never remove another client's data to reset this one.
 Follow [Remove retained data](../../SECURITY.md#remove-retained-data) for Cowork's `claude-desktop` partition and settings.

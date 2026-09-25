@@ -48,4 +48,5 @@ Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove 
 
 The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob/main/runtime/server_client/README.md) records the Git distribution and immutable runtime identity.
 Native Work settings, chooser, answers, reconnect and update behavior require their own exact-build checks.
-Ordinary Chat, web/mobile, cloud execution, clean-machine installation, signing and notarization are not established by CLI checks.
+CLI checks do not establish native Work, remote HTTPS or clean-machine acceptance. Ordinary Chat, web/mobile and cloud execution remain outside scope.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.

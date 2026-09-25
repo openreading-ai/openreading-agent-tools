@@ -1,6 +1,7 @@
 # Native settings release acceptance
 
 ProductSpec revision 28 preserves native settings and document features in a server-only connector.
+Revision 30's [unsigned preview policy](../SECURITY.md#unsigned-preview-policy) removes the candidate's mandatory signing and notarization gate.
 The source contracts live in `runtime/app_settings.py`, `storage_settings.py`, and `settings_server.py`.
 The settings connector is separate from the complete pinned Core document catalog.
 Revision 28 removes all connector authentication controls and Keychain integration.
@@ -23,7 +24,7 @@ Legacy destinations keep their URL and limits. Old credential references are ign
 - Confirm unfinished jobs and concurrent connections prevent migration, then finish them and retry.
 - Verify URL-only connection testing without documents and upgrades from legacy destination settings.
 - Check keyboard and assistive-technology access. The current Tk controls require their own accessibility acceptance.
-- Verify foreground activation, repeated invocation, helper lifetime, clean-machine installation, signing and notarization.
+- Verify foreground activation, repeated invocation, helper lifetime and clean-machine installation. Record signature status and any host refusal without bypassing protections.
 - Confirm package-size limits in the native installer. A self-contained local directory is not proof that upload installation accepts its archive.
 
 Previously published export paths retain their original copies. New exports use the selected data partition.

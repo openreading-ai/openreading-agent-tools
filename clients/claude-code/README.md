@@ -51,5 +51,6 @@ Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove 
 
 The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob/main/runtime/server_client/README.md) explains the Git distribution and exact worker identity.
 GitHub install/update, cached tool discovery and synthetic processing require version-specific host checks.
-Native Settings, selection, answer quality, clean-machine installation, signing and notarization remain independent release gates.
+Native Settings, selection, answer quality, remote HTTPS and clean-machine installation remain independent acceptance gates.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
 The files in historical/ belong to the old prototype assembler, not this installation route.
