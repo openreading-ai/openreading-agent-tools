@@ -7,7 +7,7 @@ Read this file, the relevant ProductSpec revision, and its engineering design be
 
 Current packages are URL-only connectors built with `runtime.build_server` and `runtime/server_client`.
 Historical PyMuPDF and Docling builders remain development records, not the current release path.
-ProductSpec revision 29 requires all four server-backed cells in the [compatibility matrix](README.md#required-compatibility-matrix).
+ProductSpec revision 30 requires all four server-backed cells in the [compatibility matrix](README.md#required-compatibility-matrix).
 Current installation uses GitHub-backed native marketplaces. Never direct users to extract, copy or install a local preview folder.
 Claude Cowork, ChatGPT Work, local Claude Code, and Codex each need operator-run Core server acceptance.
 Track each cell independently through the [matrix checklist](clients/README.md#matrix-acceptance); historical evidence never passes another surface.
@@ -16,7 +16,8 @@ Versioned configuration, the diagnostic Docling launcher, E0, citation checking 
 The separate P0 freezer supports development-only checks; native setup and signed distribution remain proposed.
 The core candidate implements local Docling supervision; a distinct Desktop development packager is implemented.
 The separate file-selection candidate bundles a Tk picker and a private intake launcher without directory settings.
-Native installation acceptance and signed distribution remain pending.
+Native installation acceptance remains pending. The current preview does not require Developer ID signing or notarization.
+Follow the [unsigned preview policy](SECURITY.md#unsigned-preview-policy); earlier signed-distribution proposals do not gate this connector candidate.
 Preserve historical revision pins and never relabel existing binaries or trials as evidence for a newer revision or another client.
 No public binary or measured token savings are released.
 The remaining native and release gates stay in `design/`.
@@ -35,7 +36,7 @@ Native accessibility, installation and clean-machine acceptance still gate that 
 Existing directory forms and explicit grants remain developer-only mechanisms.
 Ship only the server connector, with no bundled parser, models, OCR executable, runtime download or server manager.
 The bundled Docling implementation is preserved by tag bundled-docling-2.126.0-checkpoint.
-An operator-run Core HTTP destination is required in revision 29. Source, frozen and native acceptance remain separate gates.
+An operator-run Core HTTP destination is required in revision 30. Source, frozen and native acceptance remain separate gates.
 A power user's independent full-core MCP connection remains outside this package's configuration.
 Managed has only a static “Coming soon” visual. Build no endpoint, no-op server, authentication, upload, billing, polling, signup or dormant managed tools.
 Do not promise future capabilities without a client update. Native and distribution acceptance still gate the OSS release.

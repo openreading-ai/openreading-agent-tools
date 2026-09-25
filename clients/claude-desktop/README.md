@@ -1,10 +1,13 @@
 # OpenReading for Claude Desktop / Cowork
 
-This Apple Silicon alpha.23 review candidate connects Cowork to a Core server you run separately.
+This Apple Silicon connector connects Cowork to a Core server you run separately.
 It embeds the connector runtime and no parser, OCR executable, model or runtime downloader.
 Install from GitHub through Claude's personal marketplace controls. Other platform binaries remain pending.
 
 ## Install from GitHub
+
+The catalog still pins alpha.23, which is blocked for launch acceptance. Alpha.24 is being prepared separately.
+Wait for the reviewed replacement distribution and catalog update before following these installation steps.
 
 1. Open Cowork, then Customize, Plugins, the Personal plugins plus button, and Add marketplace.
 2. Choose Add from a repository and enter `https://github.com/openreading-ai/openreading-agent-tools`.
@@ -12,9 +15,9 @@ Install from GitHub through Claude's personal marketplace controls. Other platfo
 4. Enable both connectors, start a fresh Cowork task, and run `/openreading-settings`.
 5. Save and test your Core URL. Quit and reopen Claude, select a synthetic document, and choose Process.
 
-This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
-Use the main repository after the owner merges that build's catalog PR. Do not substitute a ZIP or local folder.
-The repository remains private. Authorize the app's GitHub access if requested; never put a token in chat or the repository URL.
+Use the main repository after the replacement catalog PR is merged. Do not substitute a ZIP or local folder.
+The repository is public and requires no private-repository grant. The host may still request GitHub authorization for its marketplace feature.
+Never put a token in chat or the repository URL.
 Review the requested repositories and permissions before authorizing. Record the exact scope for acceptance review.
 If the prompt requests access you do not intend to grant, stop instead of broadening access for this test.
 See [Claude's personal marketplace instructions](https://support.claude.com/en/articles/13837440-use-plugins-in-claude).
@@ -30,7 +33,8 @@ The [Core setup guide](https://github.com/openreading-ai/openreading-agent-tools
 Localhost permits HTTP. Remote destinations require HTTPS. This connector sends no credentials.
 
 Verify GitHub sync, installation, updates, exact cited evidence and background-job recovery before accepting this build.
-Native Cowork acceptance and clean-machine installation remain pending for alpha.23.
+Native Cowork, remote HTTPS and clean-machine acceptance remain pending for the alpha.24 replacement.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
 Removing the plugin preserves preferences, selected copies and retained results in the Claude Desktop partition.
 Cancel unwanted jobs before removal. Never remove another client's data to reset this one.
 Follow [Remove retained data](../../SECURITY.md#remove-retained-data) for Cowork's `claude-desktop` partition and settings.

@@ -7,16 +7,15 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Personal-account installation
 
-This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
-After that build's catalog PR is merged, register the main marketplace once using Codex CLI:
+The catalog still pins alpha.23, which is blocked for launch acceptance. Alpha.24 is being prepared separately.
+Wait for the reviewed replacement distribution and catalog update before following these installation steps.
+Then register the main marketplace once using Codex CLI:
 
 ~~~sh
 codex plugin marketplace add openreading-ai/openreading-agent-tools
 ~~~
 
-Your Git credentials must permit access while the repository remains private.
-If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
-This changes the credential helper for GitHub, not only this repository. Skip it when your existing Git authentication works.
+The repository is public. Reading its marketplace and package source requires no private-repository credentials or credential-helper change.
 Quit and reopen ChatGPT Desktop, open Plugins, select the OpenReading marketplace and install **OpenReading for ChatGPT**.
 Its plugin identifier is `openreading-chatgpt@openreading`. Do not choose the Codex entry named OpenReading.
 No workspace-admin import, manual clone, ZIP upload or extracted folder is part of this route.
@@ -49,4 +48,5 @@ Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove 
 
 The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob/main/runtime/server_client/README.md) records the Git distribution and immutable runtime identity.
 Native Work settings, chooser, answers, reconnect and update behavior require their own exact-build checks.
-Ordinary Chat, web/mobile, cloud execution, clean-machine installation, signing and notarization are not established by CLI checks.
+CLI checks do not establish native Work, remote HTTPS or clean-machine acceptance. Ordinary Chat, web/mobile and cloud execution remain outside scope.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.

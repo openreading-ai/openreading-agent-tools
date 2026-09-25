@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import platform
+import pyexpat
 import shutil
 import ssl
 import subprocess
@@ -42,7 +43,7 @@ from runtime.verify import inventory, sha256, verify_release
 
 HERE = Path(__file__).resolve().parent
 LOCK = HERE / "server_client/uv.lock"
-VERSION = "0.2.0-alpha.23"
+VERSION = "0.2.0-alpha.24"
 EXCLUDES = [
     "uvicorn",
     "setuptools",
@@ -179,6 +180,8 @@ def build_runtime(output):
         or ssl.OPENSSL_VERSION_INFO[:4] != (3, 5, 0, 8)
     ):
         raise ValueError("Build requires native macOS arm64, Python 3.11.16 and OpenSSL 3.5.8.")
+    if pyexpat.version_info != (2, 8, 5):
+        raise ValueError("Build requires the reviewed Expat 2.8.5 interpreter.")
     if output.exists():
         raise ValueError("Choose a new build directory; existing runtimes are never overwritten.")
     core = identity()

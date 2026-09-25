@@ -187,6 +187,20 @@ class ServerImportTests(unittest.TestCase):
         self.assertIn("http 401", message)
         self.assertNotIn("may continue", message)
 
+    def test_detached_duplicate_is_busy_without_upload_or_extra_job(self):
+        from openreading.artifacts import jobs
+        from openreading.artifacts.jobs import ImportExecution, ImportJobs
+
+        manager = ImportJobs(self.service, execution=ImportExecution(("trusted-worker",), {}))
+        with patch.object(jobs.subprocess, "Popen", return_value=Mock(pid=os.getpid())):
+            initial = manager.start(self.references[0])
+            with self.assertRaises(ArtifactError) as caught:
+                manager.start(self.references[0])
+        self.assertEqual(caught.exception.code, "busy")
+        self.assertTrue(caught.exception.envelope().error.retryable)
+        self.assertEqual([path.name for path in manager.root.iterdir()], [initial.job_id])
+        self.assertEqual(self.requests, [])
+
     def test_detached_retention_busy_recovers_cached_response_without_second_post(self):
         from runtime.server_imports import ServerArtifactService
 
@@ -201,6 +215,27 @@ class ServerImportTests(unittest.TestCase):
         self.assertEqual(self.retainer.call_count, 2)
         self.assertEqual(len(self.requests), 1)
         self.assertEqual(len(list(self.service.store.documents.iterdir())), 1)
+
+    def test_detached_admission_caps_waiting_supervisors_before_any_upload(self):
+        from openreading.artifacts import jobs
+        from openreading.artifacts.jobs import ImportExecution, ImportJobs
+
+        # The runner is not started. Real intake and admission validate five local sources.
+        references = []
+        for index in range(5):
+            path = self.selection.grant / self.references[0]
+            path = path.with_name(f"queued-{index}.custom")
+            path.write_bytes(b"synthetic bytes")
+            references.append(path.relative_to(self.selection.grant).as_posix())
+        manager = ImportJobs(self.service, execution=ImportExecution(("trusted-worker",), {}))
+        with patch.object(jobs.subprocess, "Popen", return_value=Mock(pid=os.getpid())):
+            admitted = [manager.start(path).job_id for path in references[:4]]
+            with self.assertRaises(ArtifactError) as caught:
+                manager.start(references[4])
+        self.assertEqual(caught.exception.code, "busy")
+        self.assertTrue(caught.exception.envelope().error.retryable)
+        self.assertEqual({path.name for path in manager.root.iterdir()}, set(admitted))
+        self.assertEqual(self.requests, [])
 
     def test_duplicate_physical_pages_are_rejected_before_caching_or_retention(self):
         from runtime.server_selection import approval_name

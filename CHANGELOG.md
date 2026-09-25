@@ -1,5 +1,16 @@
 # Changelog
 
+## OpenReading alpha.24 build candidate
+
+- Pin the current connector and integration environments to merged Core `9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86` after Core PR #55.
+- Adopt grant-scoped detached-job admission, duplicate-start refusal and abandoned-job recovery from canonical Core code.
+- Select the September 24 Astral interpreter with Expat 2.8.5 and reject the older native library before freezing.
+- Preserve historical runtime pins and existing alpha.23 distribution identities. No parser, model or server is added.
+- Distinguish public source access from binary approval. Keep existing catalogs unchanged until replacement distribution review completes.
+- Remove private-repository credential setup from the current installation guides. Exact-build host acceptance remains pending.
+- Advance ProductSpec to revision 30 for an owner-approved Apple Silicon preview without Developer ID signing or notarization.
+- Preserve license review, immutable distribution identities, security checks and exact-build native acceptance. Never bypass operating-system protections.
+
 ## OpenReading alpha.23 security-review candidate
 
 - Build alpha.23 with isolated Python 3.11.16, OpenSSL 3.5.8 and recorded native-library inputs. Historical build pins and alpha.22 stay unchanged.

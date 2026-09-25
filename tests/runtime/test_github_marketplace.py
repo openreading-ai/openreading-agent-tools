@@ -137,6 +137,13 @@ class GitHubMarketplaceTests(unittest.TestCase):
             with self.subTest(revision=revision), self.assertRaises(ValueError):
                 module.catalogs(revision)
 
+    def test_catalog_version_can_preserve_published_build_during_candidate_preparation(self):
+        module = self.module()
+        catalogs = module.catalogs("a" * 40, version="0.2.0-alpha.23")
+        for entry in catalogs[".claude-plugin/marketplace.json"]["plugins"]:
+            self.assertEqual(entry["version"], "0.2.0-alpha.23")
+            self.assertEqual(entry["source"]["sha"], "a" * 40)
+
     def test_cli_assembles_verified_runtime_without_rebuilding(self):
         module = self.module()
         with tempfile.TemporaryDirectory() as temporary:
@@ -156,5 +163,7 @@ class GitHubMarketplaceTests(unittest.TestCase):
         root = Path(module.__file__).resolve().parent.parent
         claude = json.loads((root / ".claude-plugin/marketplace.json").read_text())
         commit = claude["plugins"][0]["source"]["sha"]
-        for name, expected in module.catalogs(commit).items():
+        # A new source candidate does not replace the published binary before release review.
+        version = claude["plugins"][0]["version"]
+        for name, expected in module.catalogs(commit, version=version).items():
             self.assertEqual(json.loads((root / name).read_text()), expected)

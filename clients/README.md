@@ -2,10 +2,25 @@
 
 Launch scope: [OSS product v1](../design/oss-launch.md) exposes the full implemented MCP catalog of its pinned core through the server connector. Managed product v2 comes after launch; only a static “Coming soon” visual is planned. Historical profile/settings version 2 does not mean managed processing.
 
-Revision 29 requires a server connector with separately tested GitHub installation and client connections.
+Revision 30 requires a server connector with separately tested GitHub installation and client connections.
+The [unsigned preview policy](../SECURITY.md#unsigned-preview-policy) replaces earlier signing gates for this candidate only.
 Bundled Docling evidence and routes below are historical and preserved by tag bundled-docling-2.126.0-checkpoint.
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
+
+## Alpha.24 isolated frozen checks, September 24, 2026
+
+The unpublished replacement worker SHA-256 is `24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794`.
+Its Core pin is merged main `9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86`.
+The interpreter is Python 3.11.16 with OpenSSL 3.5.8, Tcl/Tk 9.0.4 and Expat 2.8.5.
+All four generated launchers pass source-to-frozen catalog and instruction parity against the pinned client-only Core package.
+Synthetic loopback checks cover upload, cached reuse, exact reads, export hashes, detached jobs, restart recovery and destination-change refusal.
+Four active jobs are admitted per grant. Duplicate starts and a fifth job return retryable busy without creating another supervisor.
+Completing the existing jobs releases capacity. Each of the five admitted references produces exactly one POST.
+Settings tool discovery and missing-destination refusals also pass. Picker and consent are injected, not exercised natively.
+No plugins are installed or updated. Existing GitHub catalogs still select alpha.23, not this isolated candidate.
+Licensing review, remote HTTPS and all four exact-host walkthroughs remain pending.
+Developer ID signing and notarization are not prerequisites for this preview. Its ad-hoc signature does not authenticate the publisher.
 
 ## Alpha.23 frozen checks, September 24, 2026
 
@@ -168,7 +183,7 @@ Only synthetic documents are used for server acceptance. Server operation remain
 
 Use `pending`, `partial`, `blocked` with a reason, or `passed` with exact-build evidence for each cell.
 A clean configuration on a development machine does not replace a clean-machine prerequisite check.
-Signing and notarization remain release gates even after a development walkthrough succeeds.
+Record signature status and any host or macOS refusal without bypassing protections. Signing is not a prerequisite for this preview.
 Test Claude first, then ChatGPT. Neither assistant is complete until its two client cells pass.
 
 ## Documented routes

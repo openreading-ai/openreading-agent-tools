@@ -2,10 +2,10 @@
 spec_format_version: "0.1"
 title: "Local document proof for AI assistants"
 artifact_type: "prd"
-spec_revision: 29
+spec_revision: 30
 author: "Akshay"
 created_at: "2026-09-10T00:00:00Z"
-updated_at: "2026-09-23T00:00:00Z"
+updated_at: "2026-09-24T00:00:00Z"
 linked_github_repo: "openreading-ai/openreading-agent-tools"
 applies_to:
   - path: "runtime/"
@@ -31,7 +31,7 @@ A convincing answer without a resolvable document and page reference cannot supp
 For example, an answer about a renewal period should identify the paragraph and physical PDF page containing that period.
 
 The first platform remains macOS on Apple Silicon.
-Revision 29 requires the [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
+Revision 30 preserves revision 29's [four-cell compatibility matrix](../../README.md#required-compatibility-matrix).
 Install all four forms from GitHub through native host marketplaces, without manually extracted folders or binary installation.
 Personal ChatGPT Work uses CLI marketplace registration and desktop discovery, not workspace-admin import.
 GitHub-backed installation and updates require exact-host evidence. CLI discovery does not establish desktop conversation acceptance.
@@ -40,6 +40,14 @@ Each surface connects to a required operator-run Core server. No parser or model
 Ordinary Chat and cloud code sessions do not satisfy these targets. No other client is claimed.
 A supported client means one recorded application version, execution mode, and connection path that passes the functional checks.
 Support for one desktop mode does not establish support for its web, mobile, or remotely executed modes.
+
+Revision 30 permits an owner-approved Apple Silicon preview without Developer ID signing or Apple notarization.
+The worker remains ad-hoc signed, which does not authenticate its publisher.
+The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) owns the current distribution requirements.
+Source review, dependency licensing, package integrity, frozen checks and owner approval precede preview publication.
+The published preview then enables owner-run GitHub installation tests before supported-release claims.
+Native, remote HTTPS and clean-machine acceptance remain independent. Never bypass operating-system protections to pass a check.
+This decision supersedes older signing requirements below and in historical design records without relabeling their evidence.
 
 ## Hypothesis
 
@@ -63,7 +71,7 @@ You install an OpenReading bundle without configuring a directory or typing a fi
 You explicitly select files or a folder snapshot through a local file-selection interface.
 Owner-operated candidate checks cover folder selection and multiple imports in the [client matrix](../../clients/README.md#owner-operated-candidate-checks-september-16-2026).
 The repeated native folder check matches expected aggregate skip counts; the earlier discrepancy remains unexplained.
-Signed clean-machine installation and lifecycle acceptance remain pending.
+Exact-build clean-machine installation and lifecycle acceptance remain pending.
 Each client connects to the same runtime through its tested local MCP interface.
 Setup requires an explicit server URL and discloses local retention and uploads. The server owns parser and OCR configuration.
 A host-supported handoff or bundled picker supplies only your selected document to the local runtime.
@@ -97,7 +105,7 @@ Core owns the generic artifact and MCP behavior.
 Agent Tools packages that engine, guides the client workflow, and tests installation.
 The private company repository holds private evaluation documents and native Desktop observations.
 
-**Review status: revision 28 requires four independently tested server-backed client surfaces; managed v2 is post-launch and unbuilt.**
+**Review status: revision 30 permits an unsigned preview and requires four independently tested server-backed client surfaces; managed v2 is post-launch and unbuilt.**
 The Docling developer harness, retrieval checks, and citation checker are implemented.
 Historical API study execution and preparation are disabled; their unrun drafts remain superseded records.
 Historical revision 1 PyMuPDF binaries and the newer Docling development candidate remain distinct.
@@ -140,7 +148,7 @@ The [OSS launch design](../../design/oss-launch.md) owns the catalog proof and p
 
 ~~~productspec-scope
 in:
-  - Deliver signed and notarized server connector packages for macOS on Apple Silicon across Claude Cowork, ChatGPT Work, local Claude Code, and Codex; independently verify operator-run Core processing in every surface.
+  - Deliver explicitly labeled server connector previews for macOS on Apple Silicon without requiring Developer ID signing or notarization; independently verify operator-run Core processing in Claude Cowork, ChatGPT Work, local Claude Code, and Codex before support claims.
   - Preserve server-reported text, OCR labels, warnings, partial status and provenance without inventing local parser results.
   - Exclude table structure recognition until a separately approved compatible engine exists.
   - Require no directory-path configuration in public installation; accept explicitly selected adapter-supported local documents through a verified file picker or handoff, with one artifact per import.
@@ -228,7 +236,7 @@ Native acceptance for the integrated package remains independent of the earlier 
 ### First successful answer
 
 1. You receive a versioned bundle for your tested operating system and client.
-2. You install the signed runtime through the tested instructions for your named desktop client.
+2. You install the versioned plugin from GitHub through your named client's marketplace, with its signature status disclosed.
 3. Setup discloses retained source copies, the local layout model and automatic local OCR without a directory or OCR setting.
 4. Setup explains that passages returned to your assistant may enter its cloud context.
 5. You ask OpenReading to open a document, choose agreement.pdf in the local picker, and ask for the renewal notice period. The selected reference returns to chat automatically.
@@ -339,7 +347,7 @@ The runtime evidence table describes historical revision 1 checks only; changed 
 - id: AC-18
   criterion: Repository verification stays offline, never requires sibling checkouts, and checks every product implementation added to this repository through meaningful tests and a measured coverage gate.
 - id: AC-19
-  criterion: Before a binary is distributed to another machine or user, distribution review verifies every native library, weight, OCR data file, and notice, excludes PyMuPDF and prohibited dependencies, and records Developer ID signing, notarization, entitlements, and clean-host launch evidence; the Apache source badge never represents the entire bundle.
+  criterion: Before preview publication, review the source, security findings, frozen checks, bundled libraries and dependency notices; exclude parsers, model weights and OCR data; record source and Core commits, toolchain, runtime hash and immutable tagged distribution identity. The owner approves an explicitly labeled Apple Silicon preview with disclosed ad-hoc signing and no Developer ID or notarization requirement. Exact-build GitHub installation, native workflows, remote HTTPS and clean-host checks precede supported-release claims. Never bypass OS protections. The source license and checksums do not authenticate the publisher or relicense dependencies.
 - id: AC-20
   criterion: The final walkthrough names tested clients and limits, explains what reaches the model, links its reviewed proof evidence, and removes completed proposal records after moving durable facts beside the implementation.
 - id: AC-21
@@ -451,7 +459,7 @@ These are proposed post-proof pilot targets, distinct from the pre-launch accept
 Measurement is an opt-in maintainer study with ten participants: five non-developers and five developer diagnostics, with no runtime telemetry.
 Report each cohort separately; developer success cannot replace the non-developer threshold.
 Akshay owns recruitment through personal introductions and voluntary community responses. The release maintainer owns the guide and observation rubric.
-No invitations are sent or contacts collected by the product. Confirm the roster, consent and schedule before distributing the signed pilot candidate.
+No invitations are sent or contacts collected by the product. Confirm the roster, consent and schedule before distributing the approved pilot candidate.
 The owner records observations in the private company repository.
 
 ~~~productspec-success-metrics
@@ -493,7 +501,7 @@ Measure cold and warm import times, memory, and archive size before selecting re
 Permissive top-level licenses do not establish the complete distribution inventory.
 
 **Packaging becomes the whole project.**
-Ship one platform and one parser first, with signing and real installation as early feasibility checks.
+Ship one platform and the server connector first, with exact-package GitHub installation as an early acceptance check.
 Additional hosts wrap that tested runtime instead of reimplementing it.
 
 **A selective baseline already wins.**
@@ -520,12 +528,12 @@ The static Coming soon visual is the entire commercial seed; a dummy endpoint wa
 MCP catalog parity and native functional/distribution gates belong to v1, independently of managed readiness.
 Preserve internal runtime and settings version names; they are not marketing release numbers.
 
-The [implementation plan](../../design/implementation-plan.md) orders shared configuration, frozen-build feasibility, native Desktop proof, measured resource limits, signing, and clean-host installation.
+The [implementation plan](../../design/implementation-plan.md) places source and distribution review before preview publication, then owner-operated native and clean-host acceptance.
 Existing engine feasibility and retrieval checks remain prerequisites.
 M0, M1 and M2 provider API studies are retired and cannot block P1 packaging or H1 installation.
 Preserve their prepared drafts as superseded, unrun records. No approval can reactivate API execution.
 The bounded unsigned P0 build remains development evidence, not a distribution or clean-installation pass.
-A functional release needs its native, resource, signing and installation checks, independently of token measurements.
+A supported release needs its native, resource and installation checks, independently of token measurements.
 Token savings remain untested until reliable evidence is available from the actual Desktop app.
 No result authorizes an agent to merge or publish.
 
@@ -536,8 +544,8 @@ The following owner actions remain release dependencies:
 
 - Establish a named local ChatGPT conversation mode and native plugin setup path before claiming its compatibility; Claude Desktop can ship independently after its own gates pass.
 - Approve the core contract scope in core before changing its public schemas or MCP surface.
-- Review the complete Docling bundle, including native dependencies, model weights, and OCR data, before sharing it.
-- Supply a clean macOS virtual machine and the Developer ID identity required for release signing and notarization.
+- Review the complete server connector, including native dependencies and their notices, before sharing it. No parser, model or OCR data ships.
+- Supply a clean Apple Silicon macOS environment for exact-build installation. No Developer ID identity or notarization setup is required for this preview.
 - Run the remaining owner-operated native walkthroughs using existing Desktop accounts, with app identity and complete evidence capture.
 - Review the evidence and approve any public release or marketing claim.
 

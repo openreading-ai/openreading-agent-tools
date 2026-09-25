@@ -1,7 +1,25 @@
 # Revision 19 implementation plan
 
-Revision 28 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
+Revision 30 supersedes the bundled-parser distribution described below. Current packages connect only to an operator-run Core server.
 The four-cell matrix and current acceptance criteria live in the ProductSpec and client README. Earlier Docling plans remain historical.
+
+## Current unsigned preview sequence
+
+This sequence replaces the signed-distribution dependency for the current connector, including historical P1 and H1 prerequisites below.
+Contract: revision 30 AC-19 and the [unsigned preview policy](../SECURITY.md#unsigned-preview-policy).
+
+1. Review the replacement source PR and its security, dependency-license, inventory and frozen-check evidence. The owner merges it.
+2. Build that exact merged revision with the pinned isolated toolchain. Recheck final package hashes, notices, catalog parity and synthetic behavior.
+3. With owner approval, publish an explicitly labeled Apple Silicon preview on a new versioned distribution branch and tag its commit.
+4. Submit a separate source-catalog PR with the new version and immutable distribution commit. Preserve historical binaries and tags.
+5. After the owner merges the catalog PR, the owner installs all four forms from GitHub. Agents install no test plugins.
+6. Record exact-host functional, remote HTTPS success/refusal, update and clean-machine evidence before supported-release claims.
+
+Developer ID signing and notarization are not prerequisites for this preview. Disclose its ad-hoc signature without implying publisher authentication.
+Record any macOS or host refusal and stop that route's acceptance. Never disable protections or introduce a downloader to bypass the refusal.
+No merge, publication or successful acceptance is implied by this plan. Earlier evidence retains its original identity and scope.
+
+## Historical implementation plan
 
 **Status:** shared configuration, P0 diagnostic freezing, E0 and synthetic probe tooling are implemented. Native client adapters, release packaging and Desktop proof remain proposed.
 **Contracts:** [ProductSpec revision 19](../product/specs/local-document-proof.product-spec.md), [assistant integration](assistant-clients.md), [engine design](local-document-proof.md), and [evaluation design](token-evaluation.md).
