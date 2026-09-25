@@ -8,7 +8,7 @@
         "source": "git-subdir",
         "url": "https://github.com/openreading-ai/openreading-agent-tools.git",
         "path": "plugins/codex/openreading",
-        "sha": "a937bb59b44df3f360a33660b9f24159fe427acb"
+        "sha": "5aed913f7a8ad019b1958d22fc13f8127c8f0a49"
       },
       "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
       "category": "Productivity"
@@ -19,7 +19,7 @@
         "source": "git-subdir",
         "url": "https://github.com/openreading-ai/openreading-agent-tools.git",
         "path": "plugins/chatgpt/openreading-chatgpt",
-        "sha": "a937bb59b44df3f360a33660b9f24159fe427acb"
+        "sha": "5aed913f7a8ad019b1958d22fc13f8127c8f0a49"
       },
       "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
       "category": "Productivity"

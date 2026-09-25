@@ -7,9 +7,9 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Personal-account installation
 
-The catalog still pins alpha.23, which is blocked for launch acceptance. Alpha.24 is being prepared separately.
-Wait for the reviewed replacement distribution and catalog update before following these installation steps.
-Then register the main marketplace once using Codex CLI:
+These instructions target `0.2.0-alpha.24`, the replacement Apple Silicon preview.
+Use them after the alpha.24 catalog PR is merged. Earlier previews do not satisfy this build's acceptance checks.
+Register the main marketplace once using Codex CLI:
 
 ~~~sh
 codex plugin marketplace add openreading-ai/openreading-agent-tools
@@ -49,4 +49,4 @@ Follow [Remove retained data](../../SECURITY.md#remove-retained-data) to remove 
 The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob/main/runtime/server_client/README.md) records the Git distribution and immutable runtime identity.
 Native Work settings, chooser, answers, reconnect and update behavior require their own exact-build checks.
 CLI checks do not establish native Work, remote HTTPS or clean-machine acceptance. Ordinary Chat, web/mobile and cloud execution remain outside scope.
-The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
+The [unsigned preview policy](https://github.com/openreading-ai/openreading-agent-tools/blob/main/SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.

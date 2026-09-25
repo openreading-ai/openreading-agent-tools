@@ -35,7 +35,8 @@ Git-subdir entries pin complete plugin directories by SHA. No credential helper,
 Git preserves executable permissions and deduplicates identical runtime blobs across the four package trees.
 Do not merge generated binaries into source main or replace historical tags.
 The owner reviews and merges the source-catalog PR. Never merge it automatically.
-The source catalogs currently retain alpha.23. A source-only version bump never relabels those existing package bytes.
+The source catalogs select alpha.24 at `5aed913f7a8ad019b1958d22fc13f8127c8f0a49`, preserved by tag `dist-macos-arm64-alpha24`.
+A source-only version bump never relabels existing package bytes. Runtime source and package input commits are recorded separately in source.json.
 
 ## Build identity and acceptance
 

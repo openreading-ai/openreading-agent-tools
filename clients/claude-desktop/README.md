@@ -6,8 +6,8 @@ Install from GitHub through Claude's personal marketplace controls. Other platfo
 
 ## Install from GitHub
 
-The catalog still pins alpha.23, which is blocked for launch acceptance. Alpha.24 is being prepared separately.
-Wait for the reviewed replacement distribution and catalog update before following these installation steps.
+These instructions target `0.2.0-alpha.24`, the replacement Apple Silicon preview.
+Use them after the alpha.24 catalog PR is merged. Earlier previews do not satisfy this build's acceptance checks.
 
 1. Open Cowork, then Customize, Plugins, the Personal plugins plus button, and Add marketplace.
 2. Choose Add from a repository and enter `https://github.com/openreading-ai/openreading-agent-tools`.
@@ -34,7 +34,7 @@ Localhost permits HTTP. Remote destinations require HTTPS. This connector sends 
 
 Verify GitHub sync, installation, updates, exact cited evidence and background-job recovery before accepting this build.
 Native Cowork, remote HTTPS and clean-machine acceptance remain pending for the alpha.24 replacement.
-The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
+The [unsigned preview policy](https://github.com/openreading-ai/openreading-agent-tools/blob/main/SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
 Removing the plugin preserves preferences, selected copies and retained results in the Claude Desktop partition.
 Cancel unwanted jobs before removal. Never remove another client's data to reset this one.
 Follow [Remove retained data](../../SECURITY.md#remove-retained-data) for Cowork's `claude-desktop` partition and settings.

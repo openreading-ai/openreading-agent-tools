@@ -9,10 +9,11 @@ Connect your assistant to an [OpenReading Core](https://github.com/openreading-a
 Agent Tools handles native file selection, upload, retained results and evidence retrieval. Core handles document processing.
 
 **Apple Silicon macOS preview only. Intel Mac, Windows and Linux binaries are pending.**
-The source is public. Alpha.24 is the replacement build candidate, not an approved binary release.
-The GitHub catalogs still select alpha.23. Neither alpha.22 nor alpha.23 is suitable for launch acceptance.
+The source is public. Alpha.24 is the replacement GitHub preview for owner-run testing, not a supported release.
+The catalogs select alpha.24 at immutable distribution `5aed913f7a8ad019b1958d22fc13f8127c8f0a49`.
+Neither alpha.22 nor alpha.23 is suitable for launch acceptance.
 The planned preview is ad-hoc signed, not Developer ID signed or notarized. No Apple signing setup is required for this candidate.
-Licensing review precedes preview publication. Native, remote HTTPS and clean-machine checks still gate supported-release claims.
+Bundled inventory and notice checks passed for this preview. Native, remote HTTPS and clean-machine checks still gate supported-release claims.
 Alpha.24 selects the merged Core security fixes and a patched interpreter. See [release status](SECURITY.md#release-status) before testing.
 
 ## What you install
@@ -26,7 +27,7 @@ Alpha.24 selects the merged Core security fixes and a patched interpreter. See [
 
 No installation route requires a downloaded ZIP, extracted folder, manual clone or copied binary.
 Each host fetches and caches its complete package. Desktop visibility and native workflows require their own acceptance checks.
-The replacement requires a separate reviewed distribution and catalog update before testing through GitHub.
+After the owner merges this catalog update, install or update from the main GitHub marketplace using the relevant guide.
 Updated source alone does not update an installed worker. Verify the installed version and worker hash after the host update.
 
 All four forms embed the same small connector worker, its Python interpreter and client dependencies.
@@ -84,6 +85,8 @@ Maintainers merge Core first, repin Agent Tools to that merged commit, then merg
 A release tags the reviewed main commits and builds those exact versions. Moving main never silently replaces tagged binaries.
 Public source access is not binary-release approval. The [unsigned preview policy](SECURITY.md#unsigned-preview-policy) defines publication and acceptance gates.
 The source catalogs pin the complete packages on an immutable Git distribution commit.
+Tag `v0.2.0-alpha.24` identifies the merged runtime source. Tag `dist-macos-arm64-alpha24` preserves the generated packages.
+The distribution records source inputs, worker hashes and [verification boundaries](https://github.com/openreading-ai/openreading-agent-tools/blob/dist-macos-arm64-alpha24/verification.json).
 Versioned distribution branches contain generated packages, not parser libraries or source-checkout prerequisites.
 Git deduplicates the common runtime across client folders. Never merge a distribution branch into source main.
 Historical archives and tags remain unchanged. ZIP packaging remains a maintainer diagnostic, not the installation guide.
