@@ -17,7 +17,7 @@ Its distribution commit is `572d13dfafdc944eeebe4b8519edda7c43d31697`.
 Its worker SHA-256 is `6777e48d1cf3bdf96cc0c6cc964fa1f814c96a17767f4f5f0193d0edd71483bc`.
 Source fixes do not change that binary. Consult the [changelog](CHANGELOG.md) for subsequent candidates.
 
-Alpha.23 remains in the GitHub catalogs, but is not an approved public release or launch-test candidate.
+Alpha.23 is historical and is not an approved public release or launch-test candidate.
 Its worker SHA-256 is `db268d52f410c663b88616f2109e30f84806e80f5e407d56cff846d2d759615b`.
 It uses Python 3.11.16, OpenSSL 3.5.8, Tcl/Tk 9.0.4 and Expat 2.8.4.
 Synthetic frozen-worker checks do not establish native installation, remote TLS acceptance, licensing approval or publisher authentication.
@@ -27,11 +27,12 @@ No affected XML path is identified in that flow, but this is not independent rea
 Keep launch acceptance blocked until a patched interpreter or an independently reviewed disposition resolves this native dependency finding.
 
 Alpha.24 source pins merged Core `9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86`, including detached-job admission and abandoned-job recovery.
-Its unpublished development worker SHA-256 is `24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794`.
+Its preview worker SHA-256 is `24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794`.
 Its isolated interpreter comes from the checksum-pinned [September 24 Astral build](https://github.com/astral-sh/python-build-standalone/releases/tag/20260924), with Expat 2.8.5.
 The freezer refuses Expat versions other than that reviewed input before creating a runtime.
 Python remains 3.11.16, OpenSSL remains 3.5.8, and Tcl/Tk remain 9.0.4.
-Building this replacement does not update installed plugins or the existing GitHub catalogs.
+The worker is rebuilt from merged Agent Tools `4110af50edb34363f21a2270e49107712cdfd30b`.
+Building the replacement does not update installed plugins. The owner merges its separate catalog PR before GitHub installation tests.
 Licensing and distribution review remain prerequisites for publishing this preview under the policy below.
 Exact-build native, remote HTTPS and clean-machine acceptance still gate supported-release claims.
 

@@ -2,6 +2,8 @@
 
 ## OpenReading alpha.24 build candidate
 
+- Rebuild the worker from merged source `4110af50edb34363f21a2270e49107712cdfd30b` and prepare all four GitHub packages for owner installation tests.
+- Refresh installed guides for alpha.24 and make the unsigned-policy link work outside the source checkout.
 - Pin the current connector and integration environments to merged Core `9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86` after Core PR #55.
 - Adopt grant-scoped detached-job admission, duplicate-start refusal and abandoned-job recovery from canonical Core code.
 - Select the September 24 Astral interpreter with Expat 2.8.5 and reject the older native library before freezing.

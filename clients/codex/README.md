@@ -7,9 +7,9 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Install from GitHub
 
-The catalog still pins alpha.23, which is blocked for launch acceptance. Alpha.24 is being prepared separately.
-Wait for the reviewed replacement distribution and catalog update before following these installation steps.
-Then register the main marketplace:
+These instructions target `0.2.0-alpha.24`, the replacement Apple Silicon preview.
+Use them after the alpha.24 catalog PR is merged. Earlier previews do not satisfy this build's acceptance checks.
+Register the main marketplace:
 
 ~~~sh
 codex plugin marketplace add openreading-ai/openreading-agent-tools
@@ -49,4 +49,4 @@ The [build guide](https://github.com/openreading-ai/openreading-agent-tools/blob
 Native GitHub installation, cached tool discovery and synthetic processing require exact-build checks.
 Owner-operated Settings, picker, answers and lifecycle checks remain independent of CLI installation.
 Clean-machine prerequisites and remote HTTPS remain acceptance gates.
-The [unsigned preview policy](../../SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
+The [unsigned preview policy](https://github.com/openreading-ai/openreading-agent-tools/blob/main/SECURITY.md#unsigned-preview-policy) discloses ad-hoc signing and requires no Developer ID or notarization for this candidate.
