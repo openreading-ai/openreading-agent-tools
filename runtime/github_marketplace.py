@@ -5,6 +5,7 @@ Both host catalogs reference complete plugin directories. Git preserves executab
 bits and deduplicates identical runtime blobs across the four client packages.
 Source catalogs can pin that distribution commit with git-subdir sources. They
 never resolve a moving branch as a plugin version or run a download helper.
+An explicit catalog version preserves an older published build while its replacement is reviewed.
 Desktop identities differ from code identities because hosts may share catalogs.
 The launcher's client label preserves existing preferences and retained documents.
 Native host installation and owner-operated workflows remain separate gates.
@@ -31,7 +32,7 @@ CLIENTS = {
 }
 
 
-def catalogs(commit=None):
+def catalogs(commit=None, *, version=None):
     if commit is not None and not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ValueError("A remote marketplace requires a full immutable Git commit.")
     claude = {"name": "openreading", "owner": {"name": "OpenReading"}, "plugins": []}
@@ -46,7 +47,7 @@ def catalogs(commit=None):
         )
         entry = {"name": name, "source": source}
         if is_claude:
-            entry["version"] = build_server.VERSION
+            entry["version"] = version if version is not None else build_server.VERSION
             entry["description"] = (
                 f"OpenReading for {'Cowork' if client == 'claude-desktop' else 'Claude Code'}. "
                 "Apple Silicon only. Connects to your separately running Core server."

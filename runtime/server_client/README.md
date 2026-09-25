@@ -11,8 +11,8 @@ Use uv 0.12.18 or newer to resolve the current Python patch. Historical projects
 Run from the source repository after `make sync` and `make verify`:
 
 ~~~sh
-uv run --frozen --project runtime/server_client --all-groups python -m runtime.build_server --output dist/alpha23/frozen
-uv run --frozen --project runtime/server_client --all-groups python -m runtime.github_marketplace --runtime dist/alpha23/frozen/runtime --output dist/alpha23/github
+uv run --frozen --project runtime/server_client --all-groups python -m runtime.build_server --output dist/alpha24/frozen
+uv run --frozen --project runtime/server_client --all-groups python -m runtime.github_marketplace --runtime dist/alpha24/frozen/runtime --output dist/alpha24/github
 ~~~
 
 The first command freezes one verified worker. Its diagnostic ZIP is not an end-user installation route.
@@ -25,23 +25,28 @@ Startup reports fixed settings, storage, integrity or runtime categories without
 Normal dispatch failures exit 2. Only internal proxy children use category statuses 70 through 73; interrupts exit 130.
 Cowork uses the openreading-cowork plugin identity so its catalog can also list the Claude Code variant.
 
-Publish the generated tree on a new versioned distribution branch in the private Agent Tools GitHub repository.
+Keep the generated tree local until signing, notarization and distribution review permit publication.
+The Agent Tools repository is public. An unsigned branch would expose its binary to other users.
+After owner approval, publish the reviewed tree on a new versioned distribution branch.
 Record that commit in both source catalogs using runtime.github_marketplace.catalogs(commit).
 Git-subdir entries pin complete plugin directories by SHA. No credential helper, download hook or bootstrap executable is needed.
 Git preserves executable permissions and deduplicates identical runtime blobs across the four package trees.
 Do not merge generated binaries into source main or replace historical tags.
-The owner reviews and merges the source-catalog PR. Repository publication requires separate approval.
+The owner reviews and merges the source-catalog PR. Never merge it automatically.
+The source catalogs currently retain alpha.23. A source-only version bump never relabels those existing package bytes.
 
 ## Build identity and acceptance
 
-Alpha.23 retains merged Core main `02a2061eae3486ac1513ac8216cd79422c8e3c66`.
+Alpha.24 pins merged Core main `9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86` after its security review.
 The current build uses Python 3.11.16 and OpenSSL 3.5.8. Historical environments keep their original pins.
 The [toolchain input](toolchain.json) records the official Astral archive, checksum and bundled native library versions.
 Verify that archive before using its interpreter. Keep it in an isolated build directory rather than replacing a system Python.
+Pass `--python /absolute/verified/python/bin/python3` to each build-time `uv run` when an older 3.11.16 installation is cached.
+The Python patch number alone does not identify the bundled Expat version.
 Verify the matching full archive in the same record, then extract its `python/PYTHON.json` and `python/licenses` beside that interpreter.
 The notice builder uses those upstream native dependency records and refuses missing license inputs.
-Check Tcl 9.0.4, Tk 9.0.4 and Expat 2.8.4 in the resulting bundle before distribution.
-The freezer checks Python and OpenSSL and includes the toolchain record in its hashed inventory.
+Check Tcl 9.0.4, Tk 9.0.4 and Expat 2.8.5 in the resulting bundle before distribution.
+The freezer checks Python, OpenSSL and Expat and includes the toolchain record in its hashed inventory.
 That record identifies expected inputs, not independent build attestation or native acceptance.
 Current notices list Python packages whose code ships, the embedded PyInstaller bootloader, and native dependency license texts.
 Metadata-only packages and unused build tools do not become implementation claims. Historical notice generators stay unchanged.

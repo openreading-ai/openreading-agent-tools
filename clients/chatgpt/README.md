@@ -7,16 +7,15 @@ Start [OpenReading Core separately](https://github.com/openreading-ai/openreadin
 
 ## Personal-account installation
 
-This revision pins the alpha.23 security-review candidate. Independent review and exact-build native acceptance remain pending.
-After that build's catalog PR is merged, register the main marketplace once using Codex CLI:
+The catalog still pins alpha.23, which is blocked for launch acceptance. Alpha.24 is being prepared separately.
+Wait for the reviewed replacement distribution and catalog update before following these installation steps.
+Then register the main marketplace once using Codex CLI:
 
 ~~~sh
 codex plugin marketplace add openreading-ai/openreading-agent-tools
 ~~~
 
-Your Git credentials must permit access while the repository remains private.
-If you already use GitHub CLI, `gh auth setup-git --hostname github.com` configures Git to use that login for private HTTPS fetches.
-This changes the credential helper for GitHub, not only this repository. Skip it when your existing Git authentication works.
+The repository is public. Reading its marketplace and package source requires no private-repository credentials or credential-helper change.
 Quit and reopen ChatGPT Desktop, open Plugins, select the OpenReading marketplace and install **OpenReading for ChatGPT**.
 Its plugin identifier is `openreading-chatgpt@openreading`. Do not choose the Codex entry named OpenReading.
 No workspace-admin import, manual clone, ZIP upload or extracted folder is part of this route.

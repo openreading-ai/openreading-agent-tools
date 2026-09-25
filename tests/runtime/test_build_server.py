@@ -3,6 +3,7 @@
 import importlib
 import importlib.util
 import json
+import pyexpat
 import shlex
 import ssl
 import subprocess
@@ -142,6 +143,7 @@ class ServerBuildTests(unittest.TestCase):
                 patch.object(module.platform, "machine", return_value="arm64"),
                 patch.object(module.platform, "python_version", return_value="3.11.16"),
                 patch.object(ssl, "OPENSSL_VERSION_INFO", (3, 5, 0, 8, 0)),
+                patch.object(pyexpat, "version_info", (2, 8, 5)),
                 patch.object(module.platform, "mac_ver", return_value=("15.1", "", "")),
             ):
                 runtime = module.build_runtime(root / "runtime")
@@ -469,6 +471,20 @@ class ServerBuildTests(unittest.TestCase):
                 self.assertRaises(ValueError),
             ):
                 module.build_runtime(Path("/unused"))
+
+    def test_freezer_refuses_unpatched_expat_before_starting_build(self):
+        module = self.module()
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch.object(module.sys, "platform", "darwin"),
+            patch.object(module.platform, "machine", return_value="arm64"),
+            patch.object(module.platform, "python_version", return_value="3.11.16"),
+            patch.object(ssl, "OPENSSL_VERSION_INFO", (3, 5, 0, 8, 0)),
+            patch.object(pyexpat, "version_info", (2, 8, 4)),
+            patch.object(module, "identity", side_effect=AssertionError("unsafe build started")),
+            self.assertRaisesRegex(ValueError, "Expat"),
+        ):
+            module.build_runtime(Path(temporary) / "runtime")
 
     def test_cli_assembles_package_and_refuses_existing_destination(self):
         import contextlib

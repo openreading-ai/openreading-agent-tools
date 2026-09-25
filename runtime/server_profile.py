@@ -10,6 +10,8 @@ The external profile has no parser or overall server wait deadline. Transport bo
 No page count or aggregate storage ceiling is configured, and retained data has no eviction.
 For example, successive imports grow disk use until the user removes their retained data.
 A stalled server can keep a detached job waiting until explicit local cancellation.
+Core admits at most four nonterminal imports per grant and refuses duplicate active source paths.
+For example, a fifth start returns retryable busy without uploading or spawning another supervisor.
 The response byte budget limits downloads, not peak memory during decoding and retention.
 """
 

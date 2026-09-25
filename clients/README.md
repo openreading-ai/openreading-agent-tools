@@ -7,6 +7,19 @@ Bundled Docling evidence and routes below are historical and preserved by tag bu
 The [assistant design](../design/assistant-clients.md) defines the pending migration and its evidence requirements.
 Historical revision 1 packages do not establish Docling compatibility.
 
+## Alpha.24 isolated frozen checks, September 24, 2026
+
+The unpublished replacement worker SHA-256 is `24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794`.
+Its Core pin is merged main `9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86`.
+The interpreter is Python 3.11.16 with OpenSSL 3.5.8, Tcl/Tk 9.0.4 and Expat 2.8.5.
+All four generated launchers pass source-to-frozen catalog and instruction parity against the pinned client-only Core package.
+Synthetic loopback checks cover upload, cached reuse, exact reads, export hashes, detached jobs, restart recovery and destination-change refusal.
+Four active jobs are admitted per grant. Duplicate starts and a fifth job return retryable busy without creating another supervisor.
+Completing the existing jobs releases capacity. Each of the five admitted references produces exactly one POST.
+Settings tool discovery and missing-destination refusals also pass. Picker and consent are injected, not exercised natively.
+No plugins are installed or updated. Existing GitHub catalogs still select alpha.23, not this isolated candidate.
+Signing, notarization, licensing review, remote HTTPS and all four exact-host walkthroughs remain pending.
+
 ## Alpha.23 frozen checks, September 24, 2026
 
 The replacement worker SHA-256 is `db268d52f410c663b88616f2109e30f84806e80f5e407d56cff846d2d759615b`.

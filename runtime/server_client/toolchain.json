@@ -1,14 +1,14 @@
 {
   "provider": "astral-sh/python-build-standalone",
-  "release": "20260901",
+  "release": "20260924",
   "uv": "0.12.18",
-  "archive_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.11.16%2B20260901-aarch64-apple-darwin-install_only.tar.gz",
-  "archive_sha256": "50424fa409e8ae84b82a3052522f64695b47dff2158b70bb7358e0ebd6c085c9",
-  "full_archive_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.11.16%2B20260901-aarch64-apple-darwin-pgo%2Blto-full.tar.zst",
-  "full_archive_sha256": "19b8d2af1719e3fe8cd4edfa2e5030dab776233c05044f4348dbe3c0af7d1b2f",
+  "archive_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.11.16%2B20260924-aarch64-apple-darwin-install_only.tar.gz",
+  "archive_sha256": "d718e3c5c6f4b225ed25f88bf65e4c5d314e0dea0d716ea50bc9d038630c502b",
+  "full_archive_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.11.16%2B20260924-aarch64-apple-darwin-pgo%2Blto-full.tar.zst",
+  "full_archive_sha256": "219e31c5150fb8b4b1f9f6af6a0aa6052fca17646359d6cfbe0b36f64ca046ed",
   "python": "3.11.16",
   "openssl": "3.5.8",
   "tcl": "9.0.4",
   "tk": "9.0.4",
-  "expat": "2.8.4"
+  "expat": "2.8.5"
 }
