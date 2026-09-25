@@ -1,0 +1,24 @@
+{
+  "name": "openreading",
+  "version": "0.2.0-alpha.24",
+  "description": "Connect Codex to your OpenReading Core server. Native file selection, document tools and settings. No bundled parser or model download. Development candidate.",
+  "author": {
+    "name": "OpenReading"
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "OpenReading",
+    "shortDescription": "Document tools for your OpenReading Core server",
+    "longDescription": "Select files, process them through your configured Core server, and answer questions using retained results and exact evidence. Native settings control the destination and storage. No parser or models are bundled. Unsigned Apple Silicon development preview.",
+    "developerName": "OpenReading",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Open OpenReading to select and process documents."
+    ]
+  }
+}

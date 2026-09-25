@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0-alpha.24",
+  "profile": "core-server-client-v1",
+  "core_commit": "9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86",
+  "worker_sha256": "24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794",
+  "platform": "macos-arm64",
+  "distribution": "development-only",
+  "clients": {
+    "claude-code": {
+      "path": "plugins/claude-code/openreading",
+      "worker_sha256": "24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794",
+      "launcher_sha256": "d7980388c8bb0198908dd4e37c148d4daac7efcb0cafe3d323b51cc1188579c4"
+    },
+    "claude-desktop": {
+      "path": "plugins/claude-desktop/openreading-cowork",
+      "worker_sha256": "24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794",
+      "launcher_sha256": "68a35c5c93270821395a5d04d66d35d73f2d76ca4c09e671daa972596e87bfb0"
+    },
+    "codex": {
+      "path": "plugins/codex/openreading",
+      "worker_sha256": "24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794",
+      "launcher_sha256": "b8b0d87d72f428503047a0f9429377be681bba3c59929deef09a1d260e3a9993"
+    },
+    "chatgpt": {
+      "path": "plugins/chatgpt/openreading-chatgpt",
+      "worker_sha256": "24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794",
+      "launcher_sha256": "f6c7836318fcf52c021446e77713110dd9fcdc3680683771458f527a4ea5db95"
+    }
+  }
+}

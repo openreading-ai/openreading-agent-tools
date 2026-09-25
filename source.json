@@ -1,0 +1,19 @@
+{
+  "source_repository": "https://github.com/openreading-ai/openreading-agent-tools.git",
+  "runtime_source_commit": "4110af50edb34363f21a2270e49107712cdfd30b",
+  "runtime_source_pr": 13,
+  "package_inputs_commit": "a4c1700a9419fb23268ed09a73e810fbb9ba727d",
+  "source_object_format": "sha1",
+  "source_objects": {
+    "runtime": "2126c8fd3e5a45e9942556cb1cf0f73f234ca452",
+    "skills": "7aafda8a3ecfb3fb8331d6b4e21ed602adf82d15",
+    "clients": "ce33acc114f01a38901967991fdf5ebb4b7e3b14",
+    "assets": "0aa03a1a48ffeb59fb0f8be3ba02cbc43a3a9759",
+    "LICENSE": "581cf5ee9346df3f54aad81657f6f723cbaaac41",
+    "SECURITY.md": "438ac787a8f07294197617bc6a5259ed9e835321",
+    "CHANGELOG.md": "b55113a4cdfac1dd25aa563bf7f1b47dfb4db8d1"
+  },
+  "provenance": "Maintainer-recorded inputs, not independent build attestation. The worker is rebuilt from merged PR13. Package-input follow-up changes only installation and security documentation; runtime code, dependencies, manifests and skills match the merged source. This source commit is reviewed through the separate catalog PR.",
+  "toolchain": "plugins/codex/openreading/runtime/resources/toolchain.json",
+  "acceptance": "Public Apple Silicon preview for owner-run GitHub installation tests. Ad-hoc signed, not Developer ID signed or notarized. Exact-host native workflows, remote HTTPS and clean-machine acceptance remain pending. Not a supported release."
+}

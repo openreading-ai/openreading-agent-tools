@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0-alpha.24",
+  "runtime_source_commit": "4110af50edb34363f21a2270e49107712cdfd30b",
+  "core_commit": "9c6b8390cd341636aba8dd57c64fdb5ae0f9ad86",
+  "worker_sha256": "24b8f8cc9e21e1cd5086fb01a08c30fcf520402033a05e5d97c62081c5193794",
+  "platform": "macos-arm64",
+  "signature": "adhoc",
+  "developer_id_signed": false,
+  "notarized": false,
+  "offline_gate": {"runtime_tests": 424, "server_tests": 32, "node_tests": 55, "result": "passed"},
+  "dependency_audit": "No known advisories or adverse statuses in the audited locked profiles at build time; not blanket native-library clearance.",
+  "notice_review": "27 shipped Python package/bootloader notice sections reproduce from the implementation inventory. Pinned upstream interpreter/native license texts are included. Certifi's MPL notice/source reference and PyInstaller's bootloader exception are retained. Metadata-only dependencies are not claimed as shipped implementations.",
+  "frozen_checks": {
+    "clients": ["claude-code", "claude-desktop", "codex", "chatgpt"],
+    "catalog_and_instructions_match_core": "passed",
+    "unconfigured_refusal": "passed",
+    "synthetic_loopback_upload": "passed",
+    "cache_without_duplicate_post": "passed",
+    "search_and_exact_read": "passed",
+    "complete_export_hash": "passed",
+    "detached_jobs_and_restart_recovery": "passed",
+    "destination_change_refusal": "passed",
+    "settings_catalog": "passed",
+    "four_job_cap_duplicate_refusal_capacity_recovery": "passed",
+    "inventory_modes_ca_bundle_parser_exclusion": "passed",
+    "limitations": "Picker and consent are injected. Direct stdio and loopback tests are not host installation or native UI acceptance."
+  },
+  "pending": ["owner-run GitHub host installation and cross-version update", "native Settings and picker", "assistant answers and consent behavior", "valid remote HTTPS and invalid-certificate refusal", "clean-machine installation", "supported-release approval"]
+}

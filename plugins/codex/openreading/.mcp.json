@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "openreading": {
+      "command": "/bin/sh",
+      "args": [
+        "./launch.sh",
+        "--chat-documents"
+      ],
+      "cwd": "."
+    },
+    "openreading-settings": {
+      "command": "/bin/sh",
+      "args": [
+        "./launch.sh",
+        "--settings-tools"
+      ],
+      "cwd": "."
+    }
+  }
+}
